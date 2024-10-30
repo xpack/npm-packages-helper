@@ -1,0 +1,31 @@
+{
+  "name": "@xpack/node-modules-helper",
+  "version": "1.0.0",
+  "description": "Common scripts and templates used by xPack node modules",
+  "main": "",
+  "scripts": {
+    "npm-link": "npm link"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xpack/node-modules-helper.git"
+  },
+  "keywords": [
+    "xpack",
+    "scripts",
+    "templates"
+  ],
+  "author": {
+    "name": "Liviu Ionescu",
+    "email": "ilg@livius.net",
+    "url": "https://github.com/ilg-ul"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xpack/lnode-modules-helper/issues"
+  },
+  "homepage": "https://xpack.github.io/node-modules-helper/",
+  "dependencies": {},
+  "devDependencies": {},
+  "bundledDependencies": []
+}
