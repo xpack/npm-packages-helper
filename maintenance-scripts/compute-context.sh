@@ -6,12 +6,22 @@
 
 # https://trentm.com/json/
 export npm_package_scoped_name="$(json -f "${project_folder_path}/package.json" name)"
-export npm_package_scope="$(echo "${npm_package_scoped_name}" | sed -e 's|^@||' -e 's|/.*||' )"
+
+if echo "${npm_package_scoped_name}" | egrep -e '^@' >/dev/null
+then
+  export npm_package_scope="$(echo "${npm_package_scoped_name}" | sed -e 's|^@||' -e 's|/.*||' )"
+else
+  export npm_package_scope=""
+fi
+
 export npm_package_name="$(echo "${npm_package_scoped_name}" | sed -e 's|^@[a-zA-Z0-9-]*/||')"
 export npm_package_version="$(json -f "${project_folder_path}/package.json" version)"
 export npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
+export npm_package_homepage="$(json -f "${project_folder_path}/package.json" homepage)"
 
-export npm_version="$(echo "${npm_package_version}" | sed -e 's|[-].*||')"
+export base_url="/$(basename "${npm_package_homepage}")/"
+
+export release_version="$(echo "${npm_package_version}" | sed -e 's|[-].*||')"
 
 github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
 
@@ -19,6 +29,12 @@ export github_project_organization="$(echo "${github_full_name}" | sed -e 's|/.*
 export github_project_name="$(echo "${github_full_name}" | sed -e 's|.*/||')"
 
 export npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
+
+if [ -z "${npm_package_website_config}" ]
+then
+  echo "Missing websiteConfig"
+  exit 1
+fi
 
 export npm_package_engines_node_version="$(json -f "${project_folder_path}/package.json" engines.node | sed -e 's|[^0-9]*||')"
 export npm_package_engines_node_version_major="$(echo "${npm_package_engines_node_version}" | sed -e 's|[.].*||')"
@@ -33,13 +49,15 @@ export context=$(echo '{}' | json -o json-0 \
 -e "this.packageScope=\"${npm_package_scope}\"" \
 -e "this.packageName=\"${npm_package_name}\"" \
 -e "this.packageVersion=\"${npm_package_version}\"" \
--e "this.npmVersion=\"${npm_version}\"" \
+-e "this.releaseVersion=\"${release_version}\"" \
 -e "this.packageDescription=\"${npm_package_description}\"" \
 -e "this.githubProjectOrganization=\"${github_project_organization}\"" \
 -e "this.githubProjectName=\"${github_project_name}\"" \
 -e "this.packageEnginesNodeVersion=\"${npm_package_engines_node_version}\"" \
 -e "this.packageEnginesNodeVersionMajor=\"${npm_package_engines_node_version_major}\"" \
 -e "this.packageDependenciesTypescriptVersion=\"${npm_package_dependencies_typescript_version}\"" \
+-e "this.packageHomepage=\"${npm_package_homepage}\"" \
+-e "this.baseUrl=\"${base_url}\"" \
 -e "this.releaseDate=\"${release_date}\"" \
 -e "this.packageWebsiteConfig=${npm_package_website_config}" \
 )
