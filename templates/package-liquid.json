@@ -2,8 +2,8 @@
   "scripts": { {% if packageBuildConfig.isJavaScript != "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
     "compile": "tsc --build --verbose src",{% endif %}{% if packageBuildConfig.isJavaScript == "true" %}
-    "fix": "standard --fix lib tests"{% else %},
-    "fix": "ts-standard --fix src tests && standard esm"{% endif %},
+    "fix": "standard --fix lib tests",{% else %}
+    "fix": "ts-standard --fix src tests && standard esm",{% endif %}
     "dev-cycle": "npm run fix && npm run compile && npm run test-100-c8",
     "npm-install": "npm install",
     "npm-link": "npm link",
@@ -22,7 +22,7 @@
     "pretest-100-c8": "npm run lint",
     "tap": "tap --reporter=spec",
     "tap-c8": "c8 tap --reporter=spec",
-    "test-tap": "tap --disable-coverage --allow-empty-coverage",
+    "test-tap": "tap{% if packageBuildConfig.isJavaScript == "true" %} --disable-coverage --allow-empty-coverage{% endif %}",
     "test-tap-coverage": "tap --coverage",
     "test-tap-coverage-c8": "c8 -- tap",
     "test-tap-coverage-100": "tap --coverage --100",
@@ -62,24 +62,25 @@
     "del-cli": "^6.0.0",
     "json": "^11.0.0",
     "liquidjs": "^10.18.0",
-    "standard": "^17.1.2",
-    "tap": "^18.7.1"{% if packageBuildConfig.isJavaScript != "true" %},
+    "standard": "^17.1.2"{% if packageBuildConfig.isJavaScript != "true" %},
     "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
-    "typedoc": "^0.26.10",
+    "typedoc": "^0.26.11",
     "typescript": "^4.9.5"{% endif %}
   },
   "bundledDependencies": [],
   "tap": {
-    "files": [
-      "tests/tap/*.js",
-      "tests/tap/*.ts"
+    "files": [{% if packageBuildConfig.isJavaScript == "true" %}
+      "tests/tap/*.js"{% else %}
+      "tests/tap/*.ts"{% endif %}
     ],
     "node-arg": [{% if packageBuildConfig.isJavaScript != "true" %}
       "--loader=ts-node/esm"{% endif %}
     ],
-    "reporter": "tap-mocha-reporter",
+    "reporter": "{% if packageBuildConfig.isJavaScript == "true" %}tap-mocha-reporter{% else %}classic{% endif %}",
     "timeout": 30{% if packageBuildConfig.isJavaScript != "true" %},
+    "check-coverage": false,
+    "coverage": false,
     "ts": true{% endif %}
   },
   "eslintConfig": {
