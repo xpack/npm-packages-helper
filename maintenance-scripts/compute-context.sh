@@ -28,13 +28,6 @@ github_full_name="$(json -f "${project_folder_path}/package.json"  repository.ur
 export github_project_organization="$(echo "${github_full_name}" | sed -e 's|/.*||')"
 export github_project_name="$(echo "${github_full_name}" | sed -e 's|.*/||')"
 
-export npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
-
-if [ -z "${npm_package_website_config}" ]
-then
-  echo "Missing websiteConfig"
-  exit 1
-fi
 
 export npm_package_engines_node_version="$(json -f "${project_folder_path}/package.json" engines.node | sed -e 's|[^0-9]*||')"
 export npm_package_engines_node_version_major="$(echo "${npm_package_engines_node_version}" | sed -e 's|[.].*||')"
@@ -42,6 +35,20 @@ export npm_package_engines_node_version_major="$(echo "${npm_package_engines_nod
 export npm_package_dependencies_typescript_version="$(json -f "${project_folder_path}/package.json" devDependencies.typescript | sed -e 's|[^0-9]*||')"
 
 export release_date="$(date '+%Y-%m-%d %H:%M:%S %z')"
+
+# Web site configuration. Prefer the one in the dedicated folder to the top.
+if [ ! -z "${website_folder_path:-""}" ] && [ -f "${website_folder_path}/package.json" ]
+then
+  export npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
+else
+  export npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
+fi
+
+if [ -z "${npm_package_website_config}" ]
+then
+  echo "Missing websiteConfig"
+  exit 1
+fi
 
 # Edit the empty json and add properties one by one.
 export context=$(echo '{}' | json -o json-0 \

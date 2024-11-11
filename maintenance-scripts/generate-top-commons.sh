@@ -55,6 +55,13 @@ script_folder_name="$(basename "${script_folder_path}")"
 project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 helper_folder_path="$(dirname "${script_folder_path}")"
 
+if [ -d "${project_folder_path}/website" ]
+then
+  website_folder_path="${project_folder_path}/website"
+else
+  website_folder_path=""
+fi
+
 source "${script_folder_path}/compute-context.sh"
 
 tmp_script_file="$(mktemp -t script)"
