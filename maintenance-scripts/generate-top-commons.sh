@@ -94,6 +94,9 @@ echo "Copying other..."
 cp -v "${helper_folder_path}/templates/.gitignore" "${project_folder_path}"
 cp -v "${helper_folder_path}/templates/.npmignore" "${project_folder_path}"
 
+cp -v "${helper_folder_path}/templates/tsconfig.json" "${project_folder_path}"
+cp -v "${helper_folder_path}/templates/tsconfig-common.json" "${project_folder_path}"
+
 # -----------------------------------------------------------------------------
 
 rm -rf "${tmp_script_file}"
