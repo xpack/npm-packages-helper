@@ -84,9 +84,9 @@ echo
 echo "Generating workflows..."
 
 echo liquidjs -> "${project_folder_path}/.github/workflows/test-ci.yml"
-liquidjs --context "${context}" --template "@${helper_folder_path}/templates/test-ci-liquid.yml" --output "${project_folder_path}/.github/workflows/test-ci.yml"
+liquidjs --context "${context}" --template "@${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" --output "${project_folder_path}/.github/workflows/test-ci.yml"
 
-cp -v "${helper_folder_path}/templates/publish-github-pages.yml" "${project_folder_path}/.github/workflows"
+cp -v "${helper_folder_path}/templates/.github/workflows/publish-github-pages.yml" "${project_folder_path}/.github/workflows"
 
 echo
 echo "Copying other..."
