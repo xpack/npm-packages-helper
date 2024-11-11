@@ -68,17 +68,26 @@ tmp_script_file="$(mktemp -t script)"
 
 # -----------------------------------------------------------------------------
 
+function merge_json()
+{
+  from_file="$1" # liquid source
+  to_file="$2" # destination
+
+  liquidjs --context "${context}" --template "@${from_file}" --output "${tmp_script_file}"
+
+  # json -f "${tmp_script_file}"
+
+  # https://trentm.com/json
+  cat "${to_file}" "${tmp_script_file}" | json --deep-merge >"${to_file}.new"
+  rm "${to_file}"
+  mv -v "${to_file}.new" "${to_file}"
+}
+# -----------------------------------------------------------------------------
+
 echo
 echo "Generate top package.json..."
 
-liquidjs --context "${context}" --template "@${helper_folder_path}/templates/package-liquid.json" --output "${tmp_script_file}"
-
-# json -f "${tmp_script_file}"
-
-# https://trentm.com/json
-cat "${project_folder_path}/package.json" "${tmp_script_file}" | json --deep-merge >"${project_folder_path}/package-new.json"
-rm "${project_folder_path}/package.json"
-mv -v "${project_folder_path}/package-new.json" "${project_folder_path}/package.json"
+merge_json "${helper_folder_path}/templates/package-liquid.json" "${project_folder_path}/package.json"
 
 echo
 echo "Generating workflows..."
@@ -87,6 +96,11 @@ echo liquidjs -> "${project_folder_path}/.github/workflows/test-ci.yml"
 liquidjs --context "${context}" --template "@${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" --output "${project_folder_path}/.github/workflows/test-ci.yml"
 
 cp -v "${helper_folder_path}/templates/.github/workflows/publish-github-pages.yml" "${project_folder_path}/.github/workflows"
+
+# echo
+# echo "Generating tests package.json..."
+
+# merge_json "${helper_folder_path}/templates/tests/package-liquid.json" "${project_folder_path}/tests/package.json"
 
 echo
 echo "Copying other..."
