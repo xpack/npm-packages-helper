@@ -73,6 +73,8 @@ echo "Generate top package.json..."
 
 liquidjs --context "${context}" --template "@${helper_folder_path}/templates/package-liquid.json" --output "${tmp_script_file}"
 
+# json -f "${tmp_script_file}"
+
 # https://trentm.com/json
 cat "${project_folder_path}/package.json" "${tmp_script_file}" | json --deep-merge >"${project_folder_path}/package-new.json"
 rm "${project_folder_path}/package.json"

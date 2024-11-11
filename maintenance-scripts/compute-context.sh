@@ -36,6 +36,14 @@ export npm_package_dependencies_typescript_version="$(json -f "${project_folder_
 
 export release_date="$(date '+%Y-%m-%d %H:%M:%S %z')"
 
+# Build configuration, in the top. (perhaps move to build-assets?)
+npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
+if [ -z "${npm_package_build_config}" ]
+then
+  npm_package_build_config="{}"
+fi
+export npm_package_build_config
+
 # Web site configuration. Prefer the one in the dedicated folder to the top.
 if [ ! -z "${website_folder_path:-""}" ] && [ -f "${website_folder_path}/package.json" ]
 then
@@ -66,6 +74,7 @@ export context=$(echo '{}' | json -o json-0 \
 -e "this.packageHomepage=\"${npm_package_homepage}\"" \
 -e "this.baseUrl=\"${base_url}\"" \
 -e "this.releaseDate=\"${release_date}\"" \
+-e "this.packageBuildConfig=${npm_package_build_config}" \
 -e "this.packageWebsiteConfig=${npm_package_website_config}" \
 )
 
