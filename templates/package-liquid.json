@@ -6,6 +6,7 @@
     "fix": "ts-standard --fix src tests && standard esm",{% endif %}
     "dev-cycle": "npm run fix && npm run compile && npm run test-100-c8",
     "npm-install": "npm install",
+    "npm-link-helpers": "npm link @xpack/node-modules-helper @xpack/docusaurus-template-liquid",
     "npm-link": "npm link",
     "npm-outdated": "npm outdated",
     "npm-update": "npm update",
@@ -17,19 +18,11 @@
     "lint": "standard lib"{% else %},
     "lint": "ts-standard src && standard esm"{% endif %},
     "prepare": "npm run compile && npm run lint",
-    "pretest": "npm run lint",
-    "pretest-100": "npm run lint",
-    "pretest-100-c8": "npm run lint",
-    "tap": "tap --reporter=spec",
-    "tap-c8": "c8 tap --reporter=spec",
-    "test-tap": "tap{% if packageBuildConfig.isJavaScript == "true" %} --disable-coverage --allow-empty-coverage{% endif %}",
-    "test-tap-coverage": "tap --coverage",
-    "test-tap-coverage-c8": "c8 -- tap",
-    "test-tap-coverage-100": "tap --coverage --100",
-    "test-tap-coverage-100-c8": "c8 --100 -- tap",
-    "test": "npm run test-tap -s",
-    "test-100": "npm run test-tap-coverage-100 -s",
-    "test-100-c8": "npm run test-tap-coverage-100-c8 -s"{% if packageBuildConfig.isJavaScript == "true" %},
+    "pretest-coverage": "npm run lint",
+    "pretest-no-coverage": "npm run lint",
+    "test-coverage": "tap --show-full-coverage",
+    "test-no-coverage": "tap --disable-coverage",
+    "tap": "tap --reporter=tap"{% if packageBuildConfig.isJavaScript == "true" %},
     "compile": "echo nothing to compile"{% endif %},
     "prepublishOnly": "npm run lint && npm run test-tap -s",
     "postpublish": "git push origin --follow-tags",
@@ -57,12 +50,12 @@
   "dependencies": {},
   "devDependencies": { {% if packageBuildConfig.isJavaScript != "true" %}
     "@types/node": "^18.11.9",
-    "@types/tap": "^15.0.12",
-    "c8": "^7.13.0",{% endif %}
+    "@types/tap": "^15.0.12",{% endif %}
     "del-cli": "^6.0.0",
     "json": "^11.0.0",
     "liquidjs": "^10.18.0",
-    "standard": "^17.1.2"{% if packageBuildConfig.isJavaScript != "true" %},
+    "standard": "^17.1.2",
+    "tap": "^21.0.1"{% if packageBuildConfig.isJavaScript != "true" %},
     "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
     "typedoc": "^0.26.11",
@@ -74,14 +67,7 @@
       "tests/tap/*.js"{% else %}
       "tests/tap/*.ts"{% endif %}
     ],
-    "node-arg": [{% if packageBuildConfig.isJavaScript != "true" %}
-      "--loader=ts-node/esm"{% endif %}
-    ],
-    "reporter": "{% if packageBuildConfig.isJavaScript == "true" %}tap-mocha-reporter{% else %}classic{% endif %}",
-    "timeout": 30{% if packageBuildConfig.isJavaScript != "true" %},
-    "check-coverage": false,
-    "coverage": false,
-    "ts": true{% endif %}
+    "reporter": "base"
   },
   "eslintConfig": {
     "rules": {
