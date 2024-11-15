@@ -6,7 +6,7 @@ on:
   push:
     # ... on the website branch ...
     branches:
-      - 'website'
+      - '{% if packageConfig.isOrganizationWeb == 'true' %}master{% else %}website{% endif %}'
     # ... skip tags only ...
     tags-ignore:
       - '**'
@@ -39,7 +39,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: {% raw %}${{ steps.deployment.outputs.page_url }}{% endraw %}
     runs-on: ubuntu-latest
 
     steps:
