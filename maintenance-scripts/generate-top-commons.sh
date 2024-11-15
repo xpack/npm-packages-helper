@@ -49,6 +49,24 @@ script_folder_name="$(basename "${script_folder_path}")"
 
 # set -x
 
+do_init="false"
+
+while [ $# -gt 0 ]
+do
+  case "$1" in
+    --init )
+      do_init="true"
+      shift
+      ;;
+
+    * )
+      echo "Unsupported option $1"
+      shift
+  esac
+done
+
+# -----------------------------------------------------------------------------
+
 # The script is invoked via the following npm script:
 # "generate-commons": "bash node_modules/@xpack/node-modules-helper/scripts/generate-commons.sh"
 
@@ -77,25 +95,46 @@ function merge_json()
 
   # json -f "${tmp_script_file}"
 
+  mkdir -pv "$(dirname "${to_file}")"
+
   # https://trentm.com/json
   cat "${to_file}" "${tmp_script_file}" | json --deep-merge >"${to_file}.new"
   rm "${to_file}"
   mv -v "${to_file}.new" "${to_file}"
 }
+
+function substitute()
+{
+  from_file="$1" # liquid source
+  to_file="$2" # destination
+
+  mkdir -pv "$(dirname "${to_file}")"
+
+  echo liquidjs -> "${to_file}"
+  liquidjs --context "${context}" --template "@${from_file}" --output "${to_file}"
+}
+
 # -----------------------------------------------------------------------------
 
 echo
 echo "Generate top package.json..."
 
-merge_json "${helper_folder_path}/templates/package-liquid.json" "${project_folder_path}/package.json"
+if [ "${is_organization_web}" != "true" ]
+then
+  merge_json "${helper_folder_path}/templates/package-liquid.json" "${project_folder_path}/package.json"
+fi
 
 echo
 echo "Generating workflows..."
 
-echo liquidjs -> "${project_folder_path}/.github/workflows/test-ci.yml"
-liquidjs --context "${context}" --template "@${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" --output "${project_folder_path}/.github/workflows/test-ci.yml"
+mkdir -pv "${project_folder_path}/.github/workflows/"
 
-cp -v "${helper_folder_path}/templates/.github/workflows/publish-github-pages.yml" "${project_folder_path}/.github/workflows"
+if [ "${is_organization_web}" != "true" ]
+then
+  substitute "${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" "${project_folder_path}/.github/workflows/test-ci.yml"
+fi
+
+substitute "${helper_folder_path}/templates/.github/workflows/publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages.yml"
 
 # echo
 # echo "Generating tests package.json..."
@@ -106,10 +145,16 @@ echo
 echo "Copying other..."
 
 cp -v "${helper_folder_path}/templates/.gitignore" "${project_folder_path}"
-cp -v "${helper_folder_path}/templates/.npmignore" "${project_folder_path}"
 
-cp -v "${helper_folder_path}/templates/tsconfig.json" "${project_folder_path}"
-cp -v "${helper_folder_path}/templates/tsconfig-common.json" "${project_folder_path}"
+if [ "${is_organization_web}" != "true" ]
+then
+
+  cp -v "${helper_folder_path}/templates/.npmignore" "${project_folder_path}"
+
+  cp -v "${helper_folder_path}/templates/tsconfig.json" "${project_folder_path}"
+  cp -v "${helper_folder_path}/templates/tsconfig-common.json" "${project_folder_path}"
+
+fi
 
 # -----------------------------------------------------------------------------
 

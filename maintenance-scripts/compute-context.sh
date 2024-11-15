@@ -36,6 +36,18 @@ export npm_package_dependencies_typescript_version="$(json -f "${project_folder_
 
 export release_date="$(date '+%Y-%m-%d %H:%M:%S %z')"
 
+# Top configuration.
+npm_package_config="$(json -f "${project_folder_path}/package.json" -o json-0 config)"
+if [ -z "${npm_package_config}" ]
+then
+  npm_package_config="{}"
+  is_organization_web="false"
+else
+  is_organization_web="$(echo "${npm_package_config}" | json isOrganizationWeb)"
+fi
+export npm_package_config
+export is_organization_web
+
 # Build configuration, in the top. (perhaps move to build-assets?)
 npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
 if [ -z "${npm_package_build_config}" ]
@@ -47,16 +59,23 @@ export npm_package_build_config
 # Web site configuration. Prefer the one in the dedicated folder to the top.
 if [ ! -z "${website_folder_path:-""}" ] && [ -f "${website_folder_path}/package.json" ]
 then
-  export npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
+  npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
 else
-  export npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
+  npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
 fi
 
 if [ -z "${npm_package_website_config}" ]
 then
-  echo "Missing websiteConfig"
-  exit 1
+  if [ "${do_init}" == "true" ]
+  then
+    npm_package_website_config="{}"
+  else
+    echo "Missing websiteConfig"
+    exit 1
+  fi
 fi
+
+export npm_package_website_config
 
 # Edit the empty json and add properties one by one.
 export context=$(echo '{}' | json -o json-0 \
@@ -74,6 +93,7 @@ export context=$(echo '{}' | json -o json-0 \
 -e "this.packageHomepage=\"${npm_package_homepage}\"" \
 -e "this.baseUrl=\"${base_url}\"" \
 -e "this.releaseDate=\"${release_date}\"" \
+-e "this.packageConfig=${npm_package_config}" \
 -e "this.packageBuildConfig=${npm_package_build_config}" \
 -e "this.packageWebsiteConfig=${npm_package_website_config}" \
 )
