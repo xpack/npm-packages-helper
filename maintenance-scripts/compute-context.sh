@@ -35,6 +35,21 @@ github_full_name="$(json -f "${project_folder_path}/package.json"  repository.ur
 export github_project_organization="$(echo "${github_full_name}" | sed -e 's|/.*||')"
 export github_project_name="$(echo "${github_full_name}" | sed -e 's|.*/||')"
 
+if [[ ${github_project_name} == *-ts ]]
+then
+  is_typescript="true"
+else
+  is_typescript="false"
+fi
+export is_typescript
+
+if [[ ${github_project_name} == *-js ]]
+then
+  is_javascript="true"
+else
+  is_javascript="false"
+fi
+export is_javascript
 
 export npm_package_engines_node_version="$(json -f "${project_folder_path}/package.json" engines.node | sed -e 's|[^0-9]*||')"
 export npm_package_engines_node_version_major="$(echo "${npm_package_engines_node_version}" | sed -e 's|[.].*||')"
@@ -49,11 +64,14 @@ if [ -z "${npm_package_config}" ]
 then
   npm_package_config="{}"
   is_organization_web="false"
+  is_web_deploy_only="false"
 else
   is_organization_web="$(echo "${npm_package_config}" | json isOrganizationWeb)"
+  is_web_deploy_only="$(echo "${npm_package_config}" | json isWebDeployOnly)"
 fi
 export npm_package_config
 export is_organization_web
+export is_web_deploy_only
 
 # Build configuration, in the top. (perhaps move to build-assets?)
 npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
@@ -73,7 +91,7 @@ fi
 
 if [ -z "${npm_package_website_config}" ]
 then
-  if [ "${do_init}" == "true" ]
+  if [ "${do_init}" == "true" ] || [ "${is_web_deploy_only}" == "true" ]
   then
     npm_package_website_config="{}"
   else
@@ -94,6 +112,8 @@ export context=$(echo '{}' | json -o json-0 \
 -e "this.packageDescription=\"${npm_package_description}\"" \
 -e "this.githubProjectOrganization=\"${github_project_organization}\"" \
 -e "this.githubProjectName=\"${github_project_name}\"" \
+-e "this.isTypeScript=\"${is_typescript}\"" \
+-e "this.isJavaScript=\"${is_javascript}\"" \
 -e "this.packageEnginesNodeVersion=\"${npm_package_engines_node_version}\"" \
 -e "this.packageEnginesNodeVersionMajor=\"${npm_package_engines_node_version_major}\"" \
 -e "this.packageDependenciesTypescriptVersion=\"${npm_package_dependencies_typescript_version}\"" \
@@ -107,5 +127,5 @@ export context=$(echo '{}' | json -o json-0 \
 -e "this.packageWebsiteConfig=${npm_package_website_config}" \
 )
 
-echo -n "context="
+echo -n '"context": '
 echo "${context}" | json
