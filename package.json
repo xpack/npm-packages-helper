@@ -1,14 +1,14 @@
 {
-  "name": "@xpack/node-modules-helper",
+  "name": "@xpack/npm-packages-helper",
   "version": "1.0.0",
-  "description": "Common scripts and templates used by xPack node modules",
+  "description": "Common scripts and templates used by xPack node modules and web sites",
   "main": "",
   "scripts": {
     "npm-link": "npm link"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xpack/node-modules-helper.git"
+    "url": "git+https://github.com/xpack/npm-packages-helper.git"
   },
   "keywords": [
     "xpack",
@@ -22,10 +22,13 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/xpack/lnode-modules-helper/issues"
+    "url": "https://github.com/xpack/lnpm-packages-helper/issues"
   },
-  "homepage": "https://xpack.github.io/node-modules-helper/",
+  "homepage": "https://xpack.github.io/npm-packages-helper/",
   "dependencies": {},
   "devDependencies": {},
-  "bundledDependencies": []
+  "bundleDependencies": [],
+  "engines": {
+    "node": " >=18.0.0"
+  }
 }
