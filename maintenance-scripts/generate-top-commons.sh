@@ -117,7 +117,7 @@ function substitute()
 # -----------------------------------------------------------------------------
 
 echo
-echo "Generate top package.json..."
+echo "Generating top package.json..."
 
 if [ "${is_organization_web}" != "true" ]
 then
@@ -129,12 +129,24 @@ echo "Generating workflows..."
 
 mkdir -pv "${project_folder_path}/.github/workflows/"
 
-if [ "${is_organization_web}" != "true" ]
+if [ "${is_organization_web}" != "true" ] && [ "${is_web_deploy_only}" != "true" ]
 then
   substitute "${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" "${project_folder_path}/.github/workflows/test-ci.yml"
 fi
 
-substitute "${helper_folder_path}/templates/.github/workflows/publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages.yml"
+if [ "${is_web_deploy_only}" == "true" ]
+then
+  substitute "${helper_folder_path}/templates/.github/workflows/publish-github-pages-from-remote-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages-from-remote.yml"
+else
+  substitute "${helper_folder_path}/templates/.github/workflows/publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages.yml"
+fi
+
+if [ "${npm_package_homepage}" != "${npm_package_homepage_preview}" ]
+then
+  substitute "${helper_folder_path}/templates/.github/workflows/trigger-publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/trigger-publish-github-pages.yml"
+fi
+
+cp -v "${helper_folder_path}/templates/.github/FUNDING.yml" "${project_folder_path}/.github"
 
 # echo
 # echo "Generating tests package.json..."
@@ -151,8 +163,11 @@ then
 
   cp -v "${helper_folder_path}/templates/.npmignore" "${project_folder_path}"
 
-  cp -v "${helper_folder_path}/templates/tsconfig.json" "${project_folder_path}"
-  cp -v "${helper_folder_path}/templates/tsconfig-common.json" "${project_folder_path}"
+  if [ "${is_typescript}" == "true" ]
+  then
+    cp -v "${helper_folder_path}/templates/tsconfig.json" "${project_folder_path}"
+    cp -v "${helper_folder_path}/templates/tsconfig-common.json" "${project_folder_path}"
+  fi
 
 fi
 
