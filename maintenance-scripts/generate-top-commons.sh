@@ -110,7 +110,7 @@ function substitute()
 
   mkdir -pv "$(dirname "${to_file}")"
 
-  echo liquidjs -> "${to_file}"
+  echo "liquidjs -> ${to_file}"
   liquidjs --context "${context}" --template "@${from_file}" --output "${to_file}"
 }
 
