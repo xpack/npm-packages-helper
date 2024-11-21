@@ -1,12 +1,13 @@
 {
-  "scripts": { {% if packageBuildConfig.isJavaScript != "true" %}
+  "scripts": { {% if packageConfig.isWebDeployOnly != "true" %}{% if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
-    "compile": "tsc --build --verbose src",{% endif %}{% if packageBuildConfig.isJavaScript == "true" %}
-    "fix": "standard --fix lib tests",{% else %}
-    "fix": "ts-standard --fix src tests && standard esm",{% endif %}
-    "dev-cycle": "npm run fix && npm run compile && npm run test",
+    "compile": "tsc --build --verbose src",{% endif %}{% if isJavaScript == "true" %}
+    "fix": "standard --fix lib tests",
+    "dev-cycle": "npm run fix && npm run test",{% elsif isTypeScript == "true" %}
+    "fix": "ts-standard --fix src tests && standard esm",
+    "dev-cycle": "npm run fix && npm run compile && npm run test",{% endif %}
     "npm-install": "npm install",
-    "npm-link-helpers": "npm link @xpack/node-modules-helper @xpack/docusaurus-template-liquid",
+    "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
     "npm-link": "npm link",
     "npm-outdated": "npm outdated",
     "npm-update": "npm update",
@@ -14,24 +15,23 @@
     "npm-version-patch": "npm version patch",
     "npm-version-minor": "npm version minor",
     "postversion": "git push origin --all && git push origin --tags",
-    "git-log": "git log --pretty='%cd * %h %s' --date=short"{% if packageBuildConfig.isJavaScript == "true" %},
-    "lint": "standard lib"{% else %},
-    "lint": "ts-standard src && standard esm"{% endif %},
-    "prepare": "npm run compile && npm run lint",
+    "git-log": "git log --pretty='%cd * %h %s' --date=short",{% if isJavaScript == "true" %}
+    "lint": "standard lib",{% elsif isTypeScript == "true" %}
+    "lint": "ts-standard src && standard esm",{% endif %}{% if isJavaScript == "true" %}
+    "prepare": "npm run lint",{% elsif isTypeScript == "true" %}
+    "prepare": "npm run compile && npm run lint",{% endif %}
     "pretest-coverage": "npm run lint",
     "pretest-no-coverage": "npm run lint",
     "test-coverage": "tap --show-full-coverage",
     "test-no-coverage": "tap --disable-coverage",
-    "tap": "tap --reporter=tap"{% if packageBuildConfig.isJavaScript == "true" %},
-    "compile": "echo nothing to compile"{% endif %},
+    "tap": "tap --reporter=tap",
     "prepublishOnly": "npm run lint && npm run test",
     "postpublish": "git push origin --follow-tags",
     "clean": "del-cli cjs 'tests/**/cjs' 'src/**/*.d.ts' 'src/**/*.d.ts.map' 'src/**/*.js' 'src/**/*.js.map' 'tests/**/*.d.ts' 'tests/**/*.d.ts.map' 'tests/**/*.js' 'tests/**/*.js.map' '**/tsconfig.tsbuildinfo' .nyc_output coverage",
     "deep-clean": "npm run clean && rm -rf node_modules package-lock.json",
     "show-versions": "echo $(which node) $(node --version) && echo $(which npm) $(npm --version)",
-    "dumpconf": "env | sort | uniq",
-    "generate-top-commons": "bash node_modules/@xpack/node-modules-helper/maintenance-scripts/generate-top-commons.sh",
-    "create-website": "mkdir -p website && cd website && npm link @xpack/docusaurus-template-liquid @xpack/node-modules-helper && bash node_modules/@xpack/docusaurus-template-liquid/maintenance-scripts/generate-commons.sh"
+    "dumpconf": "env | sort | uniq",{% endif %}
+    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh"{% if packageConfig.isWebDeployOnly != "true" %}{% endif %}
   },
   "repository": {
     "type": "git",
@@ -46,25 +46,24 @@
   "bugs": {
     "url": "https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/issues"
   },
-  "homepage": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
   "dependencies": {},
-  "devDependencies": { {% if packageBuildConfig.isJavaScript != "true" %}
+  "devDependencies": { {% if isTypeScript == "true" %}
     "@types/node": "^18.11.9",
     "@types/tap": "^15.0.12",{% endif %}
     "del-cli": "^6.0.0",
     "json": "^11.0.0",
-    "liquidjs": "^10.18.0",
+    "liquidjs": "^10.18.0"{% if isJavaScript == "true" or isTypeScript == "true" %},
     "standard": "^17.1.2",
-    "tap": "^21.0.1"{% if packageBuildConfig.isJavaScript != "true" %},
+    "tap": "^21.0.1"{% endif %}{% if isTypeScript == "true" %},
     "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
     "typedoc": "^0.26.11",
     "typescript": "^4.9.5"{% endif %}
   },
-  "bundledDependencies": [],
+  "bundleDependencies": [] {% if isJavaScript == "true" or isTypeScript == "true" %},
   "tap": {
-    "files": [{% if packageBuildConfig.isJavaScript == "true" %}
-      "tests/tap/*.js"{% else %}
+    "files": [{% if isJavaScript == "true" %}
+      "tests/tap/*.js"{% elsif isTypeScript == "true" %}
       "tests/tap/*.ts"{% endif %}
     ],
     "reporter": "base"
@@ -79,19 +78,19 @@
         }
       ]
     }
-  } {% if packageBuildConfig.isJavaScript == "true" %},
+  } {% if isJavaScript == "true" %},
   "standard": {
     "ignore": [
       "/website/"
     ]
-  } {% else %},
+  } {% elsif isTypeScript == "true" %},
   "ts-standard": {
     "ignore": [
       "/website/",
       "**/*.d.ts",
       "**/*.js"
     ]
-  } {% endif %},
+  } {% endif %}{% endif %},
   "engines": {
     "node": " >=18.0.0"
   }
