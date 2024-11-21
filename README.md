@@ -15,7 +15,6 @@ Common scripts and templates used by xPack node modules and web sites.
   - public
   - README
   - .gitignore Node
-  - license MIT
 - edit Settings
   - disable Wikis
   - enable Sponsorship
@@ -34,13 +33,23 @@ Common scripts and templates used by xPack node modules and web sites.
 npm init --yes
 ```
 
+Update license MIT, Copyright (c) 2024 Liviu Ionescu. All rights reserved.
+
 ## Update `package.json`
 
 - remove `.git` from name
-- add properties to `package.json`
+- check version; possibly make it "0.0.0" for packages not published to npmjs
+- add properties to `package.json` (from `repository` on); replace XYZ
 
 ```json
 {
+  "name": "XYZ",
+  "version": "0.0.0",
+  "description": "Preview for the new xpm web; to be renamed as xpm",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xpack/XYZ.git"
@@ -61,20 +70,22 @@ npm init --yes
   "dependencies": {},
   "devDependencies": {},
   "bundleDependencies": [],
+  "config": {},
   "engines": {
     "node": " >=18.0.0"
   }
 }
 ```
 
-For CLI projects, update homepage:
+For CLI project which have a preview site, update homepage.
+Not for web deploy only.
 
 ```json
   "homepage": "https://xpack.github.io/XYZ-preview/",
   "homepagePreview": "https://xpack.github.io/XYZ-cli-ts/",
 ```
 
-## Top dependencies
+### Top dependencies
 
 Install `json` and `liquidjs`:
 
@@ -82,13 +93,13 @@ Install `json` and `liquidjs`:
 npm install json liquidjs --save-dev
 ```
 
-Link the local helper project:
+Link the local helper & template projects:
 
 ```sh
 npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid
 ```
 
-## Top custom configurations
+### Top custom configurations
 
 For the top web project, add to top `package.json`:
 
@@ -102,35 +113,41 @@ For Web deployment only projects, add
 
 ```json
   "config": {
-    "isWebOnly": "true",
+    "isWebDeployOnly": "true",
     "websiteRepo": "xpack/xcdl-cli-ts"
   }
 ```
 
-## Top scripts
+### Top scripts
 
-Add two scripts to top `package.json` (remove dummy `test`):
+Add two scripts to top `package.json` (remove dummy `test`).
+
+For Web deployment only projects, the second is not necessary.
 
 ```json
     "generate-top-commons-init": "bash -x node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init",
     "create-website-init": "bash -x node_modules/@xpack/docusaurus-template-liquid/maintenance-scripts/generate-commons.sh --init"
 ```
 
-For Web deployment  only projects, the second is not necessary.
-
-Run them:
+Run them. For Web deployment only projects, the second is not necessary.
 
 ```sh
 npm run generate-top-commons-init
 npm run create-website-init
 ```
 
+Run the new `generate-top-commons` script.
+
+When no longer needed:
+
+- remove script `generate-top-commons-init`
+
 ## Website custom configurations
 
 Add `websiteConfig` to `website/package.json`, after `engines`;
 see the `README` file in `docusaurus-template-liquid.git` for details.
 
-## Run actions once
+### Run actions once
 
 In `website`:
 
@@ -140,7 +157,7 @@ npm run link-deps
 npm run generate-website-commons
 ```
 
-## Example
+### Example
 
 ```sh
 "context": {
@@ -186,8 +203,7 @@ npm run generate-website-commons
 }
 ```
 
-
-### Cleanups
+## Cleanups
 
 When no longer needed:
 
