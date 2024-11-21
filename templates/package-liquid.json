@@ -59,8 +59,7 @@
     "ts-standard": "^12.0.2",
     "typedoc": "^0.26.11",
     "typescript": "^4.9.5"{% endif %}
-  },
-  "bundleDependencies": [] {% if isJavaScript == "true" or isTypeScript == "true" %},
+  }{% if isJavaScript == "true" or isTypeScript == "true" %},
   "tap": {
     "files": [{% if isJavaScript == "true" %}
       "tests/tap/*.js"{% elsif isTypeScript == "true" %}
