@@ -18,8 +18,15 @@ export npm_package_name="$(echo "${npm_package_scoped_name}" | sed -e 's|^@[a-zA
 export npm_package_version="$(json -f "${project_folder_path}/package.json" version)"
 export npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
 export npm_package_homepage="$(json -f "${project_folder_path}/package.json" homepage)"
+npm_package_homepage_preview="$(json -f "${project_folder_path}/package.json" homepagePreview)"
+if [ -z "${npm_package_homepage_preview}" ]
+then
+  npm_package_homepage_preview="${npm_package_homepage}"
+fi
+export npm_package_homepage_preview
 
 export base_url="/$(basename "${npm_package_homepage}")/"
+export base_url_preview="/$(basename "${npm_package_homepage_preview}")/"
 
 export release_version="$(echo "${npm_package_version}" | sed -e 's|[-].*||')"
 
@@ -92,6 +99,8 @@ export context=$(echo '{}' | json -o json-0 \
 -e "this.packageDependenciesTypescriptVersion=\"${npm_package_dependencies_typescript_version}\"" \
 -e "this.packageHomepage=\"${npm_package_homepage}\"" \
 -e "this.baseUrl=\"${base_url}\"" \
+-e "this.packageHomepagePreview=\"${npm_package_homepage_preview}\"" \
+-e "this.baseUrlPreview=\"${base_url_preview}\"" \
 -e "this.releaseDate=\"${release_date}\"" \
 -e "this.packageConfig=${npm_package_config}" \
 -e "this.packageBuildConfig=${npm_package_build_config}" \
