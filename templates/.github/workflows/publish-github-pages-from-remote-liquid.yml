@@ -9,18 +9,13 @@ on:
   push:
     # ... on the website branch ...
     branches:
-      - '{% if packageConfig.isOrganizationWeb == 'true' %}master{% else %}{% if packageHomepagePreview != packageHomepage %}webpreview{% else %}website{% endif %}{% endif %}'
+      - 'master'
     # ... skip tags only ...
     tags-ignore:
       - '**'
     # ... any of these files changes ...
     paths:
-      - 'website/**'
-      - 'typedoc.json'
-      - '**/tsconfig*.json'
-      - 'src/**/*.ts'
-      - 'README.md'
-      - '.github/workflows/publish-github-pages.yml'
+      - '.github/workflows/publish-github-pages-from-remote.yml'
       - 'package.json'
 
   # Allows you to run this workflow manually from the Actions tab
@@ -50,6 +45,8 @@ jobs:
         # https://github.com/actions/checkout
         uses: actions/checkout@v4
         with:
+          repository: '{{packageConfig.websiteRepo}}'
+          ref: 'website'
           # The full history, required to compute lastUpdatedAt
           fetch-depth: 0
 
@@ -62,9 +59,9 @@ jobs:
       - name: Install dependencies
         run: npm --prefix website install
 
-      - name: Build the Docusaurus site{% if packageHomepage != packageHomepagePreview %}
+      - name: Build the Docusaurus site
         env:
-          DOCUSAURUS_IS_PREVIEW: 'true'{% endif %}
+          DOCUSAURUS_BASEURL: '{{baseUrl}}'
         run: npm --prefix website run build
 
       - name: Setup Pages
