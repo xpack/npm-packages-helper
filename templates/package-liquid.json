@@ -1,5 +1,5 @@
 {
-  "scripts": { {% if packageConfig.isWebDeployOnly != "true" %}{% if isTypeScript == "true" %}
+  "scripts": { {% if packageConfig.isWebDeployOnly != "true" and packageConfig.isOrganizationWeb != "true" %}{% if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
     "compile": "tsc --build --verbose src",{% endif %}{% if isJavaScript == "true" %}
     "fix": "standard --fix lib tests",
@@ -31,7 +31,7 @@
     "deep-clean": "npm run clean && rm -rf node_modules package-lock.json",
     "show-versions": "echo $(which node) $(node --version) && echo $(which npm) $(npm --version)",
     "dumpconf": "env | sort | uniq",{% endif %}
-    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh"{% if packageConfig.isWebDeployOnly != "true" %}{% endif %}
+    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh"
   },
   "repository": {
     "type": "git",
