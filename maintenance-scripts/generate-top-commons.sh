@@ -68,7 +68,7 @@ done
 # -----------------------------------------------------------------------------
 
 # The script is invoked via the following npm script:
-# "generate-commons": "bash node_modules/@xpack/node-modules-helper/scripts/generate-commons.sh"
+# "generate-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-commons.sh"
 
 project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 helper_folder_path="$(dirname "${script_folder_path}")"
@@ -119,7 +119,7 @@ function substitute()
 echo
 echo "Generating top package.json..."
 
-if [ "${is_organization_web}" != "true" ]
+if true # [ "${is_organization_web}" != "true" ]
 then
   merge_json "${helper_folder_path}/templates/package-liquid.json" "${project_folder_path}/package.json"
 fi

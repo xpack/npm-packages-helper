@@ -102,6 +102,9 @@ fi
 
 export npm_package_website_config
 
+export website_config_short_name="$(echo "${npm_package_website_config}" | json shortName)"
+export website_config_long_name="$(echo "${npm_package_website_config}" | json longName)"
+
 # Edit the empty json and add properties one by one.
 export context=$(echo '{}' | json -o json-0 \
 -e "this.packageScopedName=\"${npm_package_scoped_name}\"" \
