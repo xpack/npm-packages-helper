@@ -19,12 +19,12 @@
     "lint": "standard lib",{% elsif isTypeScript == "true" %}
     "lint": "ts-standard src && standard esm",{% endif %}{% if isJavaScript == "true" %}
     "prepare": "npm run lint",{% elsif isTypeScript == "true" %}
-    "prepare": "npm run compile && npm run lint",{% endif %}
+    "prepare": "npm run compile && npm run lint",{% endif %}{% if skipTests != "true" %}
     "pretest-coverage": "npm run lint",
     "pretest-no-coverage": "npm run lint",
     "test-coverage": "tap --show-full-coverage",
     "test-no-coverage": "tap --disable-coverage",
-    "tap": "tap --reporter=tap",
+    "tap": "tap --reporter=tap",{% endif %}
     "prepublishOnly": "npm run lint && npm run test",
     "postpublish": "git push origin --follow-tags",
     "clean": "del-cli cjs 'tests/**/cjs' 'src/**/*.d.ts' 'src/**/*.d.ts.map' 'src/**/*.js' 'src/**/*.js.map' 'tests/**/*.d.ts' 'tests/**/*.d.ts.map' 'tests/**/*.js' 'tests/**/*.js.map' '**/tsconfig.tsbuildinfo' .nyc_output coverage",
