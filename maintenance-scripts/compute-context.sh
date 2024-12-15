@@ -65,13 +65,16 @@ then
   npm_package_config="{}"
   is_organization_web="false"
   is_web_deploy_only="false"
+  skip_tests="false"
 else
   is_organization_web="$(echo "${npm_package_config}" | json isOrganizationWeb)"
   is_web_deploy_only="$(echo "${npm_package_config}" | json isWebDeployOnly)"
+  skip_tests="$(echo "${npm_package_config}" | json skipTests)"
 fi
 export npm_package_config
 export is_organization_web
 export is_web_deploy_only
+export skip_tests
 
 # Build configuration, in the top. (perhaps move to build-assets?)
 npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
@@ -100,6 +103,9 @@ then
   fi
 fi
 
+skip_install_command="$(echo "${npm_package_website_config}" | json skipInstallCommand)"
+export skip_install_command
+
 export npm_package_website_config
 
 export website_config_short_name="$(echo "${npm_package_website_config}" | json shortName)"
@@ -117,6 +123,7 @@ export context=$(echo '{}' | json -o json-0 \
 -e "this.githubProjectName=\"${github_project_name}\"" \
 -e "this.isTypeScript=\"${is_typescript}\"" \
 -e "this.isJavaScript=\"${is_javascript}\"" \
+-e "this.skipTests=\"${skip_tests}\"" \
 -e "this.packageEnginesNodeVersion=\"${npm_package_engines_node_version}\"" \
 -e "this.packageEnginesNodeVersionMajor=\"${npm_package_engines_node_version_major}\"" \
 -e "this.packageDependenciesTypescriptVersion=\"${npm_package_dependencies_typescript_version}\"" \
