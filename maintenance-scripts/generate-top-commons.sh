@@ -129,7 +129,7 @@ echo "Generating workflows..."
 
 mkdir -pv "${project_folder_path}/.github/workflows/"
 
-if [ "${is_organization_web}" != "true" ] && [ "${is_web_deploy_only}" != "true" ]
+if [ "${is_organization_web}" != "true" ] && [ "${is_web_deploy_only}" != "true" ] && [ "${skip_tests}" != "true" ]
 then
   substitute "${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" "${project_folder_path}/.github/workflows/test-ci.yml"
 fi
