@@ -119,17 +119,14 @@ function substitute()
 echo
 echo "Generating top package.json..."
 
-if true # [ "${is_organization_web}" != "true" ]
-then
-  merge_json "${helper_folder_path}/templates/package-liquid.json" "${project_folder_path}/package.json"
-fi
+merge_json "${helper_folder_path}/templates/package-liquid.json" "${project_folder_path}/package.json"
 
 echo
 echo "Generating workflows..."
 
 mkdir -pv "${project_folder_path}/.github/workflows/"
 
-if [ "${is_organization_web}" != "true" ] && [ "${is_web_deploy_only}" != "true" ] && [ "${skip_tests}" != "true" ]
+if [ "${is_web_deploy_only}" != "true" ] && [ "${skip_tests}" != "true" ]
 then
   substitute "${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" "${project_folder_path}/.github/workflows/test-ci.yml"
 fi
@@ -158,7 +155,7 @@ echo "Copying other..."
 
 cp -v "${helper_folder_path}/templates/.gitignore" "${project_folder_path}"
 
-if [ "${is_organization_web}" != "true" ]
+if [ "${is_not_npm_module}" != "true" ]
 then
 
   cp -v "${helper_folder_path}/templates/.npmignore" "${project_folder_path}"
