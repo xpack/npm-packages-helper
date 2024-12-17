@@ -9,7 +9,7 @@ on:
   push:
     # ... on the website branch ...
     branches:
-      - '{% if packageConfig.isOrganizationWeb == 'true' %}master{% else %}website{% endif %}'
+      - '{{websiteBranch}}'
     # ... skip tags only ...
     tags-ignore:
       - '**'
