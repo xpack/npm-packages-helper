@@ -1,5 +1,5 @@
 {
-  "scripts": { {% if packageConfig.isWebDeployOnly != "true" and packageConfig.isOrganizationWeb != "true" %}{% if isTypeScript == "true" %}
+  "scripts": { {% if packageConfig.isWebDeployOnly != "true" and packageConfig.isNotNpmModule != "true" %}{% if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
     "compile": "tsc --build --verbose src",{% endif %}{% if isJavaScript == "true" %}
     "fix": "standard --fix lib tests",
