@@ -118,11 +118,10 @@ then
   fi
 fi
 
-skip_install_command="$(echo "${npm_package_website_config}" | json skipInstallCommand)"
-export skip_install_command
-
-export npm_package_website_config
-
+export has_metadata_minimum="$(echo "${npm_package_website_config}" | json hasMetadataMinimum)"
+export has_cli="$(echo "${npm_package_website_config}" | json hasCli)"
+export has_policies="$(echo "${npm_package_website_config}" | json hasPolicies)"
+export skip_install_command="$(echo "${npm_package_website_config}" | json skipInstallCommand)"
 export website_config_short_name="$(echo "${npm_package_website_config}" | json shortName)"
 export website_config_long_name="$(echo "${npm_package_website_config}" | json longName)"
 
@@ -155,3 +154,7 @@ export context=$(echo '{}' | json -o json-0 \
 
 echo -n '"context": '
 echo "${context}" | json
+
+echo
+env | sort
+echo
