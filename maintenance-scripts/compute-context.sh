@@ -122,6 +122,7 @@ export has_metadata_minimum="$(echo "${npm_package_website_config}" | json hasMe
 export has_cli="$(echo "${npm_package_website_config}" | json hasCli)"
 export has_policies="$(echo "${npm_package_website_config}" | json hasPolicies)"
 export skip_install_command="$(echo "${npm_package_website_config}" | json skipInstallCommand)"
+export skip_contributor_guide="$(echo "${npm_package_website_config}" | json skipContributorGuide)"
 export website_config_short_name="$(echo "${npm_package_website_config}" | json shortName)"
 export website_config_long_name="$(echo "${npm_package_website_config}" | json longName)"
 
