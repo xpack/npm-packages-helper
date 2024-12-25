@@ -25,9 +25,6 @@ then
 fi
 export npm_package_homepage_preview
 
-export base_url="/$(basename "${npm_package_homepage}")/"
-export base_url_preview="/$(basename "${npm_package_homepage_preview}")/"
-
 export release_version="$(echo "${npm_package_version}" | sed -e 's|[-].*||')"
 
 github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
@@ -125,6 +122,16 @@ export skip_install_command="$(echo "${npm_package_website_config}" | json skipI
 export skip_contributor_guide="$(echo "${npm_package_website_config}" | json skipContributorGuide)"
 export website_config_short_name="$(echo "${npm_package_website_config}" | json shortName)"
 export website_config_long_name="$(echo "${npm_package_website_config}" | json longName)"
+
+base_url="/$(basename "${npm_package_homepage}")/"
+base_url_preview="/$(basename "${npm_package_homepage_preview}")/"
+if [ "${is_organization_web}" == "true" ]
+then
+  base_url="/"
+  base_url_preview="/"
+fi
+export base_url
+export base_url_preview
 
 # Edit the empty json and add properties one by one.
 export context=$(echo '{}' | json -o json-0 \
