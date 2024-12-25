@@ -5,12 +5,12 @@
     "fix": "standard --fix lib tests",
     "dev-cycle": "npm run fix && npm run test",{% elsif isTypeScript == "true" %}
     "fix": "ts-standard --fix src tests && standard esm",
-    "dev-cycle": "npm run fix && npm run compile && npm run test",{% endif %}
+    "dev-cycle": "npm run fix && npm run compile && npm run test",{% endif %}{% endif %}
     "npm-install": "npm install",
     "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
     "npm-link": "npm link",
     "npm-outdated": "npm outdated",
-    "npm-update": "npm update",
+    "npm-update": "npm update",{% if packageConfig.isWebDeployOnly != "true" and packageConfig.isNotNpmModule != "true" %}
     "npm-pack": "npm pack",
     "npm-version-patch": "npm version patch",
     "npm-version-minor": "npm version minor",
@@ -52,7 +52,7 @@
     "@types/tap": "^15.0.12",{% endif %}
     "del-cli": "^6.0.0",
     "json": "^11.0.0",
-    "liquidjs": "^10.18.0"{% if isJavaScript == "true" or isTypeScript == "true" %},
+    "liquidjs": "^10.19.1"{% if isJavaScript == "true" or isTypeScript == "true" %},
     "standard": "^17.1.2",
     "tap": "^21.0.1"{% endif %}{% if isTypeScript == "true" %},
     "ts-node": "^10.9.2",
