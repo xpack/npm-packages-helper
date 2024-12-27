@@ -91,7 +91,7 @@ function merge_json()
   from_file="$1" # liquid source
   to_file="$2" # destination
 
-  liquidjs --context "${context}" --template "@${from_file}" --output "${tmp_script_file}"
+  liquidjs --context "${xpack_context}" --template "@${from_file}" --output "${tmp_script_file}"
 
   # json -f "${tmp_script_file}"
 
@@ -111,7 +111,7 @@ function substitute()
   mkdir -pv "$(dirname "${to_file}")"
 
   echo "liquidjs -> ${to_file}"
-  liquidjs --context "${context}" --template "@${from_file}" --output "${to_file}"
+  liquidjs --context "${xpack_context}" --template "@${from_file}" --output "${to_file}"
 }
 
 # -----------------------------------------------------------------------------
@@ -126,19 +126,19 @@ echo "Generating workflows..."
 
 mkdir -pv "${project_folder_path}/.github/workflows/"
 
-if [ "${is_web_deploy_only}" != "true" ] && [ "${skip_tests}" != "true" ]
+if [ "${xpack_is_web_deploy_only}" != "true" ] && [ "${xpack_skip_tests}" != "true" ]
 then
   substitute "${helper_folder_path}/templates/.github/workflows/test-ci-liquid.yml" "${project_folder_path}/.github/workflows/test-ci.yml"
 fi
 
-if [ "${is_web_deploy_only}" == "true" ]
+if [ "${xpack_is_web_deploy_only}" == "true" ]
 then
   substitute "${helper_folder_path}/templates/.github/workflows/publish-github-pages-from-remote-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages-from-remote.yml"
 else
   substitute "${helper_folder_path}/templates/.github/workflows/publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages.yml"
 fi
 
-if [ "${npm_package_homepage}" != "${npm_package_homepage_preview}" ]
+if [ "${xpack_npm_package_homepage}" != "${xpack_npm_package_homepage_preview}" ]
 then
   substitute "${helper_folder_path}/templates/.github/workflows/trigger-publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/trigger-publish-github-pages.yml"
 fi
@@ -155,12 +155,12 @@ echo "Copying other..."
 
 cp -v "${helper_folder_path}/templates/.gitignore" "${project_folder_path}"
 
-if [ "${is_not_npm_module}" != "true" ]
+if [ "${xpack_is_not_npm_module}" != "true" ]
 then
 
   cp -v "${helper_folder_path}/templates/.npmignore" "${project_folder_path}"
 
-  if [ "${is_typescript}" == "true" ]
+  if [ "${xpack_is_typescript}" == "true" ]
   then
     cp -v "${helper_folder_path}/templates/tsconfig.json" "${project_folder_path}"
     cp -v "${helper_folder_path}/templates/tsconfig-common.json" "${project_folder_path}"

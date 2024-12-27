@@ -1,168 +1,172 @@
 # Included in generate-common.sh & co.
 # Requires project_folder_path.
-# Sets context and a lot of other variables.
+# Sets xpack_context and a lot of other variables.
 
 # set -x
 
 # https://trentm.com/json/
-export npm_package_scoped_name="$(json -f "${project_folder_path}/package.json" name)"
+export xpack_npm_package_scoped_name="$(json -f "${project_folder_path}/package.json" name)"
 
-if echo "${npm_package_scoped_name}" | egrep -e '^@' >/dev/null
+if echo "${xpack_npm_package_scoped_name}" | egrep -e '^@' >/dev/null
 then
-  export npm_package_scope="$(echo "${npm_package_scoped_name}" | sed -e 's|^@||' -e 's|/.*||' )"
+  export xpack_npm_package_scope="$(echo "${xpack_npm_package_scoped_name}" | sed -e 's|^@||' -e 's|/.*||' )"
 else
-  export npm_package_scope=""
+  export xpack_npm_package_scope=""
 fi
 
-export npm_package_name="$(echo "${npm_package_scoped_name}" | sed -e 's|^@[a-zA-Z0-9-]*/||')"
-export npm_package_version="$(json -f "${project_folder_path}/package.json" version)"
-export npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
-export npm_package_homepage="$(json -f "${project_folder_path}/package.json" homepage)"
-npm_package_homepage_preview="$(json -f "${project_folder_path}/package.json" homepagePreview)"
-if [ -z "${npm_package_homepage_preview}" ]
+export xpack_npm_package_name="$(echo "${xpack_npm_package_scoped_name}" | sed -e 's|^@[a-zA-Z0-9-]*/||')"
+export xpack_npm_package_version="$(json -f "${project_folder_path}/package.json" version)"
+export xpack_npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
+export xpack_npm_package_homepage="$(json -f "${project_folder_path}/package.json" homepage)"
+xpack_npm_package_homepage_preview="$(json -f "${project_folder_path}/package.json" homepagePreview)"
+if [ -z "${xpack_npm_package_homepage_preview}" ]
 then
-  npm_package_homepage_preview="${npm_package_homepage}"
+  xpack_npm_package_homepage_preview="${xpack_npm_package_homepage}"
 fi
-export npm_package_homepage_preview
+export xpack_npm_package_homepage_preview
 
-export release_version="$(echo "${npm_package_version}" | sed -e 's|[-].*||')"
+export xpack_release_version="$(echo "${xpack_npm_package_version}" | sed -e 's|[-].*||')"
 
-github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
+xpack_github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
 
-export github_project_organization="$(echo "${github_full_name}" | sed -e 's|/.*||')"
-export github_project_name="$(echo "${github_full_name}" | sed -e 's|.*/||')"
+export xpack_github_project_organization="$(echo "${xpack_github_full_name}" | sed -e 's|/.*||')"
+export xpack_github_project_name="$(echo "${xpack_github_full_name}" | sed -e 's|.*/||')"
 
-if [[ ${github_project_name} == *-ts ]]
+if [[ ${xpack_github_project_name} == *-ts ]]
 then
-  is_typescript="true"
+  xpack_is_typescript="true"
 else
-  is_typescript="false"
+  xpack_is_typescript="false"
 fi
-export is_typescript
+export xpack_is_typescript
 
-if [[ ${github_project_name} == *-js ]]
+if [[ ${xpack_github_project_name} == *-js ]]
 then
-  is_javascript="true"
+  xpack_is_javascript="true"
 else
-  is_javascript="false"
+  xpack_is_javascript="false"
 fi
-export is_javascript
+export xpack_is_javascript
 
-export npm_package_engines_node_version="$(json -f "${project_folder_path}/package.json" engines.node | sed -e 's|[^0-9]*||')"
-export npm_package_engines_node_version_major="$(echo "${npm_package_engines_node_version}" | sed -e 's|[.].*||')"
+export xpack_npm_package_engines_node_version="$(json -f "${project_folder_path}/package.json" engines.node | sed -e 's|[^0-9]*||')"
+export xpack_npm_package_engines_node_version_major="$(echo "${xpack_npm_package_engines_node_version}" | sed -e 's|[.].*||')"
 
-export npm_package_dependencies_typescript_version="$(json -f "${project_folder_path}/package.json" devDependencies.typescript | sed -e 's|[^0-9]*||')"
+export xpack_npm_package_dependencies_typescript_version="$(json -f "${project_folder_path}/package.json" devDependencies.typescript | sed -e 's|[^0-9]*||')"
 
-export release_date="$(date '+%Y-%m-%d %H:%M:%S %z')"
+export xpack_release_date="$(date '+%Y-%m-%d %H:%M:%S %z')"
 
 # Top configuration.
-npm_package_config="$(json -f "${project_folder_path}/package.json" -o json-0 config)"
-if [ -z "${npm_package_config}" ]
+xpack_npm_package_config="$(json -f "${project_folder_path}/package.json" -o json-0 config)"
+if [ -z "${xpack_npm_package_config}" ]
 then
-  npm_package_config="{}"
-  is_organization_web="false"
-  is_web_deploy_only="false"
-  skip_tests="false"
-  is_not_npm_module="false"
+  xpack_npm_package_config="{}"
+  xpack_is_organization_web="false"
+  xpack_is_web_deploy_only="false"
+  xpack_skip_tests="false"
+  xpack_is_not_npm_module="false"
 else
-  is_organization_web="$(echo "${npm_package_config}" | json isOrganizationWeb)"
-  is_web_deploy_only="$(echo "${npm_package_config}" | json isWebDeployOnly)"
-  skip_tests="$(echo "${npm_package_config}" | json skipTests)"
-  is_not_npm_module="$(echo "${npm_package_config}" | json isNotNpmModule)"
+  xpack_is_organization_web="$(echo "${xpack_npm_package_config}" | json isOrganizationWeb)"
+  xpack_is_web_deploy_only="$(echo "${xpack_npm_package_config}" | json isWebDeployOnly)"
+  xpack_skip_tests="$(echo "${xpack_npm_package_config}" | json skipTests)"
+  xpack_is_not_npm_module="$(echo "${xpack_npm_package_config}" | json isNotNpmModule)"
 fi
-export npm_package_config
-export is_organization_web
-export is_web_deploy_only
-export skip_tests
-export is_not_npm_module
+export xpack_npm_package_config
+export xpack_is_organization_web
+export xpack_is_web_deploy_only
+export xpack_skip_tests
+export xpack_is_not_npm_module
 
 if (git branch | grep website) >/dev/null
 then
-  website_branch="website"
+  xpack_website_branch="website"
 elif (git branch | grep master) >/dev/null
 then
-  website_branch="master"
+  xpack_website_branch="master"
 else
   echo "Branch?"
   exit 1
 fi
-export website_branch
+export xpack_website_branch
 
 # Build configuration, in the top. (perhaps move to build-assets?)
-npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
-if [ -z "${npm_package_build_config}" ]
+xpack_npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
+if [ -z "${xpack_npm_package_build_config}" ]
 then
-  npm_package_build_config="{}"
+  xpack_npm_package_build_config="{}"
 fi
-export npm_package_build_config
+export xpack_npm_package_build_config
 
 # Web site configuration. Prefer the one in the dedicated folder to the top.
 if [ ! -z "${website_folder_path:-""}" ] && [ -f "${website_folder_path}/package.json" ]
 then
-  npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
+  xpack_npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
 else
-  npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
+  xpack_npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
 fi
 
-if [ -z "${npm_package_website_config}" ]
+if [ -z "${xpack_npm_package_website_config}" ]
 then
-  if [ "${do_init}" == "true" ] || [ "${is_web_deploy_only}" == "true" ]
+  if [ "${do_init}" == "true" ] || [ "${xpack_is_web_deploy_only}" == "true" ]
   then
-    npm_package_website_config="{}"
+    xpack_npm_package_website_config="{}"
   else
     echo "Missing websiteConfig"
     exit 1
   fi
 fi
 
-export has_metadata_minimum="$(echo "${npm_package_website_config}" | json hasMetadataMinimum)"
-export has_cli="$(echo "${npm_package_website_config}" | json hasCli)"
-export has_policies="$(echo "${npm_package_website_config}" | json hasPolicies)"
-export skip_install_command="$(echo "${npm_package_website_config}" | json skipInstallCommand)"
-export skip_contributor_guide="$(echo "${npm_package_website_config}" | json skipContributorGuide)"
-export website_config_short_name="$(echo "${npm_package_website_config}" | json shortName)"
-export website_config_long_name="$(echo "${npm_package_website_config}" | json longName)"
+export xpack_has_metadata_minimum="$(echo "${xpack_npm_package_website_config}" | json hasMetadataMinimum)"
+export xpack_has_custom_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasCustomHomepageFeatures)"
+export xpack_has_top_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasTopHomepageFeatures)"
+export xpack_has_cli="$(echo "${xpack_npm_package_website_config}" | json hasCli)"
+export xpack_has_policies="$(echo "${xpack_npm_package_website_config}" | json hasPolicies)"
+export xpack_skip_install_command="$(echo "${xpack_npm_package_website_config}" | json skipInstallCommand)"
+export xpack_skip_contributor_guide="$(echo "${xpack_npm_package_website_config}" | json skipContributorGuide)"
+export xpack_website_config_short_name="$(echo "${xpack_npm_package_website_config}" | json shortName)"
+export xpack_website_config_long_name="$(echo "${xpack_npm_package_website_config}" | json longName)"
 
-base_url="/$(basename "${npm_package_homepage}")/"
-base_url_preview="/$(basename "${npm_package_homepage_preview}")/"
-if [ "${is_organization_web}" == "true" ]
+xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
+xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
+if [ "${xpack_is_organization_web}" == "true" ]
 then
-  base_url="/"
-  base_url_preview="/"
+  xpack_base_url="/"
+  xpack_base_url_preview="/"
 fi
-export base_url
-export base_url_preview
+export xpack_base_url
+export xpack_base_url_preview
 
 # Edit the empty json and add properties one by one.
-export context=$(echo '{}' | json -o json-0 \
--e "this.packageScopedName=\"${npm_package_scoped_name}\"" \
--e "this.packageScope=\"${npm_package_scope}\"" \
--e "this.packageName=\"${npm_package_name}\"" \
--e "this.packageVersion=\"${npm_package_version}\"" \
--e "this.releaseVersion=\"${release_version}\"" \
--e "this.packageDescription=\"${npm_package_description}\"" \
--e "this.githubProjectOrganization=\"${github_project_organization}\"" \
--e "this.githubProjectName=\"${github_project_name}\"" \
--e "this.isTypeScript=\"${is_typescript}\"" \
--e "this.isJavaScript=\"${is_javascript}\"" \
--e "this.skipTests=\"${skip_tests}\"" \
--e "this.websiteBranch=\"${website_branch}\"" \
--e "this.packageEnginesNodeVersion=\"${npm_package_engines_node_version}\"" \
--e "this.packageEnginesNodeVersionMajor=\"${npm_package_engines_node_version_major}\"" \
--e "this.packageDependenciesTypescriptVersion=\"${npm_package_dependencies_typescript_version}\"" \
--e "this.packageHomepage=\"${npm_package_homepage}\"" \
--e "this.baseUrl=\"${base_url}\"" \
--e "this.packageHomepagePreview=\"${npm_package_homepage_preview}\"" \
--e "this.baseUrlPreview=\"${base_url_preview}\"" \
--e "this.releaseDate=\"${release_date}\"" \
--e "this.packageConfig=${npm_package_config}" \
--e "this.packageBuildConfig=${npm_package_build_config}" \
--e "this.packageWebsiteConfig=${npm_package_website_config}" \
+export xpack_context=$(echo '{}' | json -o json-0 \
+-e "this.packageScopedName=\"${xpack_npm_package_scoped_name}\"" \
+-e "this.packageScope=\"${xpack_npm_package_scope}\"" \
+-e "this.packageName=\"${xpack_npm_package_name}\"" \
+-e "this.packageVersion=\"${xpack_npm_package_version}\"" \
+-e "this.releaseVersion=\"${xpack_release_version}\"" \
+-e "this.packageDescription=\"${xpack_npm_package_description}\"" \
+-e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
+-e "this.githubProjectName=\"${xpack_github_project_name}\"" \
+-e "this.isTypeScript=\"${xpack_is_typescript}\"" \
+-e "this.isJavaScript=\"${xpack_is_javascript}\"" \
+-e "this.skipTests=\"${xpack_skip_tests}\"" \
+-e "this.websiteBranch=\"${xpack_website_branch}\"" \
+-e "this.packageEnginesNodeVersion=\"${xpack_npm_package_engines_node_version}\"" \
+-e "this.packageEnginesNodeVersionMajor=\"${xpack_npm_package_engines_node_version_major}\"" \
+-e "this.packageDependenciesTypescriptVersion=\"${xpack_npm_package_dependencies_typescript_version}\"" \
+-e "this.packageHomepage=\"${xpack_npm_package_homepage}\"" \
+-e "this.baseUrl=\"${xpack_base_url}\"" \
+-e "this.packageHomepagePreview=\"${xpack_npm_package_homepage_preview}\"" \
+-e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
+-e "this.releaseDate=\"${xpack_release_date}\"" \
+-e "this.packageConfig=${xpack_npm_package_config}" \
+-e "this.packageBuildConfig=${xpack_npm_package_build_config}" \
+-e "this.packageWebsiteConfig=${xpack_npm_package_website_config}" \
 )
 
-echo -n '"context": '
-echo "${context}" | json
+echo -n '"xpack_context": '
+echo "${xpack_context}" | json
 
 echo
-env | sort
+echo "environment: "
+env | grep 'xpack_' | sort
+
 echo
