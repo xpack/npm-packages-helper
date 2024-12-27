@@ -160,7 +160,7 @@ npm run generate-website-commons
 ### Example
 
 ```sh
-"context": {
+"xpack_context": {
   "packageScopedName": "xcdl",
   "packageScope": "",
   "packageName": "xcdl",
