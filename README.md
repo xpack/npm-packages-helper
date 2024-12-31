@@ -125,7 +125,7 @@ Add two scripts to top `package.json` (remove dummy `test`).
 For Web deployment only projects, the second is not necessary.
 
 ```json
-    "generate-top-commons-init": "bash -x node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init",
+    "generate-top-commons-init": "bash -x node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --xpack",
     "create-website-init": "bash -x node_modules/@xpack/docusaurus-template-liquid/maintenance-scripts/generate-commons.sh --init"
 ```
 
