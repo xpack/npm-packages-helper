@@ -30,7 +30,7 @@ export xpack_release_version="$(echo "${xpack_npm_package_version}" | sed -e 's|
 xpack_github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
 
 export xpack_github_project_organization="$(echo "${xpack_github_full_name}" | sed -e 's|/.*||')"
-export xpack_github_project_name="$(echo "${xpack_github_full_name}" | sed -e 's|.*/||')"
+export xpack_github_project_name="$(echo "${xpack_github_full_name}" | sed -e 's|/$||' -e 's|.git$||' -e 's|.*/||')"
 
 if [[ ${xpack_github_project_name} == *-ts ]]
 then
@@ -167,6 +167,6 @@ echo "${xpack_context}" | json
 
 echo
 echo "environment: "
-env | grep 'xpack_' | sort
+env | egrep '^xpack_' | sort
 
 echo

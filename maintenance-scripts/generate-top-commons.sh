@@ -82,11 +82,22 @@ export is_xpack_dev_tools
 
 # -----------------------------------------------------------------------------
 
-# The script is invoked via the following npm script:
-# "generate-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-commons.sh"
-
-project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 helper_folder_path="$(dirname "${script_folder_path}")"
+
+if [ "${is_xpack}" == "true" ]
+then
+  # The script is invoked via the following top npm script:
+  # "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-top-commons.sh"
+  project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
+elif [ "${is_xpack_dev_tools}" == "true" ]
+then
+  # The script is invoked via the following build-scripts xpm action:
+  # "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-top-commons.sh"
+  project_folder_path="$(dirname $(dirname $(dirname $(dirname $(dirname "${script_folder_path}")))))"
+else
+  echo "Unsupported configuration..."
+  exit 1
+fi
 
 if [ -d "${project_folder_path}/website" ]
 then
@@ -94,6 +105,7 @@ then
 else
   website_folder_path=""
 fi
+
 
 export project_folder_path
 export helper_folder_path
@@ -210,12 +222,9 @@ then
 
   fi
 
-elif [ "${is_xpack}" == "true" ]
+elif [ "${is_xpack_dev_tools}" == "true" ]
 then
-  :
-else
-  echo "Unsupported configuration..."
-  exit 1
+  echo "not yet..."
 fi
 
 # -----------------------------------------------------------------------------
