@@ -50,8 +50,10 @@ script_folder_name="$(basename "${script_folder_path}")"
 # set -x
 
 do_init="false"
+do_dry_run="false"
 is_xpack="false"
 is_xpack_dev_tools="false"
+prefix=""
 
 while [ $# -gt 0 ]
 do
@@ -61,13 +63,20 @@ do
       shift
       ;;
 
+    --dry-run )
+      do_dry_run="true"
+      shift
+      ;;
+
     --xpack )
       is_xpack="true"
+      prefix="_xpack"
       shift
       ;;
 
     --xpack-dev-tools )
       is_xpack_dev_tools="true"
+      prefix="_xpack-dev-tools"
       shift
       ;;
 
@@ -77,8 +86,11 @@ do
   esac
 done
 
+export do_init
+export do_dry_run
 export is_xpack
 export is_xpack_dev_tools
+export prefix
 
 # -----------------------------------------------------------------------------
 
@@ -106,14 +118,33 @@ else
   website_folder_path=""
 fi
 
-
 export project_folder_path
 export helper_folder_path
 export website_folder_path
 
+# Process package.json files and leave results in environment variables.
 source "${script_folder_path}/compute-context.sh"
 
-tmp_file="$(mktemp -t top_commons.XXXXX)"
+# -----------------------------------------------------------------------------
+
+if [ "${do_dry_run}" == "true" ]
+then
+  echo
+  echo "Dry run!"
+  echo
+fi
+
+# Script passed to find | xargs to process template files.
+tmp_script_file="$(mktemp -t script.XXXXX)"
+
+# Note: __EOF__ is quoted to prevent substitutions.
+cat <<'__EOF__' >"${tmp_script_file}"
+
+set -o errexit # Exit if command failed.
+set -o pipefail # Exit if pipe failed.
+set -o nounset # Exit if variable not set.
+
+tmp_file_path="$(mktemp -t top_commons.XXXXX)"
 
 # xargs stops only for exit code 255.
 function trap_handler()
@@ -125,111 +156,233 @@ function trap_handler()
   local exit_code="$1"
   shift
 
-  echo "FAIL ${message}, line: ${line_number}, exit: ${exit_code}"
+  echo "FAIL ${message} line: ${line_number} exit: ${exit_code}"
 
-  rm -rf "${tmp_file}"
-
+  rm -rfv "${tmp_file_path}"
   exit 255
-}
-
-# Used to enforce an exit code of 255, required by xargs.
-trap 'trap_handler ${script_name} $LINENO $?; return 255' ERR
-
-# -----------------------------------------------------------------------------
-
-function merge_json()
-{
-  from_file="$1" # liquid source
-  to_file="$2" # destination
-
-  liquidjs --context "${xpack_context}" --template "@${from_file}" --output "${tmp_file}"
-
-  # json -f "${tmp_file}"
-
-  mkdir -pv "$(dirname "${to_file}")"
-
-  # https://trentm.com/json
-  cat "${to_file}" "${tmp_file}" | json --deep-merge >"${to_file}.new"
-  rm "${to_file}"
-  mv -v "${to_file}.new" "${to_file}"
 }
 
 function substitute()
 {
-  from_file="$1" # liquid source
-  to_file="$2" # destination
+  local from_relative_file_path="$1" # liquid source
+  local to_relative_file_path="$2" # destination
+  # $3 - destination absolute folder path
 
-  mkdir -pv "$(dirname "${to_file}")"
+  local to_absolute_file_path="${3}/${to_relative_file_path}"
 
-  echo "liquidjs -> ${to_file}"
-  liquidjs --context "${xpack_context}" --template "@${from_file}" --output "${to_file}"
+  echo "liquidjs -> ${to_relative_file_path}"
+
+  if [ "${do_dry_run}" != "true" ]
+  then
+    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${to_absolute_file_path}.new"
+
+    rm -f "${to_absolute_file_path}"
+    mv "${to_absolute_file_path}.new" "${to_absolute_file_path}"
+  fi
+}
+
+function substitute_and_merge()
+{
+  local from_relative_file_path="$1" # liquid source
+  local to_absolute_file_path="$2" # destination
+  # $3 - destination absolute folder path
+
+  local to_absolute_file_path="${3}/${to_relative_file_path}"
+
+  echo "liquidjs | merge -> ${to_relative_file_path}"
+
+  if [ "${do_dry_run}" != "true" ]
+  then
+    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${tmp_file_path}"
+
+    # json -f "${tmp_file_path}"
+
+    # https://trentm.com/json
+    cat "${to_absolute_file_path}" "${tmp_file_path}" | json --deep-merge >"${to_absolute_file_path}.new"
+
+    rm -f "${to_absolute_file_path}"
+    mv "${to_absolute_file_path}.new" "${to_absolute_file_path}"
+  fi
 }
 
 # -----------------------------------------------------------------------------
 
-if [ "${is_xpack}" == "true" ]
+# Runs in the source folder.
+# $1 = relative file path to source
+# $2 = absolute folder path to destination
+
+# echo $@
+# set -x
+
+# The source file path.
+from_relative_file_path="$(echo "${1}" | sed -e 's|^\.\/||')"
+
+file_prefix="$(echo "${from_relative_file_path}" | sed -e 's|/.*||')"
+if [ "${file_prefix}" == "_xpack" ] ||
+   [ "${file_prefix}" == "_xpack-dev-tools" ]
 then
-
-  echo
-  echo "Generating top package.json..."
-
-  merge_json "${helper_folder_path}/templates/_xpack/package-liquid.json" "${project_folder_path}/package.json"
-
-  echo
-  echo "Generating workflows..."
-
-  mkdir -pv "${project_folder_path}/.github/workflows/"
-
-  if [ "${xpack_is_web_deploy_only}" != "true" ] && [ "${xpack_skip_tests}" != "true" ]
+  if [ "${file_prefix}" != "${prefix}" ]
   then
-    substitute "${helper_folder_path}/templates/_xpack/.github/workflows/test-ci-liquid.yml" "${project_folder_path}/.github/workflows/test-ci.yml"
+    exit 0
   fi
 
-  if [ "${xpack_is_web_deploy_only}" == "true" ]
-  then
-    substitute "${helper_folder_path}/templates/_xpack/.github/workflows/publish-github-pages-from-remote-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages-from-remote.yml"
-  else
-    substitute "${helper_folder_path}/templates/_xpack/.github/workflows/publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/publish-github-pages.yml"
-  fi
+  to_relative_file_path="$(echo "${from_relative_file_path}" | sed -e 's|^_xpack/||' -e 's|^_xpack-dev-tools/||' -e 's|-merge-liquid||' -e 's|-liquid||')"
+else
+  to_relative_file_path="$(echo "${from_relative_file_path}" | sed -e 's|-merge-liquid||' -e 's|-liquid||')"
+fi
 
-  if [ "${xpack_npm_package_homepage}" != "${xpack_npm_package_homepage_preview}" ]
-  then
-    substitute "${helper_folder_path}/templates/_xpack/.github/workflows/trigger-publish-github-pages-liquid.yml" "${project_folder_path}/.github/workflows/trigger-publish-github-pages.yml"
-  fi
+# The destination file path.
+to_absolute_file_path="${2}/${to_relative_file_path}"
 
-  cp -v "${helper_folder_path}/templates/_xpack/.github/FUNDING.yml" "${project_folder_path}/.github"
+# Used to enforce an exit code of 255, required by xargs.
+trap 'trap_handler ${from_relative_file_path} $LINENO $?; return 255' ERR
 
-  # echo
-  # echo "Generating tests package.json..."
+# -----------------------------------------------------------------------------
 
-  # merge_json "${helper_folder_path}/templates/_xpack/tests/package-liquid.json" "${project_folder_path}/tests/package.json"
-
-  echo
-  echo "Copying other..."
-
-  cp -v "${helper_folder_path}/templates/_xpack/.gitignore" "${project_folder_path}"
-
-  if [ "${xpack_is_not_npm_module}" != "true" ]
-  then
-
-    cp -v "${helper_folder_path}/templates/_xpack/.npmignore" "${project_folder_path}"
-
-    if [ "${xpack_is_typescript}" == "true" ]
-    then
-      cp -v "${helper_folder_path}/templates/_xpack/tsconfig.json" "${project_folder_path}"
-      cp -v "${helper_folder_path}/templates/_xpack/tsconfig-common.json" "${project_folder_path}"
-    fi
-
-  fi
-
-elif [ "${is_xpack_dev_tools}" == "true" ]
+# Superfluous, `find -type f` should not allow this.
+if [ ! -f "${from_relative_file_path}" ]
 then
-  echo "not yet..."
+  echo "${from_relative_file_path} not a file"
+  exit 1
+fi
+
+if [ "$(basename "${from_relative_file_path}")" == ".DS_Store" ]
+then
+  echo "${from_relative_file_path} ignored" # Skip macOS specifics.
+  exit 0
 fi
 
 # -----------------------------------------------------------------------------
 
-rm -rf "${tmp_file}"
+# Destination relative file paths to skip.
+skip_pages_array=()
+
+if [ "${is_xpack}" == "true" ]
+then
+  :
+elif [ "${is_xpack_dev_tools}" == "true" ]
+then
+  :
+fi
+
+if [ "${xpack_is_typescript}" != "true" ]
+then
+  skip_pages_array+=(\
+    "tsconfig-common.json" \
+    "tsconfig.json" \
+  )
+fi
+
+if [ "${xpack_skip_tests}" == "true" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/test-ci.yml" \
+  )
+fi
+
+if [ "${xpack_is_web_deploy_only}" != "true" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/publish-github-pages-from-remote.yml" \
+  )
+fi
+
+if [ "${xpack_has_trigger_publish}" != "true" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/trigger-publish-github-pages.yml" \
+  )
+fi
+
+if [ "${xpack_has_trigger_publish_preview}" != "true" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/trigger-publish-github-pages-preview.yml" \
+  )
+fi
+
+if [ "${xpack_is_not_npm_module}" == "true" ]
+then
+  skip_pages_array+=(\
+    ".npmignore" \
+  )
+fi
+
+set +o nounset # Do not exit if variable not set.
+
+# echo "skip_pages_array=${skip_pages_array[@]}"
+# echo "to_relative_path=${to_relative_path}"
+
+if [[ ${skip_pages_array[@]} =~ "${to_relative_file_path}" ]]
+then
+  echo "skipped: ${from_relative_file_path}"
+  rm -f "${tmp_file_path}"
+  exit 0
+fi
+
+set -o nounset # Exit if variable not set.
+
+# -----------------------------------------------------------------------------
+
+if [ -f "${to_absolute_file_path}" ]
+then
+  # Be sure destination is writeable.
+  chmod -f +w "${to_absolute_file_path}"
+fi
+
+# -----------------------------------------------------------------------------
+
+mkdir -p "$(dirname ${to_absolute_file_path})"
+
+if [[ "$(basename "${from_relative_file_path}")" =~ .*-merge-liquid.* ]]
+then
+  substitute_and_merge "${from_relative_file_path}" "${to_relative_file_path}" "${2}"
+elif [[ "$(basename "${from_relative_file_path}")" =~ .*-liquid.* ]]
+then
+  substitute "${from_relative_file_path}" "${to_relative_file_path}"  "${2}"
+else
+  echo "cp -> ${to_relative_file_path}"
+  if [ "${do_dry_run}" != "true" ]
+  then
+    cp "${from_relative_file_path}" "${to_absolute_file_path}"
+  fi
+fi
+
+if [ "${do_dry_run}" != "true" ]
+then
+  # Except package.json which may need frequent updates,
+  # make everything else read only.
+  if [ "$(basename "${to_absolute_file_path}")" != "package.json" ]
+  then
+    chmod -w "${to_absolute_file_path}"
+  fi
+else
+  if [ ! -f "${to_absolute_file_path}" ]
+  then
+    echo ">>>> ${to_relative_file_path} not present >>>>"
+  fi
+fi
+
+rm -rf "${tmp_file_path}"
+exit 0
+
+__EOF__
+
+# -----------------------------------------------------------------------------
+
+cd "${helper_folder_path}/templates"
+
+echo
+echo "Processing templates from $(pwd)..."
+echo
+
+# Main pass to copy/generate common files.
+find . -type f -print0 | sort -zn | \
+  xargs -0 -I '{}' bash "${tmp_script_file}" '{}' "${project_folder_path}"
+
+# -----------------------------------------------------------------------------
+
+rm -rf "${tmp_script_file}"
 
 echo
 echo "${script_name} done"

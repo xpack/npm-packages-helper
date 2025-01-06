@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: '{{packageConfig.websiteRepo}}'
-          ref: 'website'
+          ref: '{{packageConfig.websiteRepoBranch}}'
           # The full history, required to compute lastUpdatedAt
           fetch-depth: 0
 
@@ -61,7 +61,8 @@ jobs:
 
       - name: Build the Docusaurus site
         env:
-          DOCUSAURUS_BASEURL: '{{baseUrl}}'
+          DOCUSAURUS_BASEURL: '{{baseUrl}}'{% if packageConfig.isWebPreview == "true" %}
+          DOCUSAURUS_IS_PREVIEW: 'true'{% endif %}
         run: cd website && npm run build
 
       - name: Setup Pages

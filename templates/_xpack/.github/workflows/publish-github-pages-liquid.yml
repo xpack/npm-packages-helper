@@ -9,7 +9,7 @@ on:
   push:
     # ... on the website branch ...
     branches:
-      - '{% if packageHomepagePreview != packageHomepage %}webpreview{% else %}{{websiteBranch}}{% endif %}'
+      - '{{websiteBranch}}'
     # ... skip tags only ...
     tags-ignore:
       - '**'
@@ -62,7 +62,7 @@ jobs:
       - name: Install dependencies
         run: cd website && npm install
 
-      - name: Build the Docusaurus site{% if packageHomepage != packageHomepagePreview %}
+      - name: Build the Docusaurus site{% if packageConfig.isWebPreview == "true" %}
         env:
           DOCUSAURUS_IS_PREVIEW: 'true'{% endif %}
         run: cd website && npm run build

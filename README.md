@@ -104,8 +104,13 @@ npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid
 For the top web project, add to top `package.json`:
 
 ```json
-  "buildConfig": {
-    "isOrganizationWeb": "true"
+  "homepagePreview": ".../web-preview/",
+  ...
+  "config": {
+    "isOrganizationWeb": "true",
+    "isNotNpmModule": "true",
+    "skipTests": "true",
+    "hasTriggerPublishPreview": "true"
   }
 ```
 
@@ -159,46 +164,57 @@ npm run generate-website-commons
 
 ### Example
 
+The top `xpack.github.io` project:
+
 ```sh
 "xpack_context": {
-  "packageScopedName": "xcdl",
+  "packageScopedName": "xpack.github.io",
   "packageScope": "",
-  "packageName": "xcdl",
-  "packageVersion": "2.0.0-pre",
-  "releaseVersion": "2.0.0",
-  "packageDescription": "The xPack Component Manager command line tool",
+  "packageName": "xpack.github.io",
+  "packageVersion": "0.0.0",
+  "releaseVersion": "0.0.0",
+  "packageDescription": "The website for the xPack project",
   "githubProjectOrganization": "xpack",
-  "githubProjectName": "xcdl-cli-ts",
-  "isTypeScript": "true",
+  "githubProjectName": "xpack.github.io",
+  "isTypeScript": "false",
   "isJavaScript": "false",
+  "skipTests": "true",
+  "hasBranchMaster": "true",
+  "hasBranchDevelopment": "true",
+  "hasBranchWebsite": "false",
+  "hasBranchWebpreview": "false",
+  "websiteBranch": "master",
+  "websiteBranchPreview": "development",
   "packageEnginesNodeVersion": "18.0.0",
   "packageEnginesNodeVersionMajor": "18",
-  "packageDependenciesTypescriptVersion": "4.9.5",
-  "packageHomepage": "https://xpack.github.io/xcdl-preview/",
-  "baseUrl": "/xcdl-preview/",
-  "packageHomepagePreview": "https://xpack.github.io/xcdl-cli-ts/",
-  "baseUrlPreview": "/xcdl-cli-ts/",
-  "releaseDate": "2024-11-19 21:20:02 +0200",
-  "packageConfig": {},
-  "packageBuildConfig": {
-    "greeting": "The xPack components manager command line tool",
-    "isTypeScript": "true"
+  "packageDependenciesTypescriptVersion": "",
+  "packageHomepage": "https://xpack.github.io/",
+  "baseUrl": "/",
+  "packageHomepagePreview": "https://xpack.github.io/web-preview/",
+  "baseUrlPreview": "/web-preview/",
+  "releaseDate": "2025-01-06 21:19:55 +0200",
+  "packageConfig": {
+    "isOrganizationWeb": "true",
+    "isNotNpmModule": "true",
+    "skipTests": "true",
+    "hasTriggerPublishPreview": "true"
   },
+  "packageBuildConfig": {},
   "packageWebsiteConfig": {
-    "shortName": "xcdl",
-    "longName": "xPack Component Manager",
-    "title": "xcdl - The xPack Component Manager",
-    "tagline": "A tool to manage component configurations, inspired by eCos (work in progress)",
-    "metadataDescription": "The xPack Component Manager command line tool",
-    "metadataKeywords": "xcdl, xpack, components, manager, cli, cdl, ecos",
-    "hasCli": "true",
-    "hasApi": "true",
-    "isInstallGlobally": "true",
-    "shareOnTwitter": "true",
-    "hasTopHomepageFeatures": "true",
-    "hasCustomUserSidebar": "true",
-    "hasCustomUserInformation": "true",
-    "nodeVersion": "18.20.4"
+    "longName": "xPack Project",
+    "title": "The xPack Reproducible Build Framework",
+    "tagline": "Tools to manage, configure and build complex, package based, multi-target projects, in a reproducible way",
+    "metadataDescription": "The xPack Framework",
+    "metadataKeywords": "xpack, project, manage, build, test, dependencies, xpm, npm, reproducibility",
+    "nodeVersion": "18.20.4",
+    "hasCustomSidebar": "true",
+    "hasCustomDocsNavbarItem": "true",
+    "hasCustomDeveloper": "true",
+    "hasCustomGettingStarted": "true",
+    "hasCustomMaintainer": "true",
+    "hasCustomAbout": "true",
+    "skipInstallCommand": "true",
+    "hasCustomHomepageFeatures": "true"
   }
 }
 ```
