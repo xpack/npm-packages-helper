@@ -104,22 +104,22 @@ npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid
 For the top web project, add to top `package.json`:
 
 ```json
+  "version": "0.0.0",
   "homepagePreview": ".../web-preview/",
   ...
   "config": {
     "isOrganizationWeb": "true",
-    "isNotNpmModule": "true",
-    "skipTests": "true",
-    "hasTriggerPublishPreview": "true"
+    "hasTriggerPublishPreview": "true",
+    "hasEmptyMaster": "true"
   }
 ```
 
-For Web deployment only projects, add
+For Web deployment only projects (`web-preview`, `xpm`, `xcdl`), add:
 
 ```json
   "config": {
     "isWebDeployOnly": "true",
-    "websiteRepo": "xpack/xcdl-cli-ts"
+    "isWebPreview": "true"
   }
 ```
 
@@ -195,7 +195,6 @@ The top `xpack.github.io` project:
   "releaseDate": "2025-01-06 21:19:55 +0200",
   "packageConfig": {
     "isOrganizationWeb": "true",
-    "isNotNpmModule": "true",
     "skipTests": "true",
     "hasTriggerPublishPreview": "true"
   },
