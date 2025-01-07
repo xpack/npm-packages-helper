@@ -273,10 +273,18 @@ then
   )
 fi
 
-if [ "${xpack_skip_tests}" == "true" ]
+if [ "${xpack_skip_tests}" == "true" ] ||
+   [ "${xpack_npm_package_version}" == "0.0.0" ]
 then
   skip_pages_array+=(\
     ".github/workflows/test-ci.yml" \
+  )
+fi
+
+if [ "${xpack_has_folder_website}" != "true" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/publish-github-pages.yml" \
   )
 fi
 
@@ -301,7 +309,7 @@ then
   )
 fi
 
-if [ "${xpack_is_not_npm_module}" == "true" ]
+if [ "${xpack_npm_package_version}" == "0.0.0" ]
 then
   skip_pages_array+=(\
     ".npmignore" \
