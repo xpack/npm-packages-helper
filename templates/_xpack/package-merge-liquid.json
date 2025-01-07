@@ -1,5 +1,5 @@
 {
-  "scripts": { {% if packageConfig.isWebDeployOnly != "true" and packageConfig.isNotNpmModule != "true" %}{% if isTypeScript == "true" %}
+  "scripts": { {% if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}{% if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
     "compile": "tsc --build --verbose src",{% endif %}{% if isJavaScript == "true" %}
     "fix": "standard --fix lib tests",
@@ -10,7 +10,7 @@
     "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
     "npm-link": "npm link",
     "npm-outdated": "npm outdated",
-    "npm-update": "npm update",{% if packageConfig.isWebDeployOnly != "true" and packageConfig.isNotNpmModule != "true" %}
+    "npm-update": "npm update",{% if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}
     "npm-pack": "npm pack",
     "npm-version-patch": "npm version patch",
     "npm-version-minor": "npm version minor",
@@ -19,7 +19,7 @@
     "lint": "standard lib",{% elsif isTypeScript == "true" %}
     "lint": "ts-standard src && standard esm",{% endif %}{% if isJavaScript == "true" %}
     "prepare": "npm run lint",{% elsif isTypeScript == "true" %}
-    "prepare": "npm run compile && npm run lint",{% endif %}{% if skipTests != "true" %}
+    "prepare": "npm run compile && npm run lint",{% endif %}{% if packageConfig.skipTests != "true" %}
     "pretest-coverage": "npm run lint",
     "pretest-no-coverage": "npm run lint",
     "test-coverage": "tap --show-full-coverage",
