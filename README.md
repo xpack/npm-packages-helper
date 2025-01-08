@@ -70,7 +70,7 @@ Update license MIT, Copyright (c) 2024 Liviu Ionescu. All rights reserved.
   "dependencies": {},
   "devDependencies": {},
   "bundleDependencies": [],
-  "xConfig": {},
+  "topConfig": {},
   "engines": {
     "node": " >=18.0.0"
   }
@@ -84,7 +84,7 @@ Not for web deploy only.
   "homepage": "https://xpack.github.io/XYZ-preview/",
   "homepagePreview": "https://xpack.github.io/XYZ-cli-ts/",
   ...
-  "xConfig": {
+  "topConfig": {
     "hasTriggerPublish": "true",
     "isWebPreview": "true"
   }
@@ -93,7 +93,7 @@ Not for web deploy only.
 The preview sites have a simplified configuration:
 
 ```json
-  "xConfig": {
+  "topConfig": {
     "isWebDeployOnly": "true"
   },
   "engines": {
@@ -123,7 +123,7 @@ For the top web project, add to top `package.json`:
   "version": "0.0.0",
   "homepagePreview": ".../web-preview/",
   ...
-  "xConfig": {
+  "topConfig": {
     "isOrganizationWeb": "true",
     "hasTriggerPublishPreview": "true",
     "hasEmptyMaster": "true"
@@ -133,7 +133,7 @@ For the top web project, add to top `package.json`:
 For Web deployment only projects (`web-preview`, `xpm`, `xcdl`), add:
 
 ```json
-  "xConfig": {
+  "topConfig": {
     "isWebDeployOnly": "true",
     "isWebPreview": "true"
   }

@@ -35,24 +35,15 @@ script_folder_name="$(basename "${script_folder_path}")"
 # =============================================================================
 
 # set -x
-skip_website="false"
-# skip_website="true"
 
 while [ $# -gt 0 ]
 do
   case "$1" in
-    --skip-website )
-      skip_website="true"
-      shift
-      ;;
-
     * )
       echo "Unsupported option $1"
       shift
   esac
 done
-
-export skip_website
 
 # -----------------------------------------------------------------------------
 
@@ -73,14 +64,14 @@ do
 
     name="$(basename "$(pwd)")"
 
-    xconfig="$(json -f "package.json" -o json-0 xConfig)"
-    if [ -z "${xconfig}" ]
+    top_config="$(json -f "package.json" -o json-0 topConfig)"
+    if [ -z "${top_config}" ]
     then
-      echo "${name} has no xConfig..."
+      echo "${name} has no topConfig..."
       continue
     fi
 
-    has_empty_master="$(echo "${xconfig}" | json hasEmptyMaster)"
+    has_empty_master="$(echo "${top_config}" | json hasEmptyMaster)"
 
     if [ "${has_empty_master}" == "true" ]
     then
