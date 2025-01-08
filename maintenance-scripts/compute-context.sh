@@ -183,24 +183,24 @@ export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
 
 # -----------------------------------------------------------------------------
 
-# Top configuration.
-xpack_npm_package_config="$(json -f "${project_folder_path}/package.json" -o json-0 config)"
-if [ -z "${xpack_npm_package_config}" ]
+# Top configuration (xConfig).
+xpack_npm_package_xconfig="$(json -f "${project_folder_path}/package.json" -o json-0 xConfig)"
+if [ -z "${xpack_npm_package_xconfig}" ]
 then
-  xpack_npm_package_config="{}"
+  xpack_npm_package_xconfig="{}"
   xpack_is_organization_web="false"
   xpack_is_web_deploy_only="false"
   xpack_skip_tests="false"
   xpack_has_trigger_publish="false"
   xpack_has_trigger_publish_preview="false"
 else
-  xpack_is_organization_web="$(echo "${xpack_npm_package_config}" | json isOrganizationWeb)"
-  xpack_is_web_deploy_only="$(echo "${xpack_npm_package_config}" | json isWebDeployOnly)"
-  xpack_skip_tests="$(echo "${xpack_npm_package_config}" | json skipTests)"
-  xpack_has_trigger_publish="$(echo "${xpack_npm_package_config}" | json hasTriggerPublish)"
-  xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_config}" | json hasTriggerPublishPreview)"
+  xpack_is_organization_web="$(echo "${xpack_npm_package_xconfig}" | json isOrganizationWeb)"
+  xpack_is_web_deploy_only="$(echo "${xpack_npm_package_xconfig}" | json isWebDeployOnly)"
+  xpack_skip_tests="$(echo "${xpack_npm_package_xconfig}" | json skipTests)"
+  xpack_has_trigger_publish="$(echo "${xpack_npm_package_xconfig}" | json hasTriggerPublish)"
+  xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_xconfig}" | json hasTriggerPublishPreview)"
 fi
-export xpack_npm_package_config
+export xpack_npm_package_xconfig
 export xpack_is_organization_web
 export xpack_is_web_deploy_only
 export xpack_skip_tests
@@ -222,7 +222,7 @@ export xpack_base_url_preview
 
 # Edit the json and add properties one by one.
 export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
--e "this.packageConfig=${xpack_npm_package_config}" \
+-e "this.packageConfig=${xpack_npm_package_xconfig}" \
 -e "this.baseUrl=\"${xpack_base_url}\"" \
 -e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
 )
