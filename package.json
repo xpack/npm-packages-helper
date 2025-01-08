@@ -1,9 +1,12 @@
 {
   "name": "@xpack/npm-packages-helper",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Common scripts and templates used by xPack node modules and web sites",
   "main": "",
   "scripts": {
+    "projects-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh",
+    "projects-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh",
+    "npm-install": "npm install",
     "npm-link": "npm link"
   },
   "repository": {
@@ -11,9 +14,9 @@
     "url": "git+https://github.com/xpack/npm-packages-helper.git"
   },
   "keywords": [
-    "xpack",
     "scripts",
-    "templates"
+    "templates",
+    "helper"
   ],
   "author": {
     "name": "Liviu Ionescu",
@@ -26,8 +29,9 @@
   },
   "homepage": "https://xpack.github.io/npm-packages-helper/",
   "dependencies": {},
-  "devDependencies": {},
-  "bundleDependencies": [],
+  "devDependencies": {
+    "json": "^11.0.0"
+  },
   "engines": {
     "node": " >=18.0.0"
   }
