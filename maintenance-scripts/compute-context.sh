@@ -193,12 +193,14 @@ then
   xpack_skip_tests="false"
   xpack_has_trigger_publish="false"
   xpack_has_trigger_publish_preview="false"
+  xpack_has_empty_master="false"
 else
   xpack_is_organization_web="$(echo "${xpack_npm_package_xconfig}" | json isOrganizationWeb)"
   xpack_is_web_deploy_only="$(echo "${xpack_npm_package_xconfig}" | json isWebDeployOnly)"
   xpack_skip_tests="$(echo "${xpack_npm_package_xconfig}" | json skipTests)"
   xpack_has_trigger_publish="$(echo "${xpack_npm_package_xconfig}" | json hasTriggerPublish)"
   xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_xconfig}" | json hasTriggerPublishPreview)"
+  xpack_has_empty_master="$(echo "${xpack_npm_package_xconfig}" | json hasEmptyMaster)"
 fi
 export xpack_npm_package_xconfig
 export xpack_is_organization_web
@@ -206,6 +208,7 @@ export xpack_is_web_deploy_only
 export xpack_skip_tests
 export xpack_has_trigger_publish
 export xpack_has_trigger_publish_preview
+export xpack_has_empty_master
 
 xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
 xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
