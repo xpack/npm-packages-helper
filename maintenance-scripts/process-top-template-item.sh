@@ -48,39 +48,35 @@ export script_folder_name="$(basename "${script_folder_path}")"
 
 # =============================================================================
 
-source "${script_folder_path}/common-source.sh"
+# set -x
+
+source "${script_folder_path}/scripts-helper-source.sh"
 
 # -----------------------------------------------------------------------------
 
 # Runs in the source folder.
-# $1 = relative file path to source
+# $1 = relative file path to source, starts with `./`
 # $2 = absolute folder path to destination
 
 # echo $@
 # set -x
 
-# The source file path.
-from_relative_file_path="$(echo "${1}" | sed -e 's|^\.\/||')"
+# -----------------------------------------------------------------------------
 
-file_prefix="$(echo "${from_relative_file_path}" | sed -e 's|/.*||')"
-if [ "${file_prefix}" == "_xpack" ] ||
-   [ "${file_prefix}" == "_xpack-dev-tools" ]
+# If one of the selector paths is present, but not the right one, exit.
+if check_if_should_ignore_path "$@"
 then
-  if [ "${file_prefix}" != "${prefix}" ]
-  then
-    exit 0
-  fi
-
-  to_relative_file_path="$(echo "${from_relative_file_path}" | sed -e 's|^_xpack/||' -e 's|^_xpack-dev-tools/||' -e 's|-merge-liquid||' -e 's|-liquid||')"
-else
-  to_relative_file_path="$(echo "${from_relative_file_path}" | sed -e 's|-merge-liquid||' -e 's|-liquid||')"
+  exit 0
 fi
 
-# The destination file path.
-to_absolute_file_path="${2}/${to_relative_file_path}"
+prepare_paths "$@"
+
+# -----------------------------------------------------------------------------
+
+tmp_file_path="$(mktemp -t top_commons.XXXXX)"
 
 # Used to enforce an exit code of 255, required by xargs.
-trap 'trap_handler ${from_relative_file_path} $LINENO $?; return 255' ERR
+trap 'trap_handler ${from_relative_file_path} $LINENO $? ${tmp_file_path}; return 255' ERR
 
 # -----------------------------------------------------------------------------
 
@@ -98,6 +94,7 @@ then
 fi
 
 # -----------------------------------------------------------------------------
+# Compute exclusions.
 
 # Destination relative file paths to skip.
 skip_pages_array=()
@@ -161,10 +158,10 @@ then
   )
 fi
 
-set +o nounset # Do not exit if variable not set.
+set +o nounset # Do not exit if variable not set (empty skip_pages_array).
 
 # echo "skip_pages_array=${skip_pages_array[@]}"
-# echo "to_relative_path=${to_relative_path}"
+# echo "to_relative_file_path=${to_relative_file_path}"
 
 if [[ ${skip_pages_array[@]} =~ "${to_relative_file_path}" ]]
 then
@@ -177,46 +174,11 @@ set -o nounset # Exit if variable not set.
 
 # -----------------------------------------------------------------------------
 
-if [ -f "${to_absolute_file_path}" ]
-then
-  # Be sure destination is writeable.
-  chmod -f +w "${to_absolute_file_path}"
-fi
-
-# -----------------------------------------------------------------------------
-
-mkdir -p "$(dirname ${to_absolute_file_path})"
-
-if [[ "$(basename "${from_relative_file_path}")" =~ .*-merge-liquid.* ]]
-then
-  substitute_and_merge "${from_relative_file_path}" "${to_relative_file_path}" "${2}"
-elif [[ "$(basename "${from_relative_file_path}")" =~ .*-liquid.* ]]
-then
-  substitute "${from_relative_file_path}" "${to_relative_file_path}"  "${2}"
-else
-  echo "cp -> ${to_relative_file_path}"
-  if [ "${do_dry_run}" != "true" ]
-  then
-    cp "${from_relative_file_path}" "${to_absolute_file_path}"
-  fi
-fi
-
-if [ "${do_dry_run}" != "true" ]
-then
-  # Except package.json which may need frequent updates,
-  # make everything else read only.
-  if [ "$(basename "${to_absolute_file_path}")" != "package.json" ]
-  then
-    chmod -w "${to_absolute_file_path}"
-  fi
-else
-  if [ ! -f "${to_absolute_file_path}" ]
-  then
-    echo ">>>> ${to_relative_file_path} not present >>>>"
-  fi
-fi
+process_file
 
 rm -rf "${tmp_file_path}"
+
+# Completed successfully.
 exit 0
 
 # -----------------------------------------------------------------------------

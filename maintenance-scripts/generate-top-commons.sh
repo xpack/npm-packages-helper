@@ -50,8 +50,11 @@ export script_folder_name="$(basename "${script_folder_path}")"
 
 # set -x
 
+source "${script_folder_path}/scripts-helper-source.sh"
+
 # Parse --init, --dry-run, --xpack, --xpack-dev-tools
-source "${script_folder_path}/process-options-source.sh"
+# and leave variables in the environment.
+parse_options "$@"
 
 # -----------------------------------------------------------------------------
 
@@ -83,8 +86,10 @@ export project_folder_path
 export templates_folder_path
 export website_folder_path
 
+# -----------------------------------------------------------------------------
+
 # Process package.json files and leave results in environment variables.
-source "${script_folder_path}/compute-context.sh"
+compute_context
 
 # -----------------------------------------------------------------------------
 
@@ -105,7 +110,7 @@ echo
 
 # Main pass to copy/generate common files.
 find . -type f -print0 | sort -zn | \
-  xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-file.sh" '{}' "${project_folder_path}"
+  xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-item.sh" '{}' "${project_folder_path}"
 
 # -----------------------------------------------------------------------------
 
