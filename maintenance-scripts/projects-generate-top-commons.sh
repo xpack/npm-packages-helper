@@ -27,10 +27,11 @@ then
   script_path="$(pwd)/$0"
 fi
 
-script_name="$(basename "${script_path}")"
+export script_path
+export script_name="$(basename "${script_path}")"
 
-script_folder_path="$(dirname "${script_path}")"
-script_folder_name="$(basename "${script_folder_path}")"
+export script_folder_path="$(dirname "${script_path}")"
+export script_folder_name="$(basename "${script_folder_path}")"
 
 # =============================================================================
 
