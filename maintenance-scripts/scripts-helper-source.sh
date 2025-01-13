@@ -112,7 +112,7 @@ function compute_context() {
   # Create an empty json context.
   export xpack_context=$(echo '{}' | json -o json-0)
 
-  # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
   echo
   echo "Processing project properties..."
@@ -198,7 +198,7 @@ function compute_context() {
   -e "this.releaseDate=\"${xpack_release_date}\"" \
   )
 
-  # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
   echo
   echo "Processing package.json from ${project_folder_path}..."
@@ -273,7 +273,7 @@ function compute_context() {
   -e "this.packageHomepagePreview=\"${xpack_npm_package_homepage_preview}\"" \
   )
 
-  # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
   # Top configuration (topConfig).
   xpack_npm_package_top_config="$(json -f "${project_folder_path}/package.json" -o json-0 topConfig)"
@@ -322,7 +322,7 @@ function compute_context() {
   -e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
   )
 
-  # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
   # Build configuration, in the top. (perhaps move to build-assets?)
   xpack_npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
@@ -337,7 +337,7 @@ function compute_context() {
   -e "this.packageBuildConfig=${xpack_npm_package_build_config}" \
   )
 
-  # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
   if [ -f "${website_folder_path}/package.json" ]
   then
@@ -380,6 +380,8 @@ function compute_context() {
     )
 
   fi
+
+# -----------------------------------------------------------------------------
 
   # -----------------------------------------------------------------------------
 
