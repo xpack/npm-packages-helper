@@ -16,9 +16,9 @@
       "@xpack-dev-tools/xbb-helper": "^3.1.3"
     },
     "properties": {
-      "buildFolderRelativePath": "{% raw %}{{ 'build' | path_join: configuration.name | to_filename | downcase }}{% endraw %}",
-      "buildFolderRelativePathPosix": "{% raw %}{{ 'build' | path_posix_join: configuration.name | downcase }}{% endraw %}",
-      "commandBashBuild": "{% raw %}bash {{ properties.dbg }} scripts/build.sh --target {{ configuration.name }} --build-folder {{ properties.buildFolderRelativePathPosix }}{% endraw %}",
+      "buildFolderRelativePath": "{% raw %}{{'build' | path_join: configuration.name | to_filename | downcase}}{% endraw %}",
+      "buildFolderRelativePathPosix": "{% raw %}{{'build' | path_posix_join: configuration.name | downcase}}{% endraw %}",
+      "commandBashBuild": "{% raw %}bash {{properties.dbg}} scripts/build.sh --target {{configuration.name}} --build-folder {{properties.buildFolderRelativePathPosix}}{% endraw %}",
       "xpm-version": "0.18.0",
       "xpm-install-loglevel": "info",
       "dbg": ""
@@ -26,7 +26,7 @@
     "actions": {
       "deep-clean": [
         "rm -rf build xpacks node_modules package-lock.json",
-        "rm -rf ${HOME}/Work/xpack-dev-tools-build/{% raw %}{{ properties.appLcName }}{% endraw %}-[0-9]*-*"
+        "rm -rf ${HOME}/Work/xpack-dev-tools-build/{% raw %}{{properties.appLcName}}{% endraw %}-[0-9]*-*"
       ],
       "install": [
         "npm install",
@@ -47,17 +47,17 @@
 {% for platform in platforms %}
 {% case platform %}
 {% when "darwin-x64" %}
-      "trigger-workflow-build-darwin-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-darwin-x64.yml --xpm-version {{ properties.xpm-version }} --loglevel {{ properties.xpm-install-loglevel }}{% endraw %}",
+      "trigger-workflow-build-darwin-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-darwin-x64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% when "darwin-arm64" %}
-      "trigger-workflow-build-darwin-arm64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-darwin-arm64.yml --xpm-version {{ properties.xpm-version }} --loglevel {{ properties.xpm-install-loglevel }}{% endraw %}",
+      "trigger-workflow-build-darwin-arm64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-darwin-arm64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% when "linux-x64" %}
-      "trigger-workflow-build-linux-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-x64.yml --xpm-version {{ properties.xpm-version }} --loglevel {{ properties.xpm-install-loglevel }}{% endraw %}",
+      "trigger-workflow-build-linux-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-x64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% when "win32-x64" %}
-      "trigger-workflow-build-win32-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-win32-x64.yml --xpm-version {{ properties.xpm-version }} --loglevel {{ properties.xpm-install-loglevel }}{% endraw %}",
+      "trigger-workflow-build-win32-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-win32-x64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% when "linux-arm64" %}
-      "trigger-workflow-build-linux-arm64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-arm64.yml --xpm-version {{ properties.xpm-version }} --loglevel {{ properties.xpm-install-loglevel }}{% endraw %}",
+      "trigger-workflow-build-linux-arm64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-arm64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% when "linux-arm" %}
-      "trigger-workflow-build-linux-arm": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-arm.yml --xpm-version {{ properties.xpm-version }} --loglevel {{ properties.xpm-install-loglevel }}{% endraw %}",
+      "trigger-workflow-build-linux-arm": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-arm.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% endcase %}
 {% endfor %}
       "trigger-workflow-test-prime": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-prime.sh",
@@ -76,19 +76,19 @@
       "update-package-binaries": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/update-package-binaries.sh",
       "trigger-workflow-test-xpm": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-xpm.sh",
       "trigger-workflow-deep-clean": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-deep-clean.sh",
-      "test-native": "{% raw %}bash {{ properties.dbg }} scripts/test.sh{% endraw %}",
-      "test-pre-release": "{% raw %}bash {{ properties.dbg }} scripts/test.sh --base-url pre-release --development --cache{% endraw %}",
-      "test-release": "{% raw %}bash {{ properties.dbg }} scripts/test.sh --base-url pre-release --development --cache{% endraw %}",
-      "test-xpm": "{% raw %}bash {{ properties.dbg }} scripts/test.sh --xpm{% endraw %}"
+      "test-native": "{% raw %}bash {{properties.dbg}} scripts/test.sh{% endraw %}",
+      "test-pre-release": "{% raw %}bash {{properties.dbg}} scripts/test.sh --base-url pre-release --development --cache{% endraw %}",
+      "test-release": "{% raw %}bash {{properties.dbg}} scripts/test.sh --base-url pre-release --development --cache{% endraw %}",
+      "test-xpm": "{% raw %}bash {{properties.dbg}} scripts/test.sh --xpm{% endraw %}"
 {% for platform in platforms %}
 {% case platform %}
 {% when "linux-x64", "linux-arm64", "linux-arm", "darwin-x64", "darwin-arm64" %},
-      "build-native": "{% raw %}bash {{ properties.dbg }} scripts/build.sh{% endraw %}",
-      "build-native-develop": "{% raw %}bash {{ properties.dbg }} scripts/build.sh --development{% endraw %}",
-      "build-native-develop-debug": "{% raw %}bash {{ properties.dbg }} scripts/build.sh --development --debug{% endraw %}"
+      "build-native": "{% raw %}bash {{properties.dbg}} scripts/build.sh{% endraw %}",
+      "build-native-develop": "{% raw %}bash {{properties.dbg}} scripts/build.sh --development{% endraw %}",
+      "build-native-develop-debug": "{% raw %}bash {{properties.dbg}} scripts/build.sh --development --debug{% endraw %}"
 {% when "win32-x64" %},
-      "build-native-win": "{% raw %}bash {{ properties.dbg }} scripts/build.sh --windows{% endraw %}",
-      "build-native-win-develop": "{% raw %}bash {{ properties.dbg }} scripts/build.sh --development --windows{% endraw %}"
+      "build-native-win": "{% raw %}bash {{properties.dbg}} scripts/build.sh --windows{% endraw %}",
+      "build-native-win-develop": "{% raw %}bash {{properties.dbg}} scripts/build.sh --development --windows{% endraw %}"
 {% endcase %}
 {% endfor %}
 {% endif %}
@@ -109,25 +109,25 @@
         "hidden": true,
         "actions": {
           "deep-clean": [
-            "{% raw %}rm -rf {{ properties.buildFolderRelativePathPosix }}{% endraw %}",
-            "{% raw %}rm -rf ${HOME}/Work/xpack-dev-tools-build/{{ properties.appLcName }}-[0-9]*-*/{{ configuration.name }}{% endraw %}"
+            "{% raw %}rm -rf {{properties.buildFolderRelativePathPosix}}{% endraw %}",
+            "{% raw %}rm -rf ${HOME}/Work/xpack-dev-tools-build/{{properties.appLcName}}-[0-9]*-*/{{configuration.name}}{% endraw %}"
           ],
-          "install": "{% raw %}xpm install --config {{ configuration.name }}{% endraw %}"
+          "install": "{% raw %}xpm install --config {{configuration.name}}{% endraw %}"
         }
       },
       "common-actions-native": {
         "hidden": true,
         "actions": {
-          "build": "{% raw %}{{ properties.commandBashBuild }}{% endraw %}",
-          "build-development": "{% raw %}{{ properties.commandBashBuild }} --development{% endraw %}",
-          "build-development-debug": "{% raw %}{{ properties.commandBashBuild }} --development --debug{% endraw %}",
-          "build-development-tests-only": "{% raw %}{{ properties.commandBashBuild }} --development --tests-only{% endraw %}"
+          "build": "{% raw %}{{properties.commandBashBuild}}{% endraw %}",
+          "build-development": "{% raw %}{{properties.commandBashBuild}} --development{% endraw %}",
+          "build-development-debug": "{% raw %}{{properties.commandBashBuild}} --development --debug{% endraw %}",
+          "build-development-tests-only": "{% raw %}{{properties.commandBashBuild}} --development --tests-only{% endraw %}"
         }
       },
       "common-docker": {
         "hidden": true,
         "properties": {
-          "containerName": "{% raw %}{{ properties.appLcName }}-{{ package.version }}-{{ configuration.name }}{% endraw %}",
+          "containerName": "{% raw %}{{properties.appLcName}}-{{package.version}}-{{configuration.name}}{% endraw %}",
           "force32": ""
         },
         "actions": {
@@ -135,37 +135,37 @@
             "mkdir -pv ${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git",
             "mkdir -pv ${HOME}/.local/xPacks ${HOME}/.cache/xPacks ${HOME}/Work/cache",
             "mkdir -pv ${HOME}/.wine",
-            "{% raw %}docker rm --force {{ properties.containerName }}{% endraw %}",
-            "{% raw %}docker create --name {{ properties.containerName }} --tty --hostname docker --env XBB_ENVIRONMENT_SKIP_CHECKS=${XBB_ENVIRONMENT_SKIP_CHECKS:-} --volume $(pwd):$(pwd) --volume ${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git:${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git --volume ${HOME}/.cache/xPacks:${HOME}/.cache/xPacks --volume ${HOME}/Work/cache:${HOME}/Work/cache --volume ${HOME}/.wine:${HOME}/.wine --workdir $(pwd) {{ properties.dockerImage }}{% endraw %}",
-            "{% raw %}docker start {{ properties.containerName }}{% endraw %}",
-            "{% raw %}docker exec {{ properties.containerName }} {{ properties.force32 }} npm install --location=global xpm@{{ properties.xpm-version }}{% endraw %}",
-            "{% raw %}docker exec {{ properties.containerName }} {{ properties.force32 }} userdel node{% endraw %}",
-            "{% raw %}docker exec {{ properties.containerName }} {{ properties.force32 }} groupadd --gid $(id -g) --force $(id -gn){% endraw %}",
-            "{% raw %}docker exec {{ properties.containerName }} {{ properties.force32 }} useradd --home-dir ${HOME} --uid $(id -u) --gid $(id -g) $(id -un) --create-home{% endraw %}",
-            "{% raw %}docker exec {{ properties.containerName }} {{ properties.force32 }} chown --recursive $(id -u):$(id -g) ${HOME}",
-            "docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} bash -c 'lsb_release -sd && whoami && pwd && ls -lLA && ls -l ${HOME}'{% endraw %}",
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm install{% endraw %}",
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm install --config {{ configuration.name }}{% endraw %}"
+            "{% raw %}docker rm --force {{properties.containerName}}{% endraw %}",
+            "{% raw %}docker create --name {{properties.containerName}} --tty --hostname docker --env XBB_ENVIRONMENT_SKIP_CHECKS=${XBB_ENVIRONMENT_SKIP_CHECKS:-} --volume $(pwd):$(pwd) --volume ${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git:${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git --volume ${HOME}/.cache/xPacks:${HOME}/.cache/xPacks --volume ${HOME}/Work/cache:${HOME}/Work/cache --volume ${HOME}/.wine:${HOME}/.wine --workdir $(pwd) {{properties.dockerImage}}{% endraw %}",
+            "{% raw %}docker start {{properties.containerName}}{% endraw %}",
+            "{% raw %}docker exec {{properties.containerName}} {{properties.force32}} npm install --location=global xpm@{{properties.xpm-version}}{% endraw %}",
+            "{% raw %}docker exec {{properties.containerName}} {{properties.force32}} userdel node{% endraw %}",
+            "{% raw %}docker exec {{properties.containerName}} {{properties.force32}} groupadd --gid $(id -g) --force $(id -gn){% endraw %}",
+            "{% raw %}docker exec {{properties.containerName}} {{properties.force32}} useradd --home-dir ${HOME} --uid $(id -u) --gid $(id -g) $(id -un) --create-home{% endraw %}",
+            "{% raw %}docker exec {{properties.containerName}} {{properties.force32}} chown --recursive $(id -u):$(id -g) ${HOME}",
+            "docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} bash -c 'lsb_release -sd && whoami && pwd && ls -lLA && ls -l ${HOME}'{% endraw %}",
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm install{% endraw %}",
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm install --config {{configuration.name}}{% endraw %}"
           ],
           "docker-link-deps": [
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm link -C ${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git{% endraw %}",
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm run link-deps{% endraw %}"
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm link -C ${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git{% endraw %}",
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm run link-deps{% endraw %}"
           ],
           "docker-build": [
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm run build --config {{ configuration.name }}{% endraw %}"
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm run build --config {{configuration.name}}{% endraw %}"
           ],
           "docker-build-development": [
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm run build-development --config {{ configuration.name }}{% endraw %}"
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm run build-development --config {{configuration.name}}{% endraw %}"
           ],
           "docker-build-development-debug": [
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm run build-development-debug --config {{ configuration.name }}{% endraw %}"
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm run build-development-debug --config {{configuration.name}}{% endraw %}"
           ],
           "docker-build-development-tests-only": [
-            "{% raw %}docker exec --user $(id -un) {{ properties.containerName }} {{ properties.force32 }} xpm run build-development-tests-only --config {{ configuration.name }}{% endraw %}"
+            "{% raw %}docker exec --user $(id -un) {{properties.containerName}} {{properties.force32}} xpm run build-development-tests-only --config {{configuration.name}}{% endraw %}"
           ],
           "docker-remove": [
-            "{% raw %}docker stop {{ properties.containerName }}{% endraw %}",
-            "{% raw %}docker rm {{ properties.containerName }}{% endraw %}"
+            "{% raw %}docker stop {{properties.containerName}}{% endraw %}",
+            "{% raw %}docker rm {{properties.containerName}}{% endraw %}"
           ]
         }
       }
@@ -184,10 +184,10 @@
           "@xpack-dev-tools/sed": "4.9.0-3.1"
         },
         "actions": {
-          "build": "{% raw %}caffeinate {{ properties.commandBashBuild }}{% endraw %}",
-          "build-development": "{% raw %}caffeinate {{ properties.commandBashBuild }} --development{% endraw %}",
-          "build-development-debug": "{% raw %}caffeinate {{ properties.commandBashBuild }} --development --debug{% endraw %}",
-          "build-development-tests-only": "{% raw %}caffeinate {{ properties.commandBashBuild }} --development --tests-only{% endraw %}"
+          "build": "{% raw %}caffeinate {{properties.commandBashBuild}}{% endraw %}",
+          "build-development": "{% raw %}caffeinate {{properties.commandBashBuild}} --development{% endraw %}",
+          "build-development-debug": "{% raw %}caffeinate {{properties.commandBashBuild}} --development --debug{% endraw %}",
+          "build-development-tests-only": "{% raw %}caffeinate {{properties.commandBashBuild}} --development --tests-only{% endraw %}"
         }
       }{% when "darwin-arm64" %},
       "darwin-arm64": {
@@ -242,10 +242,10 @@
           "dockerImage": "ilegeul/ubuntu:amd64-18.04-xbb-v5.2.2"
         },
         "actions": {
-          "build": "{% raw %}{{ properties.commandBashBuild }} --windows{% endraw %}",
-          "build-development": "{% raw %}{{ properties.commandBashBuild }} --windows --development{% endraw %}",
-          "build-development-debug": "{% raw %}{{ properties.commandBashBuild }} --windows --development --debug{% endraw %}",
-          "build-development-tests-only": "{% raw %}{{ properties.commandBashBuild }} --windows --development --tests-only{% endraw %}"
+          "build": "{% raw %}{{properties.commandBashBuild}} --windows{% endraw %}",
+          "build-development": "{% raw %}{{properties.commandBashBuild}} --windows --development{% endraw %}",
+          "build-development-debug": "{% raw %}{{properties.commandBashBuild}} --windows --development --debug{% endraw %}",
+          "build-development-tests-only": "{% raw %}{{properties.commandBashBuild}} --windows --development --tests-only{% endraw %}"
         }
       }
 {% endcase %}
