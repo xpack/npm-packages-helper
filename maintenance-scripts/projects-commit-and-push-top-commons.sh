@@ -37,6 +37,8 @@ export script_folder_name="$(basename "${script_folder_path}")"
 
 # set -x
 
+argv="$@"
+
 is_xpack="false"
 is_xpack_dev_tools="false"
 
@@ -173,7 +175,7 @@ else
 fi
 
 echo
-echo "${script_name} done"
+echo "${script_name} ${argv} done"
 exit 0
 
 # -----------------------------------------------------------------------------
