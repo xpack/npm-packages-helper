@@ -58,7 +58,8 @@ source "${script_folder_path}/scripts-helper-source.sh"
 # $1 = relative file path to source, starts with `./`
 # $2 = absolute folder path to destination
 
-# echo $@
+# echo "argv: $@"
+# echo "pwd: $(pwd)"
 # set -x
 
 # -----------------------------------------------------------------------------
@@ -97,29 +98,138 @@ fi
 # Compute exclusions.
 
 # Destination relative file paths to skip.
-skip_pages_array=()
+skip_pages_array=("BEGIN")
 
 if [ "${is_xpack}" == "true" ]
 then
-  :
+
+  if [ "${xpack_is_typescript}" != "true" ]
+  then
+    skip_pages_array+=(\
+      "tsconfig-common.json" \
+      "tsconfig.json" \
+    )
+  fi
+
+  if [ "${xpack_skip_tests}" == "true" ] ||
+    [ "${xpack_npm_package_version}" == "0.0.0" ]
+  then
+    skip_pages_array+=(\
+      ".github/workflows/test-ci.yml" \
+    )
+  fi
+
+  if [ "${xpack_has_trigger_publish}" != "true" ]
+  then
+    skip_pages_array+=(\
+      ".github/workflows/trigger-publish-github-pages.yml" \
+    )
+  fi
+
+  if [ "${xpack_has_trigger_publish_preview}" != "true" ]
+  then
+    skip_pages_array+=(\
+      ".github/workflows/trigger-publish-github-pages-preview.yml" \
+    )
+  fi
+
 elif [ "${is_xpack_dev_tools}" == "true" ]
 then
-  :
+  platforms_with_commas=",${xpack_platforms},"
+  if [ "${platforms_with_commas}" == ",all," ]
+  then
+    platforms_with_commas=",linux-x64,linux-arm64,linux-arm,darwin-x64,darwin-arm64,win32-x64,"
+  fi
+
+  if [ "${xpack_is_organization_web}" == "true" ] ||
+     [ "${xpack_is_web_deploy_only}" == "true" ] ||
+     [ "${xpack_npm_package_is_xpack}" != "true" ]
+  then
+
+    skip_pages_array+=(\
+      ".github/workflows/body-github-pre-releases-test.md" \
+      ".github/workflows/build-darwin-arm64.yml" \
+      ".github/workflows/build-darwin-x64.yml" \
+      ".github/workflows/build-linux-arm.yml" \
+      ".github/workflows/build-linux-arm64.yml" \
+      ".github/workflows/build-linux-x64.yml" \
+      ".github/workflows/build.yml" \
+      ".github/workflows/build-win32-x64.yml" \
+      ".github/workflows/copyright.yml" \
+      ".github/workflows/deep-clean.yml" \
+      ".github/workflows/publish-release.yml" \
+      ".github/workflows/test-docker-linux-arm.yml" \
+      ".github/workflows/test-docker-linux-intel.yml" \
+      ".github/workflows/test-prime.yml" \
+      ".github/workflows/test-xpm.yml" \
+      "build-assets/scripts/build.sh" \
+      "build-assets/scripts/test.sh" \
+    )
+
+  else
+
+    # Used internally.
+    skip_pages_array+=(\
+      ".github/workflows/copyright.yml" \
+    )
+
+    # No longer used.
+    skip_pages_array+=(\
+      ".github/workflows/build.yml" \
+    )
+
+    if [[ ! "${platforms_with_commas}" =~ ,darwin-x64, ]]
+    then
+      skip_pages_array+=(\
+        ".github/workflows/build-darwin-x64.yml" \
+      )
+    fi
+    if [[ ! "${platforms_with_commas}" =~ ,darwin-arm64, ]]
+    then
+      skip_pages_array+=(\
+        ".github/workflows/build-darwin-arm64.yml" \
+      )
+    fi
+    if [[ ! "${platforms_with_commas}" =~ ,linux-x64, ]]
+    then
+      skip_pages_array+=(\
+        ".github/workflows/build-linux-x64.yml" \
+        ".github/workflows/test-docker-linux-intel.yml" \
+      )
+    fi
+    if [[ ! "${platforms_with_commas}" =~ ,linux-arm, ]]
+    then
+      skip_pages_array+=(\
+        ".github/workflows/build-linux-arm.yml" \
+      )
+    fi
+    if [[ ! "${platforms_with_commas}" =~ ,linux-arm64, ]]
+    then
+      skip_pages_array+=(\
+        ".github/workflows/build-linux-arm64.yml" \
+      )
+    fi
+    if [[ ! "${platforms_with_commas}" =~ ,win32-x64, ]]
+    then
+      skip_pages_array+=(\
+        ".github/workflows/build-win32-x64.yml" \
+      )
+    fi
+    if [[ ! "${platforms_with_commas}" =~ ,linux-arm, ]] &&
+       [[ ! "${platforms_with_commas}" =~ ,linux-arm64, ]]
+    then
+      skip_pages_array+=(\
+        ".github/workflows/test-docker-linux-arm.yml" \
+      )
+    fi
+  fi
+
 fi
 
-if [ "${xpack_is_typescript}" != "true" ]
+if [ "${xpack_has_folder_build_assets}" != "true" ]
 then
   skip_pages_array+=(\
-    "tsconfig-common.json" \
-    "tsconfig.json" \
-  )
-fi
-
-if [ "${xpack_skip_tests}" == "true" ] ||
-   [ "${xpack_npm_package_version}" == "0.0.0" ]
-then
-  skip_pages_array+=(\
-    ".github/workflows/test-ci.yml" \
+    "build-assets/package.json" \
   )
 fi
 
@@ -137,20 +247,6 @@ then
   )
 fi
 
-if [ "${xpack_has_trigger_publish}" != "true" ]
-then
-  skip_pages_array+=(\
-    ".github/workflows/trigger-publish-github-pages.yml" \
-  )
-fi
-
-if [ "${xpack_has_trigger_publish_preview}" != "true" ]
-then
-  skip_pages_array+=(\
-    ".github/workflows/trigger-publish-github-pages-preview.yml" \
-  )
-fi
-
 if [ "${xpack_npm_package_version}" == "0.0.0" ]
 then
   skip_pages_array+=(\
@@ -158,14 +254,21 @@ then
   )
 fi
 
-set +o nounset # Do not exit if variable not set (empty skip_pages_array).
+# -----------------------------------------------------------------------------
 
+skip_pages_array+=("END")
+
+# The array members are concatenated with spaces separators.
 # echo "skip_pages_array=${skip_pages_array[@]}"
 # echo "to_relative_file_path=${to_relative_file_path}"
 
-if [[ ${skip_pages_array[@]} =~ "${to_relative_file_path}" ]]
+set +o nounset # Do not exit if variable not set (empty skip_pages_array).
+
+# To ensure proper match, use explicit spaces.
+if [[ ${skip_pages_array[@]} =~ " ${to_relative_file_path} " ]]
 then
-  echo "skipped: ${from_relative_file_path}"
+  # echo "skipped: ${from_relative_file_path}"
+  echo "skipped: ${to_relative_file_path}"
   rm -f "${tmp_file_path}"
   exit 0
 fi

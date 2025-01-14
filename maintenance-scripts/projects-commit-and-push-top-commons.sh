@@ -37,28 +37,41 @@ export script_folder_name="$(basename "${script_folder_path}")"
 
 # set -x
 
+is_xpack="false"
+is_xpack_dev_tools="false"
+
 while [ $# -gt 0 ]
 do
   case "$1" in
+    --xpack )
+      is_xpack="true"
+      shift
+      ;;
+
+    --xpack-dev-tools )
+      is_xpack_dev_tools="true"
+      shift
+      ;;
+
     * )
       echo "Unsupported option $1"
       shift
   esac
 done
 
+export is_xpack
+export is_xpack_dev_tools
+
 # -----------------------------------------------------------------------------
 
-# Runs as
-# .../xpack.github/packages/npm-packages-helper.git/maintenance-scripts/projects-commit-and-push-top-commons.sh
-packages_folder_path="$(dirname $(dirname "${script_folder_path}"))"
-www_folder_path="$(dirname "${packages_folder_path}")/www"
-
-for f in "${packages_folder_path}"/*/.git "${www_folder_path}"/*/.git
-do
+# $1 = *.git
+function commit_and_push()
+{
   (
-    cd "${f}/.."
+    cd "${1}/.."
 
     echo
+    echo "----------------------------------------------------------------------------"
     pwd
 
     # set -x
@@ -69,7 +82,7 @@ do
     if [ -z "${top_config}" ]
     then
       echo "${name} has no topConfig..."
-      continue
+      return
     fi
 
     has_empty_master="$(echo "${top_config}" | json hasEmptyMaster)"
@@ -83,7 +96,10 @@ do
         development_branch="website"
       fi
     else
-      if git branch | grep development >/dev/null
+      if git branch | grep xpack-development >/dev/null
+      then
+        development_branch="xpack-development"
+      elif git branch | grep development >/dev/null
       then
         development_branch="development"
       else
@@ -91,23 +107,70 @@ do
       fi
     fi
 
-    git checkout "${development_branch}"
+    run_verbose git checkout "${development_branch}"
 
-    git add .github .gitignore README*.md package*.json
+    run_verbose git add .github .gitignore README*.md package*.json
     if [ -f .npmignore ]
     then
-      git add .npmignore
+      run_verbose git add .npmignore
     fi
     if [ -f tsconfig.json ]
     then
-      git add tsconfig*.json
+      run_verbose git add tsconfig*.json
+    fi
+    if [ -d build-assets ]
+    then
+      run_verbose git add build-assets
     fi
 
-    git commit -m "re-generate commons" || true
+    run_verbose git commit -m "re-generate commons" || true
 
-    git push
+    run_verbose git push
   )
-done
+}
+
+function run_verbose()
+{
+  # Does not include the .exe extension.
+  local app_path="$1"
+  shift
+
+  echo
+  echo "[${app_path} $@]"
+  "${app_path}" "$@" 2>&1
+}
+
+# -----------------------------------------------------------------------------
+
+# Runs as
+# .../xpack.github/packages/npm-packages-helper.git/maintenance-scripts/projects-commit-and-push-top-commons.sh
+
+my_projects_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
+
+if [ "${is_xpack}" == "true" ]
+then
+  xpack_github_folder_path="${my_projects_folder_path}/xpack.github"
+  packages_folder_path="${xpack_github_folder_path}/packages"
+  www_folder_path="${xpack_github_folder_path}/www"
+
+  for file_path in "${packages_folder_path}"/*/.git "${www_folder_path}"/*/.git
+  do
+    commit_and_push "${file_path}"
+  done
+elif [ "${is_xpack_dev_tools}" == "true" ]
+then
+  xpack_dev_tools_github_folder_path="${my_projects_folder_path}/xpack-dev-tools.github"
+  xpacks_folder_path="${xpack_dev_tools_github_folder_path}/xPacks"
+  www_folder_path="${xpack_dev_tools_github_folder_path}/www"
+
+  for file_path in "${xpacks_folder_path}"/*/.git "${www_folder_path}"/*/.git "${xpack_dev_tools_github_folder_path}/xpack-build-box.git/.git"
+  do
+    commit_and_push "${file_path}"
+  done
+else
+  echo "Unsupported configuration..."
+  exit 1
+fi
 
 echo
 echo "${script_name} done"

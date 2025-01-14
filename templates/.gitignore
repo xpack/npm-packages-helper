@@ -67,7 +67,7 @@ web_modules/
 .node_repl_history
 
 # Output of 'npm pack'
-# *.tgz
+*.tgz
 
 # Yarn Integrity file
 .yarn-integrity
@@ -131,13 +131,9 @@ dist
 
 # ----- custom -----
 
-xpacks
+xpacks/
 
 .tap
-
-# It was *.tgz, but there are some tests using this, so, for now,
-# enable it only for the top.
-/*.tgz
 
 cjs/
 **/*.js.map
@@ -153,6 +149,7 @@ tmp/
 .vscode/c_cpp_properties.json
 
 build*/
+!build-assets/
 
 Thumbs.db
 .DS_Store

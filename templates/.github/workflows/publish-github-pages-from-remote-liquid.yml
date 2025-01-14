@@ -1,5 +1,17 @@
+# -----------------------------------------------------------------------------
 # DO NOT EDIT!
-# Automatically generated from npm-packages-helper/templates
+# Automatically generated from npm-packages-helper/templates/*.
+#
+# This file is part of the xPack project (http://xpack.github.io).
+# Copyright (c) 2020 Liviu Ionescu. All rights reserved.
+#
+# Permission to use, copy, modify, and/or distribute this software
+# for any purpose is hereby granted, under the terms of the MIT license.
+#
+# If a copy of the license was not distributed with this file, it can
+# be obtained from https://opensource.org/licenses/mit/.
+#
+# -----------------------------------------------------------------------------
 
 # Simple workflow for deploying static content to GitHub Pages
 name: GitHub Pages
@@ -31,7 +43,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: {% raw %}${{ steps.deployment.outputs.page_url }}{% endraw %}
+      url: {% raw %}${{steps.deployment.outputs.page_url}}{% endraw %}
     runs-on: ubuntu-24.04
 
     steps:
@@ -39,8 +51,8 @@ jobs:
         # https://github.com/actions/checkout
         uses: actions/checkout@v4
         with:
-          repository: '{% raw %}${{ inputs.repository }}{% endraw %}'
-          ref: '{% raw %}${{ inputs.ref }}{% endraw %}'
+          repository: '{% raw %}${{inputs.repository}}{% endraw %}'
+          ref: '{% raw %}${{inputs.ref}}{% endraw %}'
           # The full history, required to compute lastUpdatedAt
           fetch-depth: 0
 

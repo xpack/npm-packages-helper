@@ -65,9 +65,9 @@ then
   project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 elif [ "${is_xpack_dev_tools}" == "true" ]
 then
-  # The script is invoked via the following build-scripts xpm action:
+  # The script is invoked via the following top npm script:
   # "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-top-commons.sh"
-  project_folder_path="$(dirname $(dirname $(dirname $(dirname $(dirname "${script_folder_path}")))))"
+  project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 else
   echo "Unsupported configuration..."
   exit 1

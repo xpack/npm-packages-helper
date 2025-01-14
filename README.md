@@ -101,12 +101,50 @@ The preview sites have a simplified configuration:
   }
 ```
 
+For binary xPacks, define the long project name:
+
+```json
+  "topConfig": {
+    "longName": "GNU AArch64 Embedded GCC"
+  },
+```
+
+### For binary packages
+
+Add the following:
+
+```json
+  "scripts": {
+    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack-dev-tools",
+    "npm-install": "npm install",
+    "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
+    "npm-outdated": "npm outdated",
+    "npm-pack": "npm pack",
+    "npm-link": "npm link",
+    "deep-clean": "del-cli node_modules package-lock.json",
+    "postversion": "git push origin --all && git push origin --tags"
+  },
+  "devDependencies": {
+    "del-cli": "^6.0.0",
+    "json": "^11.0.0",
+    "liquidjs": "^10.19.1"
+  },
+  "topConfig": {
+    "longName": "XYZ"
+  },
+```
+
+and get the long name from `build-assets/package.json`
+the value of `xpack.properties.appName`.
+
+Run the `npm-link-helpers` and `generate-top-commons` actions.
+
 ### Top dependencies
 
-Install `json` and `liquidjs`:
+Install `del-cli`, `json` and `liquidjs`:
 
 ```sh
-npm install json liquidjs --save-dev
+npm install del-cli json liquidjs --save-dev
 ```
 
 Link the local helper & template projects:

@@ -117,13 +117,21 @@ function compute_context() {
   echo
   echo "Processing project properties..."
 
-  if [ -d "${project_folder_path}/website" ]
+  if [ -f "${project_folder_path}/website/package.json" ]
   then
     xpack_has_folder_website="true"
   else
     xpack_has_folder_website="false"
   fi
   export xpack_has_folder_website
+
+  if [ -f "${project_folder_path}/build-assets/package.json" ]
+  then
+    xpack_has_folder_build_assets="true"
+  else
+    xpack_has_folder_build_assets="false"
+  fi
+  export xpack_has_folder_build_assets
 
   if (git branch | grep master) >/dev/null
   then
@@ -140,6 +148,14 @@ function compute_context() {
     xpack_has_branch_development="false"
   fi
   export xpack_has_branch_development
+
+  if (git branch | grep xpack-development) >/dev/null
+  then
+    xpack_has_branch_xpack_development="true"
+  else
+    xpack_has_branch_xpack_development="false"
+  fi
+  export xpack_has_branch_xpack_development
 
   if (git branch | grep website) >/dev/null
   then
@@ -189,8 +205,10 @@ function compute_context() {
   # Edit the json and add properties one by one.
   export xpack_context=$(echo '{}' | json -o json-0 \
   -e "this.hasFolderWebsite=\"${xpack_has_folder_website}\"" \
+  -e "this.hasFolderBuildAssets=\"${xpack_has_folder_build_assets}\"" \
   -e "this.hasBranchMaster=\"${xpack_has_branch_master}\"" \
   -e "this.hasBranchDevelopment=\"${xpack_has_branch_development}\"" \
+  -e "this.hasBranchXpackDevelopment=\"${xpack_has_branch_xpack_development}\"" \
   -e "this.hasBranchWebsite=\"${xpack_has_branch_website}\"" \
   -e "this.hasBranchWebpreview=\"${xpack_has_branch_webpreview}\"" \
   -e "this.websiteBranch=\"${xpack_website_branch}\"" \
@@ -230,9 +248,9 @@ function compute_context() {
   xpack_github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
 
   export xpack_github_project_organization="$(echo "${xpack_github_full_name}" | sed -e 's|/.*||')"
-  export xpack_github_project_name="$(echo "${xpack_github_full_name}" | sed -e 's|/$||' -e 's|.git$||' -e 's|.*/||')"
+  export xpack_xpack_github_project_name="$(echo "${xpack_github_full_name}" | sed -e 's|/$||' -e 's|.git$||' -e 's|.*/||')"
 
-  if [[ ${xpack_github_project_name} == *-ts ]]
+  if [[ ${xpack_xpack_github_project_name} == *-ts ]]
   then
     xpack_is_typescript="true"
   else
@@ -240,7 +258,7 @@ function compute_context() {
   fi
   export xpack_is_typescript
 
-  if [[ ${xpack_github_project_name} == *-js ]]
+  if [[ ${xpack_xpack_github_project_name} == *-js ]]
   then
     xpack_is_javascript="true"
   else
@@ -262,7 +280,7 @@ function compute_context() {
   -e "this.releaseVersion=\"${xpack_release_version}\"" \
   -e "this.packageDescription=\"${xpack_npm_package_description}\"" \
   -e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
-  -e "this.githubProjectName=\"${xpack_github_project_name}\"" \
+  -e "this.githubProjectName=\"${xpack_xpack_github_project_name}\"" \
   -e "this.hasWebsiteFolder=\"${xpack_has_folder_website}\"" \
   -e "this.isTypeScript=\"${xpack_is_typescript}\"" \
   -e "this.isJavaScript=\"${xpack_is_javascript}\"" \
@@ -283,24 +301,30 @@ function compute_context() {
     xpack_is_organization_web="false"
     xpack_is_web_deploy_only="false"
     xpack_skip_tests="false"
+    xpack_show_test_results="false"
     xpack_has_trigger_publish="false"
     xpack_has_trigger_publish_preview="false"
     xpack_has_empty_master="false"
+    xpack_long_name=""
   else
     xpack_is_organization_web="$(echo "${xpack_npm_package_top_config}" | json isOrganizationWeb)"
     xpack_is_web_deploy_only="$(echo "${xpack_npm_package_top_config}" | json isWebDeployOnly)"
     xpack_skip_tests="$(echo "${xpack_npm_package_top_config}" | json skipTests)"
+    xpack_show_test_results="$(echo "${xpack_npm_package_top_config}" | json showTestsResults)"
     xpack_has_trigger_publish="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublish)"
     xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublishPreview)"
     xpack_has_empty_master="$(echo "${xpack_npm_package_top_config}" | json hasEmptyMaster)"
+    export xpack_long_name="$(echo "${xpack_npm_package_top_config}" | json longName)"
   fi
   export xpack_npm_package_top_config
   export xpack_is_organization_web
   export xpack_is_web_deploy_only
   export xpack_skip_tests
+  export xpack_show_test_results
   export xpack_has_trigger_publish
   export xpack_has_trigger_publish_preview
   export xpack_has_empty_master
+  export xpack_long_name
 
   xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
   xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
@@ -320,6 +344,7 @@ function compute_context() {
   -e "this.packageConfig=${xpack_npm_package_top_config}" \
   -e "this.baseUrl=\"${xpack_base_url}\"" \
   -e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
+  -e "this.showTestsResults=\"${xpack_show_test_results}\"" \
   )
 
 # -----------------------------------------------------------------------------
@@ -383,7 +408,95 @@ function compute_context() {
 
 # -----------------------------------------------------------------------------
 
-  # -----------------------------------------------------------------------------
+  # Top xpack.
+  xpack_npm_package_xpack="$(json -f "${project_folder_path}/package.json" -o json-0 xpack)"
+  if [ -z "${xpack_npm_package_xpack}" ]
+  then
+    xpack_npm_package_xpack="{}"
+    xpack_npm_package_is_xpack="false"
+    xpack_platforms=""
+  else
+    xpack_npm_package_is_xpack="true"
+
+    # set -x
+    xpack_platforms_array=()
+    for platform in linux-x64 linux-arm64 linux-arm darwin-x64 darwin-arm64 win32-x64
+    do
+      platform_object="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries.platforms.${platform})"
+      if [ ! -z "${platform_object}" ]
+      then
+        skip_value="$(echo "${platform_object}" | json skip)"
+        if [ "${skip_value}" == "true" ]
+        then
+          continue
+        fi
+        xpack_platforms_array+=("${platform}")
+      fi
+    done
+    set +o nounset # Do not exit if variable not set (empty skip_pages_array).
+    xpack_platforms="$(echo "${xpack_platforms_array[@]}" | tr ' ' ',')"
+    set -o nounset # Exit if variable not set.
+  fi
+
+  export xpack_npm_package_is_xpack
+  export xpack_npm_package_xpack
+  export xpack_platforms
+
+  # Edit the json and add more properties one by one.
+  export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+  -e "this.isXpack=\"${xpack_npm_package_is_xpack}\"" \
+  -e "this.platforms=\"${xpack_platforms}\"" \
+  )
+
+# -----------------------------------------------------------------------------
+
+  # build-assets
+  if [ -f "${project_folder_path}/build-assets/package.json" ]
+  then
+    # xpack_app_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appName)"
+    # xpack_app_lc_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appLcName)"
+    # export xpack_app_name
+    # export xpack_app_lc_name
+
+    # xpack_platforms="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.xpack_platforms)"
+    # if [ -z "${xpack_platforms}" ]
+    # then
+    #   xpack_platforms="all"
+    # fi
+    # export xpack_platforms
+
+    # xpack_custom_fields="$(json -f "${project_folder_path}/build-assets/package.json" -o json-0 xpack.properties.customFields)"
+    # if [ -z "${xpack_custom_fields}" ]
+    # then
+    #   xpack_custom_fields='{}'
+    # fi
+    # export xpack_custom_fields
+
+    # xpack_github_project_name2="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.customFields.gitHubProjectName)"
+
+    # if [ -z "${xpack_github_project_name2}" ]
+    # then
+    #   xpack_github_project_name2="${xpack_app_lc_name}-xpack"
+    # fi
+    # export xpack_github_project_name2
+    #   -e "this.gitHubProjectName=\"${xpack_github_project_name2}\"" \
+
+    # -e "this.appName=\"${xpack_app_name}\"" \
+    # -e "this.appLcName=\"${xpack_app_lc_name}\"" \
+
+    # A mechanism to force the use of a specific version,
+    # not actually use.
+    # -e "this.MACOS_ARM_VERSION=..." \
+    # -e "this.MACOS_INTEL_VERSION=..." \
+
+    # Edit the json and add more properties one by one.
+    # export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+    # )
+    :
+  fi
+
+
+# -----------------------------------------------------------------------------
 
   echo
   echo -n '"xpack_context": '
@@ -424,10 +537,13 @@ function substitute()
   local to_absolute_file_path="${3}/${to_relative_file_path}"
 
   echo "liquidjs -> ${to_relative_file_path}"
+  # pwd
 
-  if [ "${do_dry_run}" != "true" ]
+  if [ "${do_dry_run}" == "true" ]
   then
-    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${to_absolute_file_path}.new"
+    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
+  else
+    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${to_absolute_file_path}.new" --strict-filters --strict-variables --lenient-if
 
     rm -f "${to_absolute_file_path}"
     mv "${to_absolute_file_path}.new" "${to_absolute_file_path}"
@@ -444,9 +560,11 @@ function substitute_and_merge()
 
   echo "liquidjs | merge -> ${to_relative_file_path}"
 
-  if [ "${do_dry_run}" != "true" ]
+  if [ "${do_dry_run}" == "true" ]
   then
-    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${tmp_file_path}"
+    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
+  else
+    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${tmp_file_path}" --strict-filters --strict-variables --lenient-if
 
     # json -f "${tmp_file_path}"
 
