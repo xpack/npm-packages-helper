@@ -203,8 +203,7 @@ When no longer needed:
 
 ## Website custom configurations
 
-Add `websiteConfig` to `website/package.json`, after `engines`;
-see the `README` file in `docusaurus-template-liquid.git` for details.
+See the `README` file in `docusaurus-template-liquid.git` for details.
 
 ### Run actions once
 
@@ -278,3 +277,63 @@ When no longer needed:
 
 - Remove script `generate-top-commons-init`
 - Remove script `create-website-init`.
+
+### Variable
+
+#### Objects
+
+- `packageConfig` (see below)
+- `packageBuildConfig` (avoid, to be migrated to websiteConfig)
+- `packageWebsiteConfig` (see `docusaurus-template-liquid`)
+
+#### In `packageConfig` (from `topConfig`)
+
+Booleans (`true`/`false`):
+
+- `isOrganizationWeb`
+- `isWebDeployOnly`
+- `skipTests`
+- `showTestsResults`
+- `hasTriggerPublish`
+- `hasTriggerPublishPreview`
+- `hasEmptyMaster`
+
+Miscellaneous:
+
+- `longName`: the multi word name, without _the_; used in page titles
+
+#### From top folder & package.json
+
+Booleans (`true`/`false`):
+
+- `hasFolderWebsite`
+- `hasFolderBuildAssets`
+- `hasBranchMaster`
+- `hasBranchDevelopment`
+- `hasBranchXpackDevelopment`
+- `hasBranchWebsite`
+- `hasBranchWebpreview`
+- `hasWebsiteFolder`
+- `isTypeScript`
+- `isJavaScript`
+
+Miscellaneous
+
+- `websiteBranch`
+- `websiteBranchPreview`
+- `releaseDate`
+- `packageScopedName`
+- `packageScope`
+- `packageName`
+- `packageVersion`
+- `releaseVersion`
+- `packageDescription`
+- `githubProjectOrganization`
+- `githubProjectName`
+- `packageEnginesNodeVersion`
+- `packageEnginesNodeVersionMajor`
+- `packageDependenciesTypescriptVersion`
+- `packageHomepage`
+- `packageHomepagePreview`
+- `baseUrl`
+- `baseUrlPreview`

@@ -172,7 +172,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
         run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:

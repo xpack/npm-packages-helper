@@ -58,7 +58,7 @@ jobs:
           entrypoint: /bin/bash
           args: /github/workspace/build-assets/scripts/test.sh --image debian --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -106,7 +106,7 @@ jobs:
           entrypoint: /bin/bash
           args: /github/workspace/build-assets/scripts/test.sh --image debian --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -154,7 +154,7 @@ jobs:
           entrypoint: /bin/bash # /usr/bin/linux32
           args: /github/workspace/build-assets/scripts/test.sh --image debian --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -206,7 +206,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
         run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -258,7 +258,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
         run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -302,7 +302,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
         run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -312,7 +312,7 @@ jobs:
 {% endif %}
 {% endcase %}
 {% endfor %}
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
   generate-tests-report:
     name: 'Generate tests report for {{packageConfig.longName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
     runs-on: ubuntu-24.04

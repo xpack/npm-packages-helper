@@ -184,7 +184,7 @@ jobs:
           entrypoint: /bin/bash
           args: /github/workspace/build-assets/scripts/test.sh --image debian --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
 
-{% if showTestsResults == 'true' %}
+{% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
