@@ -50,6 +50,8 @@ export script_folder_name="$(basename "${script_folder_path}")"
 
 # set -x
 
+argv="$@"
+
 source "${script_folder_path}/scripts-helper-source.sh"
 
 # Parse --init, --dry-run, --xpack, --xpack-dev-tools
@@ -115,7 +117,7 @@ find . -type f -print0 | sort -zn | \
 # -----------------------------------------------------------------------------
 
 echo
-echo "${script_name} done"
+echo "${script_name} ${argv} done"
 
 # Completed successfully.
 exit 0
