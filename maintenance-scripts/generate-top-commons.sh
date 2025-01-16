@@ -60,20 +60,16 @@ parse_options "$@"
 
 # -----------------------------------------------------------------------------
 
-if [ "${is_xpack}" == "true" ]
+if [ "${is_xpack}" != "true" ] &&
+   [ "${is_xpack_dev_tools}" != "true" ]
 then
-  # The script is invoked via the following top npm script:
-  # "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-top-commons.sh"
-  project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
-elif [ "${is_xpack_dev_tools}" == "true" ]
-then
-  # The script is invoked via the following top npm script:
-  # "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-top-commons.sh"
-  project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
-else
   echo "Unsupported configuration..."
   exit 1
 fi
+
+# The script is invoked via the following top npm script:
+# "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/scripts/generate-top-commons.sh"
+project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 
 templates_folder_path="$(dirname "${script_folder_path}")/templates"
 
@@ -104,15 +100,22 @@ fi
 
 # -----------------------------------------------------------------------------
 
-cd "${templates_folder_path}"
+if [ "${do_init}" == "true" ]
+then
+  : # TODO
+else
 
-echo
-echo "Processing templates from $(pwd)..."
-echo
+  echo
+  echo "Processing template from ${templates_folder_path}..."
+  echo
 
-# Main pass to copy/generate common files.
-find . -type f -print0 | sort -zn | \
-  xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-item.sh" '{}' "${project_folder_path}"
+  cd "${templates_folder_path}"
+
+  # Main pass to copy/generate common files.
+  find . -type f -print0 | sort -zn | \
+    xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-item.sh" '{}' "${project_folder_path}"
+
+fi
 
 # -----------------------------------------------------------------------------
 

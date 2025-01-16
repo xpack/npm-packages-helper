@@ -51,6 +51,9 @@ function parse_options() {
     esac
   done
 
+  echo
+  echo "Configuration: ${accepted_path}"
+
   export do_init
   export do_dry_run
   export is_xpack
@@ -86,6 +89,19 @@ function prepare_paths() {
 
   export to_absolute_folder_path="${2}"
   export to_absolute_file_path="${to_absolute_folder_path}/${to_relative_file_path}"
+}
+
+# -----------------------------------------------------------------------------
+
+function run_verbose()
+{
+  # Does not include the .exe extension.
+  local app_path="$1"
+  shift
+
+  echo
+  echo "[${app_path} $@]"
+  "${app_path}" "$@" 2>&1
 }
 
 # -----------------------------------------------------------------------------
@@ -216,7 +232,7 @@ function compute_context() {
   -e "this.releaseDate=\"${xpack_release_date}\"" \
   )
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   echo
   echo "Processing package.json from ${project_folder_path}..."
@@ -291,7 +307,7 @@ function compute_context() {
   -e "this.packageHomepagePreview=\"${xpack_npm_package_homepage_preview}\"" \
   )
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   # Top configuration (topConfig).
   xpack_npm_package_top_config="$(json -f "${project_folder_path}/package.json" -o json-0 topConfig)"
@@ -347,7 +363,7 @@ function compute_context() {
   -e "this.showTestsResults=\"${xpack_show_test_results}\"" \
   )
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   # Build configuration, in the top. (perhaps move to build-assets?)
   xpack_npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
@@ -362,7 +378,7 @@ function compute_context() {
   -e "this.packageBuildConfig=${xpack_npm_package_build_config}" \
   )
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   if [ -f "${website_folder_path}/package.json" ]
   then
@@ -399,6 +415,8 @@ function compute_context() {
     export xpack_website_config_short_name="$(echo "${xpack_npm_package_website_config}" | json shortName)"
     export xpack_website_config_long_name="$(echo "${xpack_npm_package_website_config}" | json longName)"
 
+    export xpack_website_config_is_arm_toolchain="$(echo "${xpack_npm_package_website_config}" | json isArmToolchain)"
+
     # Edit the json and add more properties one by one.
     export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
     -e "this.packageWebsiteConfig=${xpack_npm_package_website_config}" \
@@ -406,7 +424,7 @@ function compute_context() {
 
   fi
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   # Top xpack.
   xpack_npm_package_xpack="$(json -f "${project_folder_path}/package.json" -o json-0 xpack)"
@@ -420,7 +438,8 @@ function compute_context() {
 
     # set -x
     xpack_platforms_array=()
-    for platform in linux-x64 linux-arm64 linux-arm darwin-x64 darwin-arm64 win32-x64
+    # The order is relevant, it is kept when generating tabs and lists.
+    for platform in win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-arm64 linux-arm
     do
       platform_object="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries.platforms.${platform})"
       if [ ! -z "${platform_object}" ]
@@ -438,6 +457,11 @@ function compute_context() {
     set -o nounset # Exit if variable not set.
   fi
 
+  if [ -z "${xpack_platforms}" ]
+  then
+    xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64,linux-arm"
+  fi
+
   export xpack_npm_package_is_xpack
   export xpack_npm_package_xpack
   export xpack_platforms
@@ -448,7 +472,7 @@ function compute_context() {
   -e "this.platforms=\"${xpack_platforms}\"" \
   )
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   # build-assets
   if [ -f "${project_folder_path}/build-assets/package.json" ]
@@ -495,8 +519,88 @@ function compute_context() {
     :
   fi
 
+  # ---------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
+  if [ "${is_xpack_dev_tools}" == "true" ]
+  then
+    if [ -f "${project_folder_path}/build-assets/package.json" ]
+    then
+      xpack_dt_app_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appName)"
+      xpack_dt_app_lc_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appLcName)"
+      export xpack_dt_app_name
+      export xpack_dt_app_lc_name
+
+      # xpack_dt_platforms="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.xpack_platforms)"
+      # if [ -z "${xpack_dt_platforms}" ]
+      # then
+      #   xpack_dt_platforms="all"
+      # fi
+      # if [ "${xpack_dt_platforms}" == "all" ]
+      # then
+      #   xpack_dt_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64,linux-arm"
+      # fi
+      # export xpack_dt_platforms
+
+      xpack_dt_custom_fields="$(json -f "${project_folder_path}/build-assets/package.json" -o json-0 xpack.properties.customFields)"
+
+      if [ -z "${xpack_dt_custom_fields}" ]
+      then
+        xpack_dt_custom_fields='{}'
+      fi
+
+      export xpack_dt_custom_fields
+
+      export xpack_dt_has_two_numbers_version="$(echo "${xpack_dt_custom_fields}" | json hasTwoNumbersVersion)"
+      # export xpack_dt_is_organization_web="$(echo "${xpack_dt_custom_fields}" | json isOrganizationWeb)"
+
+      if [ "${xpack_is_organization_web}" == "true" ]
+      then
+        xpack_dt_version="0.0.0-0"
+        xpack_dt_base_url="/"
+      else
+        xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
+        xpack_dt_base_url="/${xpack_dt_app_lc_name}-xpack/"
+      fi
+
+      export xpack_dt_version
+      export xpack_dt_base_url
+
+      # Remove pre-release.
+      export xpack_dt_semver_version="$(echo ${xpack_dt_version} | sed -e 's|-.*||')"
+
+      if [ "${xpack_dt_has_two_numbers_version}" == "true" ] && [[ "${xpack_dt_semver_version}" =~ .*[.]0*$ ]]
+      then
+        # Remove the patch number, if zero.
+        xpack_dt_upstream_version="$(echo ${xpack_dt_semver_version} | sed -e 's|[.]0*$||')"
+      else
+        xpack_dt_upstream_version="${xpack_dt_semver_version}"
+      fi
+      export xpack_dt_upstream_version
+
+      xpack_dt_github_project_name="$(echo "${xpack_dt_custom_fields}" | json gitHubProjectName)"
+      if [ -z "${xpack_dt_github_project_name}" ]
+      then
+        xpack_dt_github_project_name="${xpack_dt_app_lc_name}-xpack"
+      fi
+      export xpack_dt_github_project_name
+
+      # TODO: adjust for top web.
+      export xpack_dt_branch="xpack-development"
+
+      # Edit the json and add more properties one by one.
+      export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+      -e "this.appName=\"${xpack_dt_app_name}\"" \
+      -e "this.appLcName=\"${xpack_dt_app_lc_name}\"" \
+      -e "this.branch=\"${xpack_dt_branch}\"" \
+      -e "this.upstreamVersion=\"${xpack_dt_upstream_version}\"" \
+      -e "this.gitHubProjectName=\"${xpack_dt_github_project_name}\"" \
+      -e "this.customFields=${xpack_dt_custom_fields}" \
+      )
+
+    fi
+  fi
+
+  # ---------------------------------------------------------------------------
 
   echo
   echo -n '"xpack_context": '
@@ -553,7 +657,7 @@ function substitute()
 function substitute_and_merge()
 {
   local from_relative_file_path="$1" # liquid source
-  local to_absolute_file_path="$2" # destination
+  local to_relative_file_path="$2" # destination
   # $3 - destination absolute folder path
 
   local to_absolute_file_path="${3}/${to_relative_file_path}"

@@ -39,30 +39,13 @@ export script_folder_name="$(basename "${script_folder_path}")"
 
 argv="$@"
 
-is_xpack="false"
-is_xpack_dev_tools="false"
+helper_folder_path="$(dirname ${script_folder_path})"
 
-while [ $# -gt 0 ]
-do
-  case "$1" in
-    --xpack )
-      is_xpack="true"
-      shift
-      ;;
+source "${helper_folder_path}/maintenance-scripts/scripts-helper-source.sh"
 
-    --xpack-dev-tools )
-      is_xpack_dev_tools="true"
-      shift
-      ;;
-
-    * )
-      echo "Unsupported option $1"
-      shift
-  esac
-done
-
-export is_xpack
-export is_xpack_dev_tools
+# Parse --init, --dry-run, --xpack, --xpack-dev-tools
+# and leave variables in the environment.
+parse_options "$@"
 
 # -----------------------------------------------------------------------------
 
@@ -70,7 +53,9 @@ export is_xpack_dev_tools
 function generate_top_commons()
 {
   (
-    cd "${1}/.."
+    local from_folder_path="$(dirname "${1}")"
+
+    cd "${from_folder_path}"
 
     echo
     echo "----------------------------------------------------------------------------"
@@ -115,17 +100,6 @@ function generate_top_commons()
     run_verbose npm run npm-link-helpers
     run_verbose npm run generate-top-commons
   )
-}
-
-function run_verbose()
-{
-  # Does not include the .exe extension.
-  local app_path="$1"
-  shift
-
-  echo
-  echo "[${app_path} $@]"
-  "${app_path}" "$@" 2>&1
 }
 
 # -----------------------------------------------------------------------------
