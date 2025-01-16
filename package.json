@@ -30,9 +30,9 @@
     "url": "https://github.com/xpack/lnpm-packages-helper/issues"
   },
   "homepage": "https://xpack.github.io/npm-packages-helper/",
-  "dependencies": {},
   "devDependencies": {
-    "json": "^11.0.0"
+    "json": "^11.0.0",
+    "liquidjs": "^10.20.1"
   },
   "engines": {
     "node": " >=18.0.0"
