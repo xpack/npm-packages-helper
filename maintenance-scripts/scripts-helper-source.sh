@@ -131,7 +131,7 @@ function compute_context() {
 # -----------------------------------------------------------------------------
 
   echo
-  echo "Processing project properties..."
+  echo "Processing project $(basename "${project_folder_path}") properties..."
 
   if [ -f "${project_folder_path}/website/package.json" ]
   then
@@ -235,7 +235,7 @@ function compute_context() {
   # ---------------------------------------------------------------------------
 
   echo
-  echo "Processing package.json from ${project_folder_path}..."
+  echo "Processing top package.json..."
 
   # https://trentm.com/json/
   export xpack_npm_package_scoped_name="$(json -f "${project_folder_path}/package.json" name)"
@@ -330,7 +330,8 @@ function compute_context() {
     xpack_has_trigger_publish="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublish)"
     xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublishPreview)"
     xpack_has_empty_master="$(echo "${xpack_npm_package_top_config}" | json hasEmptyMaster)"
-    export xpack_long_name="$(echo "${xpack_npm_package_top_config}" | json longName)"
+    xpack_long_name="$(echo "${xpack_npm_package_top_config}" | json longName)"
+    xpack_short_name="$(echo "${xpack_npm_package_top_config}" | json shortName)"
   fi
   export xpack_npm_package_top_config
   export xpack_is_organization_web
@@ -341,6 +342,7 @@ function compute_context() {
   export xpack_has_trigger_publish_preview
   export xpack_has_empty_master
   export xpack_long_name
+  export xpack_short_name
 
   xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
   xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
@@ -384,7 +386,7 @@ function compute_context() {
   then
 
     echo
-    echo "Processing package.json from ${website_folder_path}..."
+    echo "Processing website/package.json..."
 
     # Web site configuration. Prefer the one in the dedicated folder to the top.
     if [ ! -z "${website_folder_path:-""}" ] && [ -f "${website_folder_path}/package.json" ]
@@ -412,8 +414,6 @@ function compute_context() {
     export xpack_has_policies="$(echo "${xpack_npm_package_website_config}" | json hasPolicies)"
     export xpack_skip_install_command="$(echo "${xpack_npm_package_website_config}" | json skipInstallCommand)"
     export xpack_skip_contributor_guide="$(echo "${xpack_npm_package_website_config}" | json skipContributorGuide)"
-    export xpack_website_config_short_name="$(echo "${xpack_npm_package_website_config}" | json shortName)"
-    export xpack_website_config_long_name="$(echo "${xpack_npm_package_website_config}" | json longName)"
 
     export xpack_website_config_is_arm_toolchain="$(echo "${xpack_npm_package_website_config}" | json isArmToolchain)"
 
@@ -477,11 +477,6 @@ function compute_context() {
   # build-assets
   if [ -f "${project_folder_path}/build-assets/package.json" ]
   then
-    # xpack_app_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appName)"
-    # xpack_app_lc_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appLcName)"
-    # export xpack_app_name
-    # export xpack_app_lc_name
-
     # xpack_platforms="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.xpack_platforms)"
     # if [ -z "${xpack_platforms}" ]
     # then
@@ -505,9 +500,6 @@ function compute_context() {
     # export xpack_github_project_name2
     #   -e "this.gitHubProjectName=\"${xpack_github_project_name2}\"" \
 
-    # -e "this.appName=\"${xpack_app_name}\"" \
-    # -e "this.appLcName=\"${xpack_app_lc_name}\"" \
-
     # A mechanism to force the use of a specific version,
     # not actually use.
     # -e "this.MACOS_ARM_VERSION=..." \
@@ -525,21 +517,6 @@ function compute_context() {
   then
     if [ -f "${project_folder_path}/build-assets/package.json" ]
     then
-      xpack_dt_app_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appName)"
-      xpack_dt_app_lc_name="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.appLcName)"
-      export xpack_dt_app_name
-      export xpack_dt_app_lc_name
-
-      # xpack_dt_platforms="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.xpack_platforms)"
-      # if [ -z "${xpack_dt_platforms}" ]
-      # then
-      #   xpack_dt_platforms="all"
-      # fi
-      # if [ "${xpack_dt_platforms}" == "all" ]
-      # then
-      #   xpack_dt_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64,linux-arm"
-      # fi
-      # export xpack_dt_platforms
 
       xpack_dt_custom_fields="$(json -f "${project_folder_path}/build-assets/package.json" -o json-0 xpack.properties.customFields)"
 
@@ -559,7 +536,7 @@ function compute_context() {
         xpack_dt_base_url="/"
       else
         xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
-        xpack_dt_base_url="/${xpack_dt_app_lc_name}-xpack/"
+        xpack_dt_base_url="/${xpack_short_name}-xpack/"
       fi
 
       export xpack_dt_version
@@ -580,7 +557,7 @@ function compute_context() {
       xpack_dt_github_project_name="$(echo "${xpack_dt_custom_fields}" | json gitHubProjectName)"
       if [ -z "${xpack_dt_github_project_name}" ]
       then
-        xpack_dt_github_project_name="${xpack_dt_app_lc_name}-xpack"
+        xpack_dt_github_project_name="${xpack_short_name}-xpack"
       fi
       export xpack_dt_github_project_name
 
@@ -589,8 +566,6 @@ function compute_context() {
 
       # Edit the json and add more properties one by one.
       export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-      -e "this.appName=\"${xpack_dt_app_name}\"" \
-      -e "this.appLcName=\"${xpack_dt_app_lc_name}\"" \
       -e "this.branch=\"${xpack_dt_branch}\"" \
       -e "this.upstreamVersion=\"${xpack_dt_upstream_version}\"" \
       -e "this.gitHubProjectName=\"${xpack_dt_github_project_name}\"" \
