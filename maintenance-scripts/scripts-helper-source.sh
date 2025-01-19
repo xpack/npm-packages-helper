@@ -19,6 +19,7 @@ function parse_options() {
   is_xpack="false"
   is_xpack_dev_tools="false"
   accepted_path=""
+  do_push="false"
 
   while [ $# -gt 0 ]
   do
@@ -30,6 +31,11 @@ function parse_options() {
 
       --dry-run )
         do_dry_run="true"
+        shift
+        ;;
+
+      --push )
+        do_push="true"
         shift
         ;;
 
@@ -59,6 +65,7 @@ function parse_options() {
   export is_xpack
   export is_xpack_dev_tools
   export accepted_path
+  export do_push
 }
 
 # -----------------------------------------------------------------------------
@@ -417,11 +424,66 @@ function compute_context() {
 
     export xpack_website_config_is_arm_toolchain="$(echo "${xpack_npm_package_website_config}" | json isArmToolchain)"
 
+    xpack_custom_fields="$(echo "${xpack_npm_package_website_config}" | json -o json-0 customFields)"
+
+    if [ -z "${xpack_custom_fields}" ]
+    then
+      xpack_custom_fields='{}'
+    fi
+
+    export xpack_custom_fields
+
     # Edit the json and add more properties one by one.
     export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
     -e "this.packageWebsiteConfig=${xpack_npm_package_website_config}" \
     )
 
+    if [ "${xpack_custom_fields}" != '{}' ]
+    then
+      export xpack_dt_has_two_numbers_version="$(echo "${xpack_custom_fields}" | json hasTwoNumbersVersion)"
+      # export xpack_dt_is_organization_web="$(echo "${xpack_custom_fields}" | json isOrganizationWeb)"
+
+      if [ "${xpack_is_organization_web}" == "true" ]
+      then
+        xpack_dt_version="0.0.0-0"
+        xpack_dt_base_url="/"
+      else
+        xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
+        xpack_dt_base_url="/${xpack_short_name}-xpack/"
+      fi
+
+      export xpack_dt_version
+      export xpack_dt_base_url
+
+      # Remove pre-release.
+      export xpack_dt_semver_version="$(echo ${xpack_dt_version} | sed -e 's|-.*||')"
+
+      if [ "${xpack_dt_has_two_numbers_version}" == "true" ] && [[ "${xpack_dt_semver_version}" =~ .*[.]0*$ ]]
+      then
+        # Remove the patch number, if zero.
+        xpack_dt_upstream_version="$(echo ${xpack_dt_semver_version} | sed -e 's|[.]0*$||')"
+      else
+        xpack_dt_upstream_version="${xpack_dt_semver_version}"
+      fi
+      export xpack_dt_upstream_version
+
+      xpack_dt_github_project_name="$(echo "${xpack_custom_fields}" | json gitHubProjectName)"
+      if [ -z "${xpack_dt_github_project_name}" ]
+      then
+        xpack_dt_github_project_name="${xpack_short_name}-xpack"
+      fi
+      export xpack_dt_github_project_name
+
+      # TODO: adjust for top web.
+      export xpack_dt_branch="xpack-development"
+
+      # Edit the json and add more properties one by one.
+      export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+      -e "this.branch=\"${xpack_dt_branch}\"" \
+      -e "this.upstreamVersion=\"${xpack_dt_upstream_version}\"" \
+      -e "this.gitHubProjectName=\"${xpack_dt_github_project_name}\"" \
+      )
+    fi
   fi
 
   # ---------------------------------------------------------------------------
@@ -471,109 +533,6 @@ function compute_context() {
   -e "this.isXpack=\"${xpack_npm_package_is_xpack}\"" \
   -e "this.platforms=\"${xpack_platforms}\"" \
   )
-
-  # ---------------------------------------------------------------------------
-
-  # build-assets
-  if [ -f "${project_folder_path}/build-assets/package.json" ]
-  then
-    # xpack_platforms="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.xpack_platforms)"
-    # if [ -z "${xpack_platforms}" ]
-    # then
-    #   xpack_platforms="all"
-    # fi
-    # export xpack_platforms
-
-    # xpack_custom_fields="$(json -f "${project_folder_path}/build-assets/package.json" -o json-0 xpack.properties.customFields)"
-    # if [ -z "${xpack_custom_fields}" ]
-    # then
-    #   xpack_custom_fields='{}'
-    # fi
-    # export xpack_custom_fields
-
-    # xpack_github_project_name2="$(json -f "${project_folder_path}/build-assets/package.json" xpack.properties.customFields.gitHubProjectName)"
-
-    # if [ -z "${xpack_github_project_name2}" ]
-    # then
-    #   xpack_github_project_name2="${xpack_app_lc_name}-xpack"
-    # fi
-    # export xpack_github_project_name2
-    #   -e "this.gitHubProjectName=\"${xpack_github_project_name2}\"" \
-
-    # A mechanism to force the use of a specific version,
-    # not actually use.
-    # -e "this.MACOS_ARM_VERSION=..." \
-    # -e "this.MACOS_INTEL_VERSION=..." \
-
-    # Edit the json and add more properties one by one.
-    # export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-    # )
-    :
-  fi
-
-  # ---------------------------------------------------------------------------
-
-  if [ "${is_xpack_dev_tools}" == "true" ]
-  then
-    if [ -f "${project_folder_path}/build-assets/package.json" ]
-    then
-
-      xpack_dt_custom_fields="$(json -f "${project_folder_path}/build-assets/package.json" -o json-0 xpack.properties.customFields)"
-
-      if [ -z "${xpack_dt_custom_fields}" ]
-      then
-        xpack_dt_custom_fields='{}'
-      fi
-
-      export xpack_dt_custom_fields
-
-      export xpack_dt_has_two_numbers_version="$(echo "${xpack_dt_custom_fields}" | json hasTwoNumbersVersion)"
-      # export xpack_dt_is_organization_web="$(echo "${xpack_dt_custom_fields}" | json isOrganizationWeb)"
-
-      if [ "${xpack_is_organization_web}" == "true" ]
-      then
-        xpack_dt_version="0.0.0-0"
-        xpack_dt_base_url="/"
-      else
-        xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
-        xpack_dt_base_url="/${xpack_short_name}-xpack/"
-      fi
-
-      export xpack_dt_version
-      export xpack_dt_base_url
-
-      # Remove pre-release.
-      export xpack_dt_semver_version="$(echo ${xpack_dt_version} | sed -e 's|-.*||')"
-
-      if [ "${xpack_dt_has_two_numbers_version}" == "true" ] && [[ "${xpack_dt_semver_version}" =~ .*[.]0*$ ]]
-      then
-        # Remove the patch number, if zero.
-        xpack_dt_upstream_version="$(echo ${xpack_dt_semver_version} | sed -e 's|[.]0*$||')"
-      else
-        xpack_dt_upstream_version="${xpack_dt_semver_version}"
-      fi
-      export xpack_dt_upstream_version
-
-      xpack_dt_github_project_name="$(echo "${xpack_dt_custom_fields}" | json gitHubProjectName)"
-      if [ -z "${xpack_dt_github_project_name}" ]
-      then
-        xpack_dt_github_project_name="${xpack_short_name}-xpack"
-      fi
-      export xpack_dt_github_project_name
-
-      # TODO: adjust for top web.
-      export xpack_dt_branch="xpack-development"
-
-      # Edit the json and add more properties one by one.
-      export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-      -e "this.branch=\"${xpack_dt_branch}\"" \
-      -e "this.upstreamVersion=\"${xpack_dt_upstream_version}\"" \
-      -e "this.gitHubProjectName=\"${xpack_dt_github_project_name}\"" \
-      -e "this.customFields=${xpack_dt_custom_fields}" \
-      )
-
-    fi
-  fi
 
   # ---------------------------------------------------------------------------
 
