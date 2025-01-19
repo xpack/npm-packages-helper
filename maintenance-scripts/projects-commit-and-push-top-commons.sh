@@ -149,7 +149,7 @@ else
 fi
 
 echo
-echo "${script_name} ${argv} done"
+echo "'${script_name} ${argv}' done"
 
 exit 0
 
