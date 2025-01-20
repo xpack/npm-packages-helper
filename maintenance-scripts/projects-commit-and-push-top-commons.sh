@@ -112,7 +112,10 @@ function commit_and_push()
 
     run_verbose git commit -m "re-generate commons" || true
 
-    run_verbose git push
+    if [ "${do_push}" == "true" ]
+    then
+      run_verbose git push
+    fi
   )
 }
 
