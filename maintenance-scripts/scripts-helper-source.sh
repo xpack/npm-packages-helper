@@ -266,7 +266,11 @@ function compute_context() {
   fi
   export xpack_npm_package_homepage_preview
 
-  export xpack_release_version="$(echo "${xpack_npm_package_version}" | sed -e 's|[-].*||')"
+  # Remove the `pre` used during development.
+  export xpack_release_version="$(echo "${xpack_npm_package_version}" | sed -e 's|[.-]pre.*||')"
+
+  # Remove the pre-release.
+  export xpack_release_semver="$(echo "${xpack_release_version}" | sed -e 's|[-].*||')"
 
   xpack_github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
 
@@ -301,6 +305,7 @@ function compute_context() {
   -e "this.packageName=\"${xpack_npm_package_name}\"" \
   -e "this.packageVersion=\"${xpack_npm_package_version}\"" \
   -e "this.releaseVersion=\"${xpack_release_version}\"" \
+  -e "this.releaseSemver=\"${xpack_release_semver}\"" \
   -e "this.packageDescription=\"${xpack_npm_package_description}\"" \
   -e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
   -e "this.githubProjectName=\"${xpack_xpack_github_project_name}\"" \
@@ -430,7 +435,6 @@ function compute_context() {
     then
       xpack_custom_fields='{}'
     fi
-
     export xpack_custom_fields
 
     # Edit the json and add more properties one by one.
@@ -438,52 +442,45 @@ function compute_context() {
     -e "this.packageWebsiteConfig=${xpack_npm_package_website_config}" \
     )
 
-    if [ "${xpack_custom_fields}" != '{}' ]
-    then
-      export xpack_dt_has_two_numbers_version="$(echo "${xpack_custom_fields}" | json hasTwoNumbersVersion)"
-      # export xpack_dt_is_organization_web="$(echo "${xpack_custom_fields}" | json isOrganizationWeb)"
+    export xpack_has_two_numbers_version="$(echo "${xpack_npm_package_website_config}" | json hasTwoNumbersVersion)"
 
-      if [ "${xpack_is_organization_web}" == "true" ]
-      then
-        xpack_dt_version="0.0.0-0"
-        xpack_dt_base_url="/"
-      else
-        xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
-        xpack_dt_base_url="/${xpack_short_name}-xpack/"
-      fi
+    # if [ "${xpack_custom_fields}" != '{}' ]
+    # then
+    #   export xpack_dt_has_two_numbers_version="$(echo "${xpack_npm_package_website_config}" | json hasTwoNumbersVersion)"
+    #   # export xpack_dt_is_organization_web="$(echo "${xpack_custom_fields}" | json isOrganizationWeb)"
 
-      export xpack_dt_version
-      export xpack_dt_base_url
+    #   if [ "${xpack_is_organization_web}" == "true" ]
+    #   then
+    #     xpack_dt_version="0.0.0-0"
+    #     xpack_dt_base_url="/"
+    #   else
+    #     xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
+    #     xpack_dt_base_url="/${xpack_short_name}-xpack/"
+    #   fi
 
-      # Remove pre-release.
-      export xpack_dt_semver_version="$(echo ${xpack_dt_version} | sed -e 's|-.*||')"
+    #   export xpack_dt_version
+    #   export xpack_dt_base_url
 
-      if [ "${xpack_dt_has_two_numbers_version}" == "true" ] && [[ "${xpack_dt_semver_version}" =~ .*[.]0*$ ]]
-      then
-        # Remove the patch number, if zero.
-        xpack_dt_upstream_version="$(echo ${xpack_dt_semver_version} | sed -e 's|[.]0*$||')"
-      else
-        xpack_dt_upstream_version="${xpack_dt_semver_version}"
-      fi
-      export xpack_dt_upstream_version
+    #   # Remove pre-release.
+    #   export xpack_dt_semver_version="$(echo ${xpack_dt_version} | sed -e 's|-.*||')"
 
-      xpack_dt_github_project_name="$(echo "${xpack_custom_fields}" | json gitHubProjectName)"
-      if [ -z "${xpack_dt_github_project_name}" ]
-      then
-        xpack_dt_github_project_name="${xpack_short_name}-xpack"
-      fi
-      export xpack_dt_github_project_name
+    #   if [ "${xpack_dt_has_two_numbers_version}" == "true" ] && [[ "${xpack_dt_semver_version}" =~ .*[.]0*$ ]]
+    #   then
+    #     # Remove the patch number, if zero.
+    #     xpack_dt_upstream_version="$(echo ${xpack_dt_semver_version} | sed -e 's|[.]0*$||')"
+    #   else
+    #     xpack_dt_upstream_version="${xpack_dt_semver_version}"
+    #   fi
+    #   export xpack_dt_upstream_version
 
-      # TODO: adjust for top web.
-      export xpack_dt_branch="xpack-development"
+    #   # TODO: adjust for top web.
+    #   export xpack_dt_branch="xpack-development"
 
-      # Edit the json and add more properties one by one.
-      export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-      -e "this.branch=\"${xpack_dt_branch}\"" \
-      -e "this.upstreamVersion=\"${xpack_dt_upstream_version}\"" \
-      -e "this.gitHubProjectName=\"${xpack_dt_github_project_name}\"" \
-      )
-    fi
+    #   # Edit the json and add more properties one by one.
+    #   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+    #   -e "this.branch=\"${xpack_dt_branch}\"" \
+    #   )
+    # fi
   fi
 
   # ---------------------------------------------------------------------------
@@ -533,6 +530,49 @@ function compute_context() {
   -e "this.isXpack=\"${xpack_npm_package_is_xpack}\"" \
   -e "this.platforms=\"${xpack_platforms}\"" \
   )
+
+  if [ "${xpack_npm_package_xpack}" != "{}" ] && [[ ! "${xpack_release_semver}" =~ 0[.]0[.0].*$ ]]
+  then
+
+    if [ -f "${project_folder_path}/build-assets/scripts/VERSION" ]
+    then
+      # Prefer the VERSION content, if available.
+      xpack_xpack_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
+    else
+      # Use the package.json one, but remove the `pre` used during development.
+      xpack_xpack_version="${xpack_release_version}"
+    fi
+
+    xpack_xpack_semver="$(echo "${xpack_xpack_version}" | sed -e 's|[-].*||')"
+    xpack_xpack_subversion="$(echo "${xpack_xpack_version}" | sed -e 's|.*[-]||')"
+
+    # Use the package.json one, but remove the `pre` used during development.
+    xpack_npm_subversion="$(echo "${xpack_npm_package_version}" | sed -e 's|[.-]pre.*||' -e 's|.*[.]||')"
+
+    export xpack_xpack_version
+    export xpack_xpack_semver
+    export xpack_xpack_subversion
+    export xpack_npm_subversion
+
+    if [ "${xpack_has_two_numbers_version}" == "true" ] && [[ "${xpack_release_semver}" =~ .*[.]0*$ ]]
+    then
+      # Remove the patch number, if zero.
+      xpack_upstream_version="$(echo ${xpack_release_semver} | sed -e 's|[.]0*$||')"
+    else
+      xpack_upstream_version="${xpack_release_semver}"
+    fi
+    export xpack_upstream_version
+
+    # Edit the json and add more properties one by one.
+    export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+    -e "this.xpackVersion=\"${xpack_xpack_version}\"" \
+    -e "this.xpackSemver=\"${xpack_xpack_semver}\"" \
+    -e "this.xpackSubversion=\"${xpack_xpack_subversion}\"" \
+    -e "this.npmSubversion=\"${xpack_npm_subversion}\"" \
+    -e "this.upstreamVersion=\"${xpack_upstream_version}\"" \
+    )
+
+  fi
 
   # ---------------------------------------------------------------------------
 
