@@ -334,6 +334,8 @@ function compute_context() {
     xpack_has_trigger_publish_preview="false"
     xpack_has_empty_master="false"
     xpack_long_name=""
+    xpack_short_name=""
+    xpack_long_xpack_name=""
   else
     xpack_is_organization_web="$(echo "${xpack_npm_package_top_config}" | json isOrganizationWeb)"
     xpack_is_web_deploy_only="$(echo "${xpack_npm_package_top_config}" | json isWebDeployOnly)"
@@ -344,6 +346,18 @@ function compute_context() {
     xpack_has_empty_master="$(echo "${xpack_npm_package_top_config}" | json hasEmptyMaster)"
     xpack_long_name="$(echo "${xpack_npm_package_top_config}" | json longName)"
     xpack_short_name="$(echo "${xpack_npm_package_top_config}" | json shortName)"
+
+    if [ ! -z "${xpack_long_name}" ]
+    then
+      if [ "${xpack_long_name:0:6}" != "xPack " ]
+      then
+        xpack_long_xpack_name="xPack ${xpack_long_name}"
+      else
+        xpack_long_xpack_name="${xpack_long_name}"
+      fi
+    else
+      xpack_long_xpack_name=""
+    fi
   fi
   export xpack_npm_package_top_config
   export xpack_is_organization_web
@@ -355,6 +369,7 @@ function compute_context() {
   export xpack_has_empty_master
   export xpack_long_name
   export xpack_short_name
+  export xpack_long_xpack_name
 
   xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
   xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
@@ -372,6 +387,7 @@ function compute_context() {
   # Edit the json and add properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
   -e "this.packageConfig=${xpack_npm_package_top_config}" \
+  -e "this.longXpackName=\"${xpack_long_xpack_name}\"" \
   -e "this.baseUrl=\"${xpack_base_url}\"" \
   -e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
   -e "this.showTestsResults=\"${xpack_show_test_results}\"" \
@@ -486,34 +502,42 @@ function compute_context() {
   # ---------------------------------------------------------------------------
 
   # Top xpack.
+  xpack_platforms=""
+  xpack_npm_package_is_xpack="false"
+  xpack_npm_package_is_xpack_binary="false"
+
   xpack_npm_package_xpack="$(json -f "${project_folder_path}/package.json" -o json-0 xpack)"
   if [ -z "${xpack_npm_package_xpack}" ]
   then
     xpack_npm_package_xpack="{}"
-    xpack_npm_package_is_xpack="false"
-    xpack_platforms=""
   else
     xpack_npm_package_is_xpack="true"
 
-    # set -x
-    xpack_platforms_array=()
-    # The order is relevant, it is kept when generating tabs and lists.
-    for platform in win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-arm64 linux-arm
-    do
-      platform_object="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries.platforms.${platform})"
-      if [ ! -z "${platform_object}" ]
-      then
-        skip_value="$(echo "${platform_object}" | json skip)"
-        if [ "${skip_value}" == "true" ]
+    xpack_npm_package_xpack_binaries="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries)"
+    if [ ! -z "${xpack_npm_package_xpack_binaries}" ]
+    then
+      xpack_npm_package_is_xpack_binary="true"
+
+      # set -x
+      xpack_platforms_array=()
+      # The order is relevant, it is kept when generating tabs and lists.
+      for platform in win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-arm64 linux-arm
+      do
+        platform_object="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries.platforms.${platform})"
+        if [ ! -z "${platform_object}" ]
         then
-          continue
+          skip_value="$(echo "${platform_object}" | json skip)"
+          if [ "${skip_value}" == "true" ]
+          then
+            continue
+          fi
+          xpack_platforms_array+=("${platform}")
         fi
-        xpack_platforms_array+=("${platform}")
-      fi
-    done
-    set +o nounset # Do not exit if variable not set (empty skip_pages_array).
-    xpack_platforms="$(echo "${xpack_platforms_array[@]}" | tr ' ' ',')"
-    set -o nounset # Exit if variable not set.
+      done
+      set +o nounset # Do not exit if variable not set (empty skip_pages_array).
+      xpack_platforms="$(echo "${xpack_platforms_array[@]}" | tr ' ' ',')"
+      set -o nounset # Exit if variable not set.
+    fi
   fi
 
   if [ -z "${xpack_platforms}" ]
@@ -521,12 +545,14 @@ function compute_context() {
     xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64,linux-arm"
   fi
 
-  export xpack_npm_package_is_xpack
   export xpack_npm_package_xpack
+  export xpack_npm_package_is_xpack
+  export xpack_npm_package_is_xpack_binary
   export xpack_platforms
 
   # Edit the json and add more properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+  -e "this.isXpackBinary=\"${xpack_npm_package_is_xpack_binary}\"" \
   -e "this.isXpack=\"${xpack_npm_package_is_xpack}\"" \
   -e "this.platforms=\"${xpack_platforms}\"" \
   )
@@ -673,7 +699,7 @@ function process_file() {
     substitute_and_merge "${from_relative_file_path}" "${to_relative_file_path}" "${to_absolute_folder_path}"
   elif [[ "$(basename "${from_relative_file_path}")" =~ .*-liquid.* ]]
   then
-    substitute "${from_relative_file_path}" "${to_relative_file_path}"  "${to_absolute_folder_path}"
+    substitute "${from_relative_file_path}" "${to_relative_file_path}" "${to_absolute_folder_path}"
   else
     echo "cp -> ${to_relative_file_path}"
     if [ "${do_dry_run}" != "true" ]
@@ -686,7 +712,7 @@ function process_file() {
   then
     # Except package.json which may need frequent updates,
     # make everything else read only.
-    if [ "$(basename "${to_absolute_file_path}")" != "package.json" ]
+    if [ "$(basename "${to_absolute_file_path}")" != "package.json" ] && [ "${do_force}" == "true" ]
     then
       chmod -w "${to_absolute_file_path}"
     fi
