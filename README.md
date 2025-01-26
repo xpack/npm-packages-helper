@@ -236,8 +236,8 @@ The top `xpack.github.io` project:
   "hasBranchDevelopment": "true",
   "hasBranchWebsite": "false",
   "hasBranchWebpreview": "false",
-  "websiteBranch": "master",
-  "websiteBranchPreview": "development",
+  "branchWebsite": "master",
+  "branchWebpreview": "development",
   "packageEnginesNodeVersion": "18.0.0",
   "packageEnginesNodeVersionMajor": "18",
   "packageDependenciesTypescriptVersion": "",
@@ -319,8 +319,8 @@ Booleans (`true`/`false`):
 
 Miscellaneous
 
-- `websiteBranch`
-- `websiteBranchPreview`
+- `branchWebsite`
+- `branchWebpreview`
 - `releaseDate`
 - `packageScopedName`
 - `packageScope`
