@@ -172,6 +172,14 @@ function compute_context() {
   fi
   export xpack_has_branch_development
 
+  if (git branch | grep xpack) >/dev/null
+  then
+    xpack_has_branch_xpack="true"
+  else
+    xpack_has_branch_xpack="false"
+  fi
+  export xpack_has_branch_xpack
+
   if (git branch | grep xpack-development) >/dev/null
   then
     xpack_has_branch_xpack_development="true"
@@ -198,30 +206,50 @@ function compute_context() {
 
   if [ "${xpack_has_branch_website}" == "true" ]
   then
-    xpack_website_branch="website"
+    xpack_branch_website="website"
   elif [ "${xpack_has_branch_master}" == "true" ]
   then
-    xpack_website_branch="master"
+    xpack_branch_website="master"
   else
     echo "Branch?"
     exit 1
   fi
-  export xpack_website_branch
+  export xpack_branch_website
 
   if [ "${xpack_has_branch_webpreview}" == "true" ]
   then
-    xpack_website_branch_preview="webpreview"
+    xpack_branch_webpreview="webpreview"
   elif [ "${xpack_has_branch_development}" == "true" ]
   then
-    xpack_website_branch_preview="development"
+    xpack_branch_webpreview="development"
   elif [ "${xpack_has_branch_master}" == "true" ]
   then
-    xpack_website_branch_preview="master"
+    xpack_branch_webpreview="master"
   else
     echo "Branch preview?"
     exit 1
   fi
-  export xpack_website_branch_preview
+  export xpack_branch_webpreview
+
+  if [ "${xpack_has_branch_xpack}" == "true" ]
+  then
+    xpack_branch_main="xpack"
+  elif [ "${xpack_has_branch_development}" == "true" ] && [ "${xpack_has_branch_master}" == "true" ]
+  then
+    # This is tricky, if it has development, it must also have master.
+    xpack_branch_main="master"
+  elif [ "${xpack_has_branch_website}" == "true" ]
+  then
+    xpack_branch_main="website"
+  elif [ "${xpack_has_branch_master}" == "true" ]
+  then
+    # This is tricky, if it has development, it must also have master.
+    xpack_branch_main="master"
+  else
+    echo "Branch main?"
+    exit 1
+  fi
+  export xpack_branch_main
 
   export xpack_release_date="$(date '+%Y-%m-%d %H:%M:%S %z')"
 
@@ -234,8 +262,9 @@ function compute_context() {
   -e "this.hasBranchXpackDevelopment=\"${xpack_has_branch_xpack_development}\"" \
   -e "this.hasBranchWebsite=\"${xpack_has_branch_website}\"" \
   -e "this.hasBranchWebpreview=\"${xpack_has_branch_webpreview}\"" \
-  -e "this.websiteBranch=\"${xpack_website_branch}\"" \
-  -e "this.websiteBranchPreview=\"${xpack_website_branch_preview}\"" \
+  -e "this.branchMain=\"${xpack_branch_main}\"" \
+  -e "this.branchWebsite=\"${xpack_branch_website}\"" \
+  -e "this.branchWebpreview=\"${xpack_branch_webpreview}\"" \
   -e "this.releaseDate=\"${xpack_release_date}\"" \
   )
 
@@ -437,10 +466,20 @@ function compute_context() {
 
     export xpack_has_metadata_minimum="$(echo "${xpack_npm_package_website_config}" | json hasMetadataMinimum)"
     export xpack_has_custom_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasCustomHomepageFeatures)"
+    export xpack_has_custom_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomSidebar)"
+    export xpack_has_custom_developer="$(echo "${xpack_npm_package_website_config}" | json hasCustomDeveloper)"
+    export xpack_has_custom_getting_started="$(echo "${xpack_npm_package_website_config}" | json hasCustomGettingStarted)"
+    export xpack_has_custom_install="$(echo "${xpack_npm_package_website_config}" | json hasCustomInstall)"
+    export xpack_has_custom_maintainer="$(echo "${xpack_npm_package_website_config}" | json hasCustomMaintainer)"
+    export xpack_has_custom_about="$(echo "${xpack_npm_package_website_config}" | json hasCustomAbout)"
+    export xpack_has_custom_user="$(echo "${xpack_npm_package_website_config}" | json hasCustomUser)"
     export xpack_has_top_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasTopHomepageFeatures)"
     export xpack_has_cli="$(echo "${xpack_npm_package_website_config}" | json hasCli)"
     export xpack_has_policies="$(echo "${xpack_npm_package_website_config}" | json hasPolicies)"
     export xpack_skip_install_command="$(echo "${xpack_npm_package_website_config}" | json skipInstallCommand)"
+    export xpack_skip_install_guide="$(echo "${xpack_npm_package_website_config}" | json skipInstallGuide)"
+    export xpack_skip_releases="$(echo "${xpack_npm_package_website_config}" | json skipReleases)"
+    export xpack_skip_faq="$(echo "${xpack_npm_package_website_config}" | json skipFaq)"
     export xpack_skip_contributor_guide="$(echo "${xpack_npm_package_website_config}" | json skipContributorGuide)"
 
     export xpack_website_config_is_arm_toolchain="$(echo "${xpack_npm_package_website_config}" | json isArmToolchain)"
@@ -540,7 +579,8 @@ function compute_context() {
     fi
   fi
 
-  if [ -z "${xpack_platforms}" ]
+  # For top webs, to display the full list of platforms.
+  if [ "${xpack_is_organization_web}" == "true" ] && [ -z "${xpack_platforms}" ]
   then
     xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64,linux-arm"
   fi
@@ -626,7 +666,7 @@ function trap_handler()
   local exit_code="$1"
   shift
 
-  echo "FAIL ${message} line: ${line_number} exit: ${exit_code}"
+  echo "\007 FAIL ${message} line: ${line_number} exit: ${exit_code}"
 
   rm -rfv "${tmp_file_path}"
   exit 255
