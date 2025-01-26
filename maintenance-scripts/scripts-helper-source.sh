@@ -483,6 +483,7 @@ function compute_context() {
     export xpack_skip_contributor_guide="$(echo "${xpack_npm_package_website_config}" | json skipContributorGuide)"
 
     export xpack_website_config_is_arm_toolchain="$(echo "${xpack_npm_package_website_config}" | json isArmToolchain)"
+    export xpack_website_config_is_gcc_toolchain="$(echo "${xpack_npm_package_website_config}" | json isGccToolchain)"
 
     xpack_custom_fields="$(echo "${xpack_npm_package_website_config}" | json -o json-0 customFields)"
 

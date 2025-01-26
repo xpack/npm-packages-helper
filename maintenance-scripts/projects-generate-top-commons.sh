@@ -54,6 +54,13 @@ function generate_top_commons()
 {
   (
     local from_folder_path="$(dirname "${1}")"
+    local git_folder_name="$(basename "${from_folder_path}")"
+
+    if [ -f "${stamps_folder_path}/${git_folder_name}" ]
+    then
+      echo "${git_folder_name} already generated..."
+      return 0
+    fi
 
     cd "${from_folder_path}"
 
@@ -99,6 +106,9 @@ function generate_top_commons()
     run_verbose npm run npm-install
     run_verbose npm run npm-link-helpers
     run_verbose npm run generate-top-commons
+
+    run_verbose mkdir -pv "${stamps_folder_path}"
+    run_verbose touch "${stamps_folder_path}/${git_folder_name}"
   )
 }
 
@@ -108,12 +118,14 @@ function generate_top_commons()
 # .../xpack.github/packages/npm-packages-helper.git/maintenance-scripts/projects-generate-top-commons.sh
 
 my_projects_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
+stamps_folder_name="$(echo "${script_name}" | sed -e 's|\.sh$||')"
 
 if [ "${is_xpack}" == "true" ]
 then
   xpack_github_folder_path="${my_projects_folder_path}/xpack.github"
-  packages_folder_path="${xpack_github_folder_path}/packages"
-  www_folder_path="${xpack_github_folder_path}/www"
+  export stamps_folder_path="${xpack_github_folder_path}/stamps/${stamps_folder_name}"
+  export packages_folder_path="${xpack_github_folder_path}/packages"
+  export www_folder_path="${xpack_github_folder_path}/www"
 
   for file_path in "${packages_folder_path}"/*/.git "${www_folder_path}"/*/.git
   do
@@ -122,8 +134,9 @@ then
 elif [ "${is_xpack_dev_tools}" == "true" ]
 then
   xpack_dev_tools_github_folder_path="${my_projects_folder_path}/xpack-dev-tools.github"
-  xpacks_folder_path="${xpack_dev_tools_github_folder_path}/xPacks"
-  www_folder_path="${xpack_dev_tools_github_folder_path}/www"
+  export stamps_folder_path="${xpack_dev_tools_github_folder_path}/stamps/${stamps_folder_name}"
+  export xpacks_folder_path="${xpack_dev_tools_github_folder_path}/xPacks"
+  export www_folder_path="${xpack_dev_tools_github_folder_path}/www"
 
   for file_path in "${xpacks_folder_path}"/*/.git "${www_folder_path}"/*/.git "${xpack_dev_tools_github_folder_path}/xpack-build-box.git/.git"
   do
