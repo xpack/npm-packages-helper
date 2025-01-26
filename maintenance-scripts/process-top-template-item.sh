@@ -277,6 +277,8 @@ set -o nounset # Exit if variable not set.
 
 # -----------------------------------------------------------------------------
 
+export do_force="false"
+
 process_file
 
 rm -rf "${tmp_file_path}"
