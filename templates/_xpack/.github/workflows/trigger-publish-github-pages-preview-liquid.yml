@@ -21,7 +21,7 @@ on:
   push:
     # ... on the website branch ...
     branches:
-      - '{{websiteBranchPreview}}'
+      - '{{branchWebpreview}}'
     # ... skip tags only ...
     tags-ignore:
       - '**'
@@ -61,5 +61,5 @@ jobs:
             --header "Authorization: token {% raw %}${{secrets.DISPATCH_TOKEN}}{% endraw %}" \
             --header "Content-Type: application/json" \
             --header "Accept: application/vnd.github.v3+json" \
-            --data '{"ref":"master", "inputs":{"repository":"{{githubProjectOrganization}}/{{githubProjectName}}", "ref":"{{websiteBranchPreview}}"}}' \
+            --data '{"ref":"master", "inputs":{"repository":"{{githubProjectOrganization}}/{{githubProjectName}}", "ref":"{{branchWebpreview}}"}}' \
             https://api.github.com/repos/{{githubProjectOrganization}}{{baseUrlPreview}}actions/workflows/publish-github-pages-from-remote.yml/dispatches

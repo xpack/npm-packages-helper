@@ -38,9 +38,7 @@
       "git-pull-helper": [
         "git -C ${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git pull"
       ],
-      "git-log": "git -C .. log --pretty='%cd * %h %s' --date=short",
-      "website-generate-commons": "bash xpacks/@xpack-dev-tools/xbb-helper/maintainer-scripts/website-generate-commons.sh",
-      "website-import-releases": "bash xpacks/@xpack-dev-tools/xbb-helper/maintainer-scripts/website-import-releases.sh"{% if packageConfig.isOrganizationWeb != "true" %},
+      "git-log": "git -C .. log --pretty='%cd * %h %s' --date=short"{% if packageConfig.isOrganizationWeb != "true" %},
       "check-space": "{% raw %}{% if os.platform == 'darwin' %}df -gH /{% else %}df -BG -H /{% endif %}{% endraw %}",
       "clear-all-projects-builds": "rm -rf ~/Work/xpack-dev-tools/*/build-assets/build",
 {% for platform in platforms %}

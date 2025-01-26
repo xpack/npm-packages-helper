@@ -22,7 +22,7 @@ on:
   push:
     # ... on the `website` branch ...
     branches:
-      - '{% if packageConfig.isWebPreview == "true" %}{{websiteBranchPreview}}{% else %}{{websiteBranch}}{% endif %}'
+      - '{% if packageConfig.isWebPreview == "true" %}{{branchWebpreview}}{% else %}{{branchWebsite}}{% endif %}'
     # ... skip tags only ...
     tags-ignore:
       - '**'
