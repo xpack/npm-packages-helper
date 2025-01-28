@@ -474,6 +474,8 @@ function compute_context() {
     export xpack_has_custom_about="$(echo "${xpack_npm_package_website_config}" | json hasCustomAbout)"
     export xpack_has_custom_user="$(echo "${xpack_npm_package_website_config}" | json hasCustomUser)"
     export xpack_has_top_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasTopHomepageFeatures)"
+    export xpack_has_homepage_tools="$(echo "${xpack_npm_package_website_config}" | json hasHomepageTools)"
+
     export xpack_has_cli="$(echo "${xpack_npm_package_website_config}" | json hasCli)"
     export xpack_has_policies="$(echo "${xpack_npm_package_website_config}" | json hasPolicies)"
     export xpack_skip_install_command="$(echo "${xpack_npm_package_website_config}" | json skipInstallCommand)"
@@ -591,10 +593,23 @@ function compute_context() {
   export xpack_npm_package_is_xpack_binary
   export xpack_platforms
 
+  xpack_is_npm_published="false"
+  if [ "${xpack_npm_package_is_xpack}" == "true" ] ||
+     [ "${xpack_is_typescript}" == "true" ] ||
+     [ "${xpack_is_javascript}" == "true" ]
+  then
+    if [ "${xpack_release_semver}" != "0.0.0" ]
+    then
+      xpack_is_npm_published="true"
+    fi
+  fi
+  export xpack_is_npm_published
+
   # Edit the json and add more properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
   -e "this.isXpackBinary=\"${xpack_npm_package_is_xpack_binary}\"" \
   -e "this.isXpack=\"${xpack_npm_package_is_xpack}\"" \
+  -e "this.isNpmPublished=\"${xpack_is_npm_published}\"" \
   -e "this.platforms=\"${xpack_platforms}\"" \
   )
 
@@ -660,16 +675,20 @@ function compute_context() {
 # xargs stops only for exit code 255.
 function trap_handler()
 {
-  local message="$1"
+  local message="${1}"
   shift
-  local line_number="$1"
+  local line_number="${1}"
   shift
-  local exit_code="$1"
+  local exit_code="${1}"
   shift
 
   echo "\007 FAIL ${message} line: ${line_number} exit: ${exit_code}"
 
-  rm -rfv "${tmp_file_path}"
+  if [ $# -ge 1 ]
+  then
+    rm -rfv "${1}"
+  fi
+
   exit 255
 }
 
