@@ -77,9 +77,11 @@ jobs:
       - name: Install dependencies
         run: npm ci -C website
 
-      - name: Build the Docusaurus site{% if packageConfig.isWebPreview == "true" %}
+      - name: Build the Docusaurus site
+{%- if packageConfig.isWebPreview == "true" %}
         env:
-          DOCUSAURUS_IS_PREVIEW: 'true'{% endif %}
+          DOCUSAURUS_IS_PREVIEW: 'true'
+{%- endif %}
         run: npm run build -C website
 
       - name: Setup Pages
