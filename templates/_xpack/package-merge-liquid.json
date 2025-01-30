@@ -1,25 +1,40 @@
 {
-  "scripts": { {% if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}{% if isTypeScript == "true" %}
+  "scripts": {
+{%- if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}
+{%- if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
-    "compile": "tsc --build --verbose src",{% endif %}{% if isJavaScript == "true" %}
+    "compile": "tsc --build --verbose src",
+{%- endif %}
+{%- if isJavaScript == "true" %}
     "fix": "standard --fix lib tests",
-    "dev-cycle": "npm run fix && npm run test",{% elsif isTypeScript == "true" %}
+    "dev-cycle": "npm run fix && npm run test",
+{%- elsif isTypeScript == "true" %}
     "fix": "ts-standard --fix src tests && standard esm",
-    "dev-cycle": "npm run fix && npm run compile && npm run test",{% endif %}{% endif %}
+    "dev-cycle": "npm run fix && npm run compile && npm run test",
+{%- endif %}
+{%- endif %}
     "npm-install": "npm install",
     "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
     "npm-link": "npm link",
     "npm-outdated": "npm outdated",
-    "npm-update": "npm update",{% if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}
+    "npm-update": "npm update",
+{%- if isNpmPublished == "true" %}
     "npm-pack": "npm pack",
     "npm-version-patch": "npm version patch",
     "npm-version-minor": "npm version minor",
     "postversion": "git push origin --all && git push origin --tags",
-    "git-log": "git log --pretty='%cd * %h %s' --date=short",{% if isJavaScript == "true" %}
-    "lint": "standard lib",{% elsif isTypeScript == "true" %}
-    "lint": "ts-standard src && standard esm",{% endif %}{% if isJavaScript == "true" %}
-    "prepare": "npm run lint",{% elsif isTypeScript == "true" %}
-    "prepare": "npm run compile && npm run lint",{% endif %}{% if packageConfig.skipTests != "true" and packageVersion != "0.0.0" %}
+    "git-log": "git log --pretty='%cd * %h %s' --date=short",
+{%- if isJavaScript == "true" %}
+    "lint": "standard lib",
+{%- elsif isTypeScript == "true" %}
+    "lint": "ts-standard src && standard esm",
+{%- endif %}
+{%- if isJavaScript == "true" %}
+    "prepare": "npm run lint",
+{%- elsif isTypeScript == "true" %}
+    "prepare": "npm run compile && npm run lint",
+{%- endif %}
+{%- if packageConfig.skipTests != "true" and packageVersion != "0.0.0" %}
     "pretest-coverage": "npm run lint",
     "pretest-no-coverage": "npm run lint",
     "test-coverage": "tap --show-full-coverage",
@@ -30,8 +45,10 @@
     "clean": "del-cli cjs 'tests/**/cjs' 'src/**/*.d.ts' 'src/**/*.d.ts.map' 'src/**/*.js' 'src/**/*.js.map' 'tests/**/*.d.ts' 'tests/**/*.d.ts.map' 'tests/**/*.js' 'tests/**/*.js.map' '**/tsconfig.tsbuildinfo' .nyc_output coverage",
     "deep-clean": "npm run clean && rm -rf node_modules package-lock.json",
     "show-versions": "echo $(which node) $(node --version) && echo $(which npm) $(npm --version)",
-    "dumpconf": "env | sort | uniq",{% else %}
-    "deep-clean": "del-cli node_modules package-lock.json",{% endif %}
+    "dumpconf": "env | sort | uniq",
+{%- else %}
+    "deep-clean": "del-cli node_modules package-lock.json",
+{%- endif %}
     "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack"
   },
   "repository": {
@@ -53,18 +70,26 @@
     "@types/tap": "^15.0.12",{% endif %}
     "del-cli": "^6.0.0",
     "json": "^11.0.0",
-    "liquidjs": "^10.19.1"{% if isJavaScript == "true" or isTypeScript == "true" %},
+    "liquidjs": "^10.19.1"
+{%- if isJavaScript == "true" or isTypeScript == "true" %},
     "standard": "^17.1.2",
-    "tap": "^21.0.1"{% endif %}{% if isTypeScript == "true" %},
+    "tap": "^21.0.1"
+{%- endif %}
+{%- if isTypeScript == "true" %},
     "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
     "typedoc": "^0.26.11",
-    "typescript": "^4.9.5"{% endif %}
-  }{% if isJavaScript == "true" or isTypeScript == "true" %},
+    "typescript": "^4.9.5"
+{%- endif %}
+  }
+{%- if isJavaScript == "true" or isTypeScript == "true" %},
   "tap": {
-    "files": [{% if isJavaScript == "true" %}
-      "tests/tap/*.js"{% elsif isTypeScript == "true" %}
-      "tests/tap/*.ts"{% endif %}
+    "files": [
+{%- if isJavaScript == "true" %}
+      "tests/tap/*.js"
+{%- elsif isTypeScript == "true" %}
+      "tests/tap/*.ts"
+{%- endif %}
     ],
     "reporter": "base"
   },
@@ -78,19 +103,23 @@
         }
       ]
     }
-  } {% if isJavaScript == "true" %},
+  }
+{%- if isJavaScript == "true" %},
   "standard": {
     "ignore": [
       "/website/"
     ]
-  } {% elsif isTypeScript == "true" %},
+  }
+{%- elsif isTypeScript == "true" %},
   "ts-standard": {
     "ignore": [
       "/website/",
       "**/*.d.ts",
       "**/*.js"
     ]
-  } {% endif %}{% endif %},
+  }
+{%- endif %}
+{%- endif %},
   "topConfig": {},
   "engines": {
     "node": " >=18.0.0"
