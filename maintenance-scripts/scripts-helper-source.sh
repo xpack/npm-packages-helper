@@ -327,6 +327,14 @@ function compute_context() {
 
   export xpack_npm_package_dependencies_typescript_version="$(json -f "${project_folder_path}/package.json" devDependencies.typescript | sed -e 's|[^0-9]*||')"
 
+  if [ ! -z "$(json -f "${project_folder_path}/package.json" bin)" ]
+  then
+    xpack_npm_package_is_binary="true"
+  else
+    xpack_npm_package_is_binary="false"
+  fi
+  export xpack_npm_package_is_binary
+
   # Edit the json and add properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
   -e "this.packageScopedName=\"${xpack_npm_package_scoped_name}\"" \
@@ -341,6 +349,7 @@ function compute_context() {
   -e "this.hasWebsiteFolder=\"${xpack_has_folder_website}\"" \
   -e "this.isTypeScript=\"${xpack_is_typescript}\"" \
   -e "this.isJavaScript=\"${xpack_is_javascript}\"" \
+  -e "this.isNpmBinary=\"${xpack_npm_package_is_binary}\"" \
   -e "this.packageEnginesNodeVersion=\"${xpack_npm_package_engines_node_version}\"" \
   -e "this.packageEnginesNodeVersionMajor=\"${xpack_npm_package_engines_node_version_major}\"" \
   -e "this.packageDependenciesTypescriptVersion=\"${xpack_npm_package_dependencies_typescript_version}\"" \
