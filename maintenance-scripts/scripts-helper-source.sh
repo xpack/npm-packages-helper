@@ -116,8 +116,8 @@ function run_verbose()
 # Requires the json application and project_folder_path.
 # Sets xpack_context and a lot of other variables.
 
-function compute_context() {
-
+function compute_context()
+{
   # set -x
 
   if [ -z "${project_folder_path}" ]
@@ -135,7 +135,7 @@ function compute_context() {
   # Create an empty json context.
   export xpack_context=$(echo '{}' | json -o json-0)
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   echo
   echo "Processing project $(basename "${project_folder_path}") properties..."
@@ -759,7 +759,7 @@ function process_file() {
     chmod -f +w "${to_absolute_file_path}"
   fi
 
-# -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   mkdir -p "$(dirname ${to_absolute_file_path})"
 
@@ -792,6 +792,71 @@ function process_file() {
     fi
   fi
 
+}
+
+# -----------------------------------------------------------------------------
+
+# $1 = name.git (project path)
+function import_releases()
+{
+  (
+    local from_folder_path="${1}"
+
+    cd "${from_folder_path}"
+
+    echo
+    echo "----------------------------------------------------------------------------"
+    pwd
+
+    # set -x
+
+    name="$(basename "$(pwd)")"
+
+    export project_folder_path="${from_folder_path}"
+    export website_folder_path="${from_folder_path}/website"
+
+    export xpack_www_releases="${website_folder_path}/_xpack.github.io/_posts/releases"
+
+    npm_package_name="$(echo "${name}" | sed -e 's|-xpack.git||')"
+    export do_force="y"
+    if [ ! -d "${xpack_www_releases}/${npm_package_name}" ]
+    then
+      echo "No ${xpack_www_releases}/${npm_package_name}, nothing to do..."
+      return 0
+    fi
+
+    export xpack_website_config_short_name="$(json -f "${project_folder_path}/package.json" topConfig.shortName)"
+    export xpack_website_config_long_name="xPack $(json -f "${project_folder_path}/package.json" topConfig.longName)"
+    export xpack_github_repository_url="$(json -f "${project_folder_path}/package.json" repository.url)"
+    export xpack_github_project_organization="$(echo "${xpack_github_repository_url}" | sed -e 's|.*github.com/||' | sed -e 's|/.*||')"
+
+    cd "${xpack_www_releases}/${npm_package_name}"
+
+    echo
+    echo "Release posts..."
+
+    find . -type f -print0 | \
+      xargs -0 -I '{}' bash "${script_folder_path}/website-convert-release-post.sh" '{}' "${website_folder_path}/blog"
+
+    echo
+    echo "Validating liquidjs..."
+
+    if grep -r -e '{{' "${website_folder_path}/blog"/*.md* | grep -v '/website/blog/_' || \
+      grep -r -e '{%' "${website_folder_path}/blog"/*.md* | grep -v '/website/blog/_'
+    then
+      exit 1
+    fi
+
+    echo
+    echo "Showing descriptions..."
+
+    egrep -h -e "(title:|description:)" "${website_folder_path}/blog"/*.md*
+
+    echo
+    echo "'${script_name}' done"
+
+    return 0
+  )
 }
 
 # -----------------------------------------------------------------------------
