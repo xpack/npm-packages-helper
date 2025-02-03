@@ -301,6 +301,11 @@ function compute_context()
   # Remove the pre-release.
   export xpack_release_semver="$(echo "${xpack_release_version}" | sed -e 's|[-].*||')"
 
+  export xpack_release_subversion="$(echo "${xpack_release_version}" | sed -e 's|.*[-]||' -e 's|[.][0-9]*||')"
+
+  # Use the package.json one, but remove the `pre` used during development.
+  export xpack_release_npm_subversion="$(echo "${xpack_release_version}" | sed -e 's|[.-]pre.*||' -e 's|.*[.]||')"
+
   xpack_github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
 
   export xpack_github_project_organization="$(echo "${xpack_github_full_name}" | sed -e 's|/.*||')"
@@ -343,6 +348,8 @@ function compute_context()
   -e "this.packageVersion=\"${xpack_npm_package_version}\"" \
   -e "this.releaseVersion=\"${xpack_release_version}\"" \
   -e "this.releaseSemver=\"${xpack_release_semver}\"" \
+  -e "this.releaseSubversion=\"${xpack_release_subversion}\"" \
+  -e "this.releaseNpmSubversion=\"${xpack_release_npm_subversion}\"" \
   -e "this.packageDescription=\"${xpack_npm_package_description}\"" \
   -e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
   -e "this.githubProjectName=\"${xpack_xpack_github_project_name}\"" \
@@ -622,9 +629,9 @@ function compute_context()
   -e "this.platforms=\"${xpack_platforms}\"" \
   )
 
-  if [ "${xpack_npm_package_xpack}" != "{}" ] && [[ ! "${xpack_release_semver}" =~ 0[.]0[.0].*$ ]]
+  # Note the ^ in the regex.
+  if [ "${xpack_npm_package_xpack}" != "{}" ] && [[ ! "${xpack_release_semver}" =~ ^0[.]0[.0].*$ ]]
   then
-
     if [ -f "${project_folder_path}/build-assets/scripts/VERSION" ]
     then
       # Prefer the VERSION content, if available.
@@ -637,13 +644,9 @@ function compute_context()
     xpack_xpack_semver="$(echo "${xpack_xpack_version}" | sed -e 's|[-].*||')"
     xpack_xpack_subversion="$(echo "${xpack_xpack_version}" | sed -e 's|.*[-]||')"
 
-    # Use the package.json one, but remove the `pre` used during development.
-    xpack_npm_subversion="$(echo "${xpack_npm_package_version}" | sed -e 's|[.-]pre.*||' -e 's|.*[.]||')"
-
     export xpack_xpack_version
     export xpack_xpack_semver
     export xpack_xpack_subversion
-    export xpack_npm_subversion
 
     if [ "${xpack_has_two_numbers_version}" == "true" ] && [[ "${xpack_release_semver}" =~ .*[.]0*$ ]]
     then
@@ -659,7 +662,6 @@ function compute_context()
     -e "this.xpackVersion=\"${xpack_xpack_version}\"" \
     -e "this.xpackSemver=\"${xpack_xpack_semver}\"" \
     -e "this.xpackSubversion=\"${xpack_xpack_subversion}\"" \
-    -e "this.npmSubversion=\"${xpack_npm_subversion}\"" \
     -e "this.upstreamVersion=\"${xpack_upstream_version}\"" \
     )
 
@@ -856,6 +858,56 @@ function import_releases()
     echo "'${script_name}' done"
 
     return 0
+  )
+}
+
+# -----------------------------------------------------------------------------
+
+function download_binaries()
+{
+  local destination_folder_path="${1:-"${HOME}/Downloads/xpack-binaries/${xpack_short_name}"}"
+
+  local version=${XBB_RELEASE_VERSION:-"${xpack_xpack_version}"}
+
+  (
+    rm -rf "${destination_folder_path}-bak"
+    if [ -d "${destination_folder_path}" ]
+    then
+      mv "${destination_folder_path}" "${destination_folder_path}-bak"
+    fi
+
+    mkdir -pv "${destination_folder_path}"
+    cd "${destination_folder_path}"
+
+    # Extract the xpack.properties platforms. There are also in xpack.binaries.
+    local platforms=$(echo "${xpack_platforms}" | sed 's|,| |g')
+
+    IFS=' '
+    for platform in ${platforms}
+    do
+
+      # echo ${platform}
+      # https://github.com/xpack-dev-tools/pre-releases/releases/download/test/xpack-ninja-build-1.11.1-2-win32-x64.zip
+      local extension='tar.gz'
+      if [ "${platform}" == "win32-x64" ]
+      then
+        extension='zip'
+      fi
+
+      archive_name="xpack-${xpack_short_name}-${version}-${platform}.${extension}"
+      archive_url="https://github.com/xpack-dev-tools/pre-releases/releases/download/test/${archive_name}"
+
+      run_verbose curl --location --insecure --fail --location --silent \
+        --output "${archive_name}" \
+        "${archive_url}"
+
+      run_verbose curl --location --insecure --fail --location --silent \
+        --output "${archive_name}.sha" \
+        "${archive_url}.sha"
+
+    done
+
+    rm -rf "${destination_folder_path}-bak"
   )
 }
 
