@@ -10,6 +10,7 @@
     "xpack-dev-tools-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack-dev-tools",
     "xpack-dev-tools-commit-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools",
     "xpack-dev-tools-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools --push",
+    "xpack-dev-tools-custom-action": "bash maintenance-scripts/projects-custom-action.sh --xpack-dev-tools",
     "npm-install": "npm install",
     "npm-link": "npm link"
   },
