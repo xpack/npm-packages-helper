@@ -65,12 +65,7 @@ function custom_action()
 
     name="$(basename "$(pwd)")"
 
-    # if [ -d "build-assets" ]
-    # then
-    #   run_verbose git add build-assets
-    #   # run_verbose git commit -m "build-assets: bump deps"
-    #   run_verbose git commit -m "build-assets: update generate-website-blog-post"
-    # fi
+    run_verbose git push
   )
 }
 
