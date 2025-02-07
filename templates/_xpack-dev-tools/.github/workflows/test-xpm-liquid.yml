@@ -330,7 +330,9 @@ jobs:
           ls -lR {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts
           touch {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "---" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
+          echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "title: {{packageConfig.longName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
+          echo "description: The report of running the tests on all supported platforms." >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "date: $(date "+%Y-%m-%d %H:%M:%S %z")" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
