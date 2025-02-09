@@ -156,7 +156,7 @@ function compute_context()
   fi
   export xpack_has_folder_build_assets
 
-  if (git branch | grep master) >/dev/null
+  if (git branch -a | grep master) >/dev/null
   then
     xpack_has_branch_master="true"
   else
@@ -164,7 +164,7 @@ function compute_context()
   fi
   export xpack_has_branch_master
 
-  if (git branch | grep development) >/dev/null
+  if (git branch -a | grep development) >/dev/null
   then
     xpack_has_branch_development="true"
   else
@@ -172,7 +172,7 @@ function compute_context()
   fi
   export xpack_has_branch_development
 
-  if (git branch | grep xpack) >/dev/null
+  if (git branch -a | grep xpack) >/dev/null
   then
     xpack_has_branch_xpack="true"
   else
@@ -180,7 +180,7 @@ function compute_context()
   fi
   export xpack_has_branch_xpack
 
-  if (git branch | grep xpack-development) >/dev/null
+  if (git branch -a | grep xpack-development) >/dev/null
   then
     xpack_has_branch_xpack_development="true"
   else
@@ -188,7 +188,7 @@ function compute_context()
   fi
   export xpack_has_branch_xpack_development
 
-  if (git branch | grep website) >/dev/null
+  if (git branch -a | grep website) >/dev/null
   then
     xpack_has_branch_website="true"
   else
@@ -196,7 +196,7 @@ function compute_context()
   fi
   export xpack_has_branch_website
 
-  if (git branch | grep webpreview) >/dev/null
+  if (git branch -a | grep webpreview) >/dev/null
   then
     xpack_has_branch_webpreview="true"
   else
