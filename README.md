@@ -2,6 +2,18 @@
 
 Common scripts and templates used by xPack node modules and web sites.
 
+## To get the Git
+
+```sh
+rm -rf ~/Work/xpack/npm-packages-helper.git && \
+mkdir -p ~/Work/xpack && \
+git clone \
+https://github.com/xpack/npm-packages-helper.git \
+~/Work/xpack/npm-packages-helper.git
+
+(cd ~/Work/xpack/npm-packages-helper.git; xpm link)
+```
+
 ## Getting started
 
 - create the GitHub project
