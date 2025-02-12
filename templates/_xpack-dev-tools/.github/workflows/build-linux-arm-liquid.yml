@@ -1,6 +1,6 @@
 {% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
 
-{% assign platforms = platforms | split: "," %}
+{% assign platforms_array = platforms | split: "," %}
 
 name: 'Build xPack {{packageConfig.longName}} linux-arm'
 
@@ -41,7 +41,7 @@ on:
         default: 'xpack-development'
 
 jobs:
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "linux-arm" %}
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'

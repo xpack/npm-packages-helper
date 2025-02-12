@@ -1,7 +1,7 @@
 
 {% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
 
-{% assign platforms = platforms | split: "," %}
+{% assign platforms_array = platforms | split: "," %}
 
 name: 'Test xPack {{packageConfig.longName}} via xpm'
 
@@ -22,7 +22,7 @@ on:
         default: 'xpack-development'
 
 jobs:
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% case platform %}
 {% when "linux-x64" %}
   {{platform}}-test:
@@ -69,7 +69,8 @@ jobs:
 {% when "linux-arm64" %}
   {{platform}}-test:
     name: '{{platform}} {{packageConfig.longName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    runs-on: [self-hosted, linux, arm64, xbbla]
+    # runs-on: [self-hosted, linux, arm64, xbbla]
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: 'Show environment'
@@ -316,7 +317,7 @@ jobs:
   generate-tests-report:
     name: 'Generate tests report for {{packageConfig.longName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
     runs-on: ubuntu-24.04
-    needs: [{{platforms | join: "-test, " | append: "-test"}}]
+    needs: [{{platforms_array | join: "-test, " | append: "-test"}}]
 
     steps:
       - name: Download platform test reports
@@ -338,7 +339,7 @@ jobs:
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "---" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
-          (cd {% raw %}${{github.workspace}}{% endraw %}; cat -s {% for platform in platforms %}build-assets/artefacts/tests-report-{{platform}}.md {% endfor %} | tee -a build-assets/artefacts/tests-report.md)
+          (cd {% raw %}${{github.workspace}}{% endraw %}; cat -s {% for platform in platforms_array %}build-assets/artefacts/tests-report-{{platform}}.md {% endfor %} | tee -a build-assets/artefacts/tests-report.md)
           mv -v {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/{% raw %}${{github.event.inputs.version}}{% endraw %}.md
 
       - name: Upload tests report

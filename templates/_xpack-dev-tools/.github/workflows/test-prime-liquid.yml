@@ -1,7 +1,7 @@
 
 {% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
 
-{% assign platforms = platforms | split: "," %}
+{% assign platforms_array = platforms | split: "," %}
 
 name: 'Test xPack {{packageConfig.longName}} on supported platforms'
 
@@ -22,7 +22,7 @@ on:
         default: 'xpack-development'
 
 jobs:
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% case platform %}
 {% when "linux-x64" %}
   {{platform}}-test:
@@ -66,7 +66,8 @@ jobs:
 {% when "linux-arm64" %}
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    runs-on: [self-hosted, linux, arm64, xbbla]
+    # runs-on: [self-hosted, linux, arm64, xbbla]
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: 'Show environment'
@@ -78,12 +79,6 @@ jobs:
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
 
-      - name: 'Clean working area' # Mandatory for self-hosted runners.
-        run: |
-          chmod -Rf a+w * || true
-          rm -rf * .git*
-
-      # https://github.com/actions/checkout
       - name: 'Checkout project'
         uses: actions/checkout@v4
         with:
@@ -97,11 +92,8 @@ jobs:
           ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
           fetch-depth: 3
 
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} docker test'
-        uses: docker://node:lts-slim # Currently based on debian:12-slim
-        with:
-          entrypoint: /bin/bash
-          args: /github/workspace/build-assets/scripts/test.sh --image ubuntu:22.04 --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
+      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
+        run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 
 {% if packageConfig.showTestsResults == 'true' %}
       - name: Upload platform tests report
@@ -351,7 +343,7 @@ jobs:
   generate-tests-report:
     name: 'Generate tests report for {{packageConfig.longName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
     runs-on: ubuntu-24.04
-    needs: [{{platforms | join: "-test, " | append: "-test"}}]
+    needs: [{{platforms_array | join: "-test, " | append: "-test"}}]
 
     steps:
       - name: Download platform test reports
@@ -371,7 +363,7 @@ jobs:
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "---" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
-          (cd {% raw %}${{github.workspace}}{% endraw %}; cat -s {% for platform in platforms %}build-assets/artefacts/tests-report-{{platform}}.md {% endfor %} | tee -a build-assets/artefacts/tests-report.md)
+          (cd {% raw %}${{github.workspace}}{% endraw %}; cat -s {% for platform in platforms_array %}build-assets/artefacts/tests-report-{{platform}}.md {% endfor %} | tee -a build-assets/artefacts/tests-report.md)
           mv -v {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/{% raw %}${{github.event.inputs.version}}{% endraw %}.md
 
       - name: Upload tests report

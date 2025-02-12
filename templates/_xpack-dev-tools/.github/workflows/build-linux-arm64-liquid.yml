@@ -1,6 +1,6 @@
 {% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
 
-{% assign platforms = platforms | split: "," %}
+{% assign platforms_array = platforms | split: "," %}
 
 name: 'Build xPack {{packageConfig.longName}} linux-arm64'
 
@@ -41,14 +41,14 @@ on:
         default: 'xpack-development'
 
 jobs:
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "linux-arm64" %}
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
     timeout-minutes: 2880 # 2 days
     runs-on: [self-hosted, linux, arm64, xbbla, xbblax]
     container:
-      image: ilegeul/ubuntu:arm64v8-18.04-xbb-v5.2.1
+      image: ilegeul/debian:arm64v8-10-xbb-v6.0.0
     defaults:
       run:
         shell: bash

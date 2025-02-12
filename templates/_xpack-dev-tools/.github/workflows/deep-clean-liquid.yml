@@ -1,6 +1,6 @@
 {% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
 
-{% assign platforms = platforms | split: "," %}
+{% assign platforms_array = platforms | split: "," %}
 
 name: 'Deep clean xPack {{packageConfig.longName}}'
 
@@ -13,7 +13,7 @@ on:
         default: 'current'
 
 jobs:
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "linux-x64" %}
   {{platform}}:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} clean'
@@ -37,7 +37,7 @@ jobs:
 {% endif %}
 {% endfor %}
 
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "win32-x64" %}
   {{platform}}:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} clean'
@@ -61,7 +61,7 @@ jobs:
 {% endif %}
 {% endfor %}
 
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "linux-arm" %}
   {{platform}}:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} clean'
@@ -86,7 +86,7 @@ jobs:
 {% endif %}
 {% endfor %}
 
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "linux-arm64" %}
   {{platform}}:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} clean'
@@ -110,7 +110,7 @@ jobs:
 {% endif %}
 {% endfor %}
 
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "darwin-x64" %}
   {{platform}}:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} clean'
@@ -138,7 +138,7 @@ jobs:
 {% endif %}
 {% endfor %}
 
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% if platform == "darwin-arm64" %}
   {{platform}}:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} clean'

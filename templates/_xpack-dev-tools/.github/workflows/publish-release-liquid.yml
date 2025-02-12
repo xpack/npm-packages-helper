@@ -1,6 +1,6 @@
 {% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
 
-{% assign platforms = platforms | split: "," %}
+{% assign platforms_array = platforms | split: "," %}
 
 name: 'Publish the xPack {{packageConfig.longName}} release'
 

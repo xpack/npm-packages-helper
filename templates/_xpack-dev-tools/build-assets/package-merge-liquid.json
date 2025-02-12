@@ -1,5 +1,5 @@
 {
-  {% assign platforms = platforms | split: "," %}
+  {% assign platforms_array = platforms | split: "," %}
   "name": "build-assets",
   "version": "0.0.0",
   "private": true,
@@ -41,7 +41,7 @@
       "git-log": "git -C .. log --pretty='%cd * %h %s' --date=short"{% if packageConfig.isOrganizationWeb != "true" %},
       "check-space": "{% raw %}{% if os.platform == 'darwin' %}df -gH /{% else %}df -BG -H /{% endif %}{% endraw %}",
       "clear-all-projects-builds": "rm -rf ~/Work/xpack-dev-tools/*/build-assets/build",
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% case platform %}
 {% when "darwin-x64" %}
       "trigger-workflow-build-darwin-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-darwin-x64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
@@ -58,7 +58,7 @@
 {% endcase %}
 {% endfor %}
       "trigger-workflow-test-prime": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-prime.sh",
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% case platform %}
 {% when "linux-x64" %}
       "trigger-workflow-test-docker-linux-x64": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-docker-linux-x64.sh",
@@ -77,7 +77,7 @@
       "test-pre-release": "{% raw %}bash {{properties.dbg}} scripts/test.sh --base-url pre-release --development --cache{% endraw %}",
       "test-release": "{% raw %}bash {{properties.dbg}} scripts/test.sh --base-url pre-release --development --cache{% endraw %}",
       "test-xpm": "{% raw %}bash {{properties.dbg}} scripts/test.sh --xpm{% endraw %}"
-{% for platform in platforms %}
+{% for platform in platforms_array %}
 {% case platform %}
 {% when "linux-x64", "linux-arm64", "linux-arm", "darwin-x64", "darwin-arm64" %},
       "build-native": "{% raw %}bash {{properties.dbg}} scripts/build.sh{% endraw %}",
@@ -166,7 +166,7 @@
           ]
         }
       }
-      {% for platform in platforms %}
+      {% for platform in platforms_array %}
       {% case platform %}
       {% when "darwin-x64" %},
       "darwin-x64": {
@@ -204,7 +204,7 @@
           "@xpack-dev-tools/patchelf": "0.18.0-1.1"
         },
         "properties": {
-          "dockerImage": "ilegeul/ubuntu:amd64-18.04-xbb-v5.2.2"
+          "dockerImage": "ilegeul/debian:amd64-10-xbb-v6.0.0"
         }
       }{% when "linux-arm64" %},
       "linux-arm64": {
@@ -212,7 +212,7 @@
           "linux-x64"
         ],
         "properties": {
-          "dockerImage": "ilegeul/ubuntu:arm64v8-18.04-xbb-v5.2.2"
+          "dockerImage": "ilegeul/debian:arm64v8-10-xbb-v6.0.0"
         }
       }{% when "linux-arm" %},
       "linux-arm": {
@@ -236,7 +236,7 @@
           "@xpack-dev-tools/wine": "10.0.0-1.1"
         },
         "properties": {
-          "dockerImage": "ilegeul/ubuntu:amd64-18.04-xbb-v5.2.2"
+          "dockerImage": "ilegeul/debian:amd64-10-xbb-v6.0.0"
         },
         "actions": {
           "build": "{% raw %}{{properties.commandBashBuild}} --windows{% endraw %}",
