@@ -96,6 +96,13 @@ function commit_and_push()
 
     run_verbose git checkout "${development_branch}"
 
+    # -------------------------------------------------------------------------
+    # Custom.
+
+    run_verbose rm -rf ".github/workflows/build-linux-arm.yml"
+
+    # -------------------------------------------------------------------------
+
     run_verbose git add .github .gitignore README*.md package*.json
     if [ -f .npmignore ]
     then
