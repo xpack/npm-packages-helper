@@ -11,7 +11,11 @@ git clone \
 https://github.com/xpack/npm-packages-helper.git \
 ~/Work/xpack/npm-packages-helper.git
 
-(cd ~/Work/xpack/npm-packages-helper.git; xpm link)
+(cd ~/Work/xpack/npm-packages-helper.git; npm link)
+```
+
+```sh
+git -C ~/Work/xpack/npm-packages-helper.git pull
 ```
 
 ## Getting started
