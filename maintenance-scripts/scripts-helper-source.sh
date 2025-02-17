@@ -381,6 +381,7 @@ function compute_context()
     xpack_long_name=""
     xpack_short_name=""
     xpack_long_xpack_name=""
+    xpack_use_self_hosted_runners=""
   else
     xpack_is_organization_web="$(echo "${xpack_npm_package_top_config}" | json isOrganizationWeb)"
     xpack_is_web_deploy_only="$(echo "${xpack_npm_package_top_config}" | json isWebDeployOnly)"
@@ -391,6 +392,7 @@ function compute_context()
     xpack_has_empty_master="$(echo "${xpack_npm_package_top_config}" | json hasEmptyMaster)"
     xpack_long_name="$(echo "${xpack_npm_package_top_config}" | json longName)"
     xpack_short_name="$(echo "${xpack_npm_package_top_config}" | json shortName)"
+    xpack_use_self_hosted_runners="$(echo "${xpack_npm_package_top_config}" | json useSelfHostedRunners)"
 
     if [ ! -z "${xpack_long_name}" ]
     then
@@ -415,6 +417,7 @@ function compute_context()
   export xpack_long_name
   export xpack_short_name
   export xpack_long_xpack_name
+  export xpack_use_self_hosted_runners
 
   xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
   xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
