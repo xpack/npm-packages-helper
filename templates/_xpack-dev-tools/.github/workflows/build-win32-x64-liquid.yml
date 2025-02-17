@@ -45,7 +45,7 @@ jobs:
 {% if platform == "win32-x64" %}
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
-    timeout-minutes: 5760 # 4 days
+    timeout-minutes: 2880 # 2 days
     runs-on: [self-hosted, linux, x64, xbbliw]
     container:
       image: ilegeul/debian:amd64-10-xbb-v6.0.0
@@ -91,27 +91,6 @@ jobs:
           xpm install --config {{platform}} --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
           xpm run build --config {{platform}} -C build-assets
 
-  {{platform}}-upload:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} upload'
-    timeout-minutes: 5760 # 4 days
-    runs-on: [self-hosted, linux, x64, xbbliw]
-    defaults:
-      run:
-        shell: bash
-    needs: [{{platform}}-build]
-
-    steps:
-      - name: 'Show environment'
-        run: |
-          uname -a
-          lsb_release -sd
-          echo "whoami: $(whoami)"
-          echo "pwd: $(pwd)"
-          echo "node: $(node --version)"
-          echo "npm: $(npm --version)"
-          ls -lLA
-          env | sort | grep -E '^[^ \t]+='
-
       - name: Upload platform artefacts
         uses: actions/upload-artifact@v4
         with:
@@ -146,7 +125,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: windows-2022
-    needs: [{{platform}}-upload]
+    needs: [{{platform}}-build]
     defaults:
       run:
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
