@@ -11,7 +11,7 @@
     "liquidjs": "^10.20.1"
   },
   "xpack": {
-    "minimumXpmRequired": "0.16.3",
+    "minimumXpmRequired": "0.20.5",
     "devDependencies": {
       "@xpack-dev-tools/xbb-helper": "^3.1.13"
     },
@@ -19,7 +19,7 @@
       "buildFolderRelativePath": "{% raw %}{{'build' | path_join: configuration.name | to_filename | downcase}}{% endraw %}",
       "buildFolderRelativePathPosix": "{% raw %}{{'build' | path_posix_join: configuration.name | downcase}}{% endraw %}",
       "commandBashBuild": "{% raw %}bash {{properties.dbg}} scripts/build.sh --target {{configuration.name}} --build-folder {{properties.buildFolderRelativePathPosix}}{% endraw %}",
-      "xpm-version": "0.18.0",
+      "xpm-version": "0.20.5",
       "xpm-install-loglevel": "info",
       "dbg": ""
     },
