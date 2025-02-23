@@ -71,6 +71,11 @@ function custom_action()
     #   # run_verbose git commit -m "build-assets: bump deps"
     #   run_verbose git commit -m "build-assets: update generate-website-blog-post"
     # fi
+
+    # if [ -f "website/blog/2025-02-13-web.mdx" ]
+    # then
+    #   run_verbose mv -v "website/blog/2025-02-13-web.mdx" "website/blog/2025-02-13-xbb.mdx"
+    # fi
   )
 }
 
