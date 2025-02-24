@@ -118,6 +118,7 @@ function commit_and_push()
     fi
 
     run_verbose git commit -m "re-generate commons" || true
+    # run_verbose git commit -m "re-generate descriptive & permalink names" || true
 
     if [ "${do_push}" == "true" ]
     then
