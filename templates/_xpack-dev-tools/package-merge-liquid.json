@@ -28,14 +28,16 @@
     "email": "ilg@livius.net",
     "url": "https://github.com/ilg-ul"
   },
-  "license": "MIT"{% if isXpack == "true" %},
+  "license": "MIT",
+{%- if isXpack == "true" %}
   "xpack": {
     "minimumXpmRequired": "0.20.5",
     "binaries": {
       "destination": "./.content",
       "skip": 1
     }
-  }{% endif %},
+  },
+{%- endif %}
   "engines": {
     "node": " >=18.0.0"
   }
