@@ -1,0 +1,99 @@
+# -----------------------------------------------------------------------------
+# DO NOT EDIT!
+# Automatically generated from npm-packages-helper/templates/*.
+#
+{%- if githubProjectOrganization == 'micro-os-plus' %}
+# This file is part of the µOS++ project (http://micro-os-plus.github.io).
+{%- else %}
+# This file is part of the xPack project (http://xpack.github.io).
+{%- endif %}
+# Copyright (c) 2021 Liviu Ionescu. All rights reserved.
+#
+# Permission to use, copy, modify, and/or distribute this software
+# for any purpose is hereby granted, under the terms of the MIT license.
+#
+# If a copy of the license was not distributed with this file, it can
+# be obtained from https://opensource.org/licenses/mit/.
+#
+# -----------------------------------------------------------------------------
+
+# {{packageHomepage}}
+# https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/test-ci.yml
+
+# Workflow for running some tests on each Push.
+name: CI on Push
+
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+
+on:
+  # Runs on pushes, if all conditions are met:
+  push:
+    # ... on the active branches ...
+    branches:
+      - 'xpack-development'
+      - 'xpack'
+    # ... skip tags only ...
+    tags-ignore:
+      - '**'
+    # ... include everything except ...
+    paths-ignore:
+      - '.vscode/**'
+      - 'LICENSE'
+      - '**.md'
+      - '.clang-format'
+      - '.gitignore'
+      - '.npmignore'
+      - '.github/workflows/publish-github-pages.yml'
+      - '.github/workflows/test-all.yml'
+      - 'tests/scripts/**'
+      - '**/README**'
+      - 'website/**'
+
+jobs:
+  ci-test:
+    name: 'CI {{packageConfig.descriptiveName}} tests'
+
+    runs-on:  {% raw %}${{ matrix.os }}{% endraw %}
+
+    strategy:
+      matrix:
+        # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+        os: [ 'ubuntu-24.04', 'ubuntu-24.04-arm', 'macos-13', 'macos-14', 'windows-2019', 'windows-2022' ]
+        # https://nodejs.org/en - use LTS
+        node-version: [ '20' ]
+        # https://www.npmjs.com/package/xpm
+        xpm-version: [ '0.20.5' ]
+
+    steps:
+    - name: Checkout
+      # https://github.com/actions/checkout/
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 3
+
+    - name: Setup Node.js {% raw %}${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
+      # https://github.com/actions/setup-node
+      uses: actions/setup-node@v4
+      with:
+        node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
+
+    - name: Install {% raw %}xpm@${{ matrix.xpm-version }}{% endraw %}
+      run: npm install -g {% raw %}xpm@${{ matrix.xpm-version }}{% endraw %}
+
+    - name: Show environment
+      run: |
+        id
+        uname -a
+        node --version
+        npm --version
+        xpm --version
+        env | sort
+
+    - name: Satisfy project dependencies
+      run: xpm run install-ci -C tests
+
+    - name: Run test
+      run: xpm run test-ci -C tests
+      env:
+          CI: true

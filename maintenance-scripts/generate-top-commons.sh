@@ -61,7 +61,8 @@ parse_options "$@"
 # -----------------------------------------------------------------------------
 
 if [ "${is_xpack}" != "true" ] &&
-   [ "${is_xpack_dev_tools}" != "true" ]
+   [ "${is_xpack_dev_tools}" != "true" ] &&
+   [ "${is_micro_os_plus}" != "true" ]
 then
   echo "Unsupported configuration..."
   exit 1

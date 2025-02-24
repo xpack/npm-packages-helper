@@ -1,0 +1,54 @@
+{
+  "main": "",
+  "scripts": {
+    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --micro-os-plus",
+    "npm-install": "npm install",
+    "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
+    "npm-outdated": "npm outdated",
+    "npm-pack": "npm pack",
+    "npm-link": "npm link",
+    "npm-version-patch": "npm version patch",
+    "npm-version-minor": "npm version minor",
+    "git-log": "git log --pretty='%cd * %h %s' --date=short",
+    "deep-clean": "del-cli node_modules package-lock.json *.tgz",
+    "postversion": "git push origin --all && git push origin --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}.git"
+  },
+  "bugs": {
+    "url": "https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/issues"
+  },
+  "homepage": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
+  "author": {
+    "name": "Liviu Ionescu",
+    "email": "ilg@livius.net",
+    "url": "https://github.com/ilg-ul"
+  },
+  "license": "MIT",
+  "$devDependenciesUrls": [
+    "https://www.npmjs.com/package/del-cli",
+    "https://www.npmjs.com/package/json",
+    "https://www.npmjs.com/package/liquidjs"
+  ],
+  "devDependencies": {
+    "del-cli": "^6.0.0",
+    "json": "^11.0.0",
+    "liquidjs": "^10.19.1"
+  },
+{%- if isXpack == "true" %}
+  "xpack": {
+    "minimumXpmRequired": "0.20.5",
+    "dependencies": {},
+    "devDependencies": {},
+    "properties": {},
+    "buildConfigurations": {}
+  },
+  "topConfig": {
+  },
+{%- endif %}
+  "engines": {
+    "node": " >=18.0.0"
+  }
+}

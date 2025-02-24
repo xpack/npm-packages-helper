@@ -18,6 +18,7 @@ function parse_options() {
   do_dry_run="false"
   is_xpack="false"
   is_xpack_dev_tools="false"
+  is_micro_os_plus="false"
   accepted_path=""
   do_push="false"
 
@@ -51,6 +52,12 @@ function parse_options() {
         shift
         ;;
 
+      --micro-os-plus )
+        is_micro_os_plus="true"
+        accepted_path="_micro-os-plus"
+        shift
+        ;;
+
       * )
         echo "Unsupported option $1"
         shift
@@ -64,6 +71,7 @@ function parse_options() {
   export do_dry_run
   export is_xpack
   export is_xpack_dev_tools
+  export is_micro_os_plus
   export accepted_path
   export do_push
 }
@@ -74,7 +82,7 @@ function parse_options() {
 function check_if_should_ignore_path() {
 
   # If one of the selector paths is present, but not the right one, return.
-  if [[ "${1}" =~ .*/_xpack/.* ]] || [[ "${1}" =~ .*/_xpack-dev-tools/.* ]]
+  if [[ "${1}" =~ .*/_xpack/.* ]] || [[ "${1}" =~ .*/_xpack-dev-tools/.* ]] || [[ "${1}" =~ .*/_micro-os-plus/.* ]]
   then
     if [[ ! "${1}" =~ .*/"${accepted_path}"/.* ]]
     then
@@ -92,7 +100,7 @@ function prepare_paths() {
   export from_relative_file_path="$(echo "${1}" | sed -e 's|^\.\/||')"
 
   # The destination file path.
-  export to_relative_file_path="$(echo "${1}" | sed -e 's|/_xpack/|/|' -e 's|/_xpack-dev-tools/|/|' -e 's|-merge-liquid||' -e 's|-liquid||' -e 's|^\.\/||')"
+  export to_relative_file_path="$(echo "${1}" | sed -e 's|/_xpack/|/|' -e 's|/_xpack-dev-tools/|/|' -e 's|/_micro-os-plus/|/|' -e 's|-merge-liquid||' -e 's|-liquid||' -e 's|^\.\/||')"
 
   export to_absolute_folder_path="${2}"
   export to_absolute_file_path="${to_absolute_folder_path}/${to_relative_file_path}"
@@ -474,7 +482,7 @@ function compute_context()
 
     if [ -z "${xpack_npm_package_website_config}" ]
     then
-      if [ "${do_init}" == "true" ] || [ "${xpack_is_web_deploy_only}" == "true" ]
+      if [ "${do_init}" == "true" ] || [ "${xpack_is_web_deploy_only}" == "true" ] || [ "${is_micro_os_plus}" == "true" ]
       then
         xpack_npm_package_website_config="{}"
       else

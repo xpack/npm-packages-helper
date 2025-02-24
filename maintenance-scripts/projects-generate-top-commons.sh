@@ -142,6 +142,9 @@ then
   do
     generate_top_commons "${file_path}"
   done
+elif [ "${is_micro_os_plus}" == "true" ]
+then
+  echo TODO
 else
   echo "Unsupported configuration..."
   exit 1
