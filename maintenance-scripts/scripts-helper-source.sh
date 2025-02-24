@@ -378,8 +378,8 @@ function compute_context()
     xpack_has_trigger_publish="false"
     xpack_has_trigger_publish_preview="false"
     xpack_has_empty_master="false"
-    xpack_long_name=""
-    xpack_short_name=""
+    xpack_descriptive_name=""
+    xpack_permalink_name=""
     xpack_long_xpack_name=""
     xpack_use_self_hosted_runners=""
   else
@@ -390,17 +390,17 @@ function compute_context()
     xpack_has_trigger_publish="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublish)"
     xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublishPreview)"
     xpack_has_empty_master="$(echo "${xpack_npm_package_top_config}" | json hasEmptyMaster)"
-    xpack_long_name="$(echo "${xpack_npm_package_top_config}" | json longName)"
-    xpack_short_name="$(echo "${xpack_npm_package_top_config}" | json shortName)"
+    xpack_descriptive_name="$(echo "${xpack_npm_package_top_config}" | json descriptiveName)"
+    xpack_permalink_name="$(echo "${xpack_npm_package_top_config}" | json permalinkName)"
     xpack_use_self_hosted_runners="$(echo "${xpack_npm_package_top_config}" | json useSelfHostedRunners)"
 
-    if [ ! -z "${xpack_long_name}" ]
+    if [ ! -z "${xpack_descriptive_name}" ]
     then
-      if [ "${xpack_long_name:0:6}" != "xPack " ]
+      if [ "${xpack_descriptive_name:0:6}" != "xPack " ]
       then
-        xpack_long_xpack_name="xPack ${xpack_long_name}"
+        xpack_long_xpack_name="xPack ${xpack_descriptive_name}"
       else
-        xpack_long_xpack_name="${xpack_long_name}"
+        xpack_long_xpack_name="${xpack_descriptive_name}"
       fi
     else
       xpack_long_xpack_name=""
@@ -414,8 +414,8 @@ function compute_context()
   export xpack_has_trigger_publish
   export xpack_has_trigger_publish_preview
   export xpack_has_empty_master
-  export xpack_long_name
-  export xpack_short_name
+  export xpack_descriptive_name
+  export xpack_permalink_name
   export xpack_long_xpack_name
   export xpack_use_self_hosted_runners
 
@@ -532,7 +532,7 @@ function compute_context()
     #     xpack_dt_base_url="/"
     #   else
     #     xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
-    #     xpack_dt_base_url="/${xpack_short_name}-xpack/"
+    #     xpack_dt_base_url="/${xpack_permalink_name}-xpack/"
     #   fi
 
     #   export xpack_dt_version
@@ -830,8 +830,8 @@ function import_releases()
       return 0
     fi
 
-    export xpack_website_config_short_name="$(json -f "${project_folder_path}/package.json" topConfig.shortName)"
-    export xpack_website_config_long_name="xPack $(json -f "${project_folder_path}/package.json" topConfig.longName)"
+    export xpack_website_config_short_name="$(json -f "${project_folder_path}/package.json" topConfig.permalinkName)"
+    export xpack_website_config_long_name="xPack $(json -f "${project_folder_path}/package.json" topConfig.descriptiveName)"
     export xpack_github_repository_url="$(json -f "${project_folder_path}/package.json" repository.url)"
     export xpack_github_project_organization="$(echo "${xpack_github_repository_url}" | sed -e 's|.*github.com/||' | sed -e 's|/.*||')"
 
@@ -868,7 +868,7 @@ function import_releases()
 
 function download_binaries()
 {
-  local destination_folder_path="${1:-"${HOME}/Downloads/xpack-binaries/${xpack_short_name}"}"
+  local destination_folder_path="${1:-"${HOME}/Downloads/xpack-binaries/${xpack_permalink_name}"}"
 
   local version=${XBB_RELEASE_VERSION:-"${xpack_xpack_version}"}
 
@@ -897,7 +897,7 @@ function download_binaries()
         extension='zip'
       fi
 
-      archive_name="xpack-${xpack_short_name}-${version}-${platform}.${extension}"
+      archive_name="xpack-${xpack_permalink_name}-${version}-${platform}.${extension}"
       archive_url="https://github.com/xpack-dev-tools/pre-releases/releases/download/test/${archive_name}"
 
       run_verbose curl --location --insecure --fail --location --silent \

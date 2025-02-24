@@ -21,7 +21,7 @@
 
 # -----------------------------------------------------------------------------
 
-name: 'Test xPack {{packageConfig.longName}} on x64 Docker platforms'
+name: 'Test xPack {{packageConfig.descriptiveName}} on x64 Docker platforms'
 
 on:
   workflow_dispatch:

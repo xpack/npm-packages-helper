@@ -2,7 +2,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Publish the xPack {{packageConfig.longName}} release'
+name: 'Publish the xPack {{packageConfig.descriptiveName}} release'
 
 on:
   workflow_dispatch:
@@ -60,7 +60,7 @@ jobs:
           bodyFile: '.github/workflows/body-github-release.md'
           commit: 'xpack-development'
           draft: true
-          name: 'xPack {{packageConfig.longName}} v{% raw %}${{github.event.inputs.version}}{% endraw %}'
+          name: 'xPack {{packageConfig.descriptiveName}} v{% raw %}${{github.event.inputs.version}}{% endraw %}'
           omitBodyDuringUpdate: true
           omitDraftDuringUpdate: true
           omitNameDuringUpdate: true

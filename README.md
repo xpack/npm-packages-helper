@@ -121,7 +121,7 @@ For binary xPacks, define the long project name:
 
 ```json
   "topConfig": {
-    "longName": "GNU AArch64 Embedded GCC"
+    "descriptiveName": "GNU AArch64 Embedded GCC"
   },
 ```
 
@@ -146,7 +146,7 @@ Add the following:
     "liquidjs": "^10.19.1"
   },
   "topConfig": {
-    "longName": "XYZ"
+    "descriptiveName": "XYZ"
   },
 ```
 
@@ -269,7 +269,7 @@ The top `xpack.github.io` project:
   },
   "packageBuildConfig": {},
   "packageWebsiteConfig": {
-    "longName": "xPack Project",
+    "descriptiveName": "xPack Project",
     "title": "The xPack Reproducible Build Framework",
     "tagline": "Tools to manage, configure and build complex, package based, multi-target projects, in a reproducible way",
     "metadataDescription": "The xPack Framework",
@@ -316,7 +316,7 @@ Booleans (`true`/`false`):
 
 Miscellaneous:
 
-- `longName`: the multi word name, without _the_; used in page titles
+- `descriptiveName`: the multi word name, without _the_; used in page titles
 
 #### From top folder & package.json
 

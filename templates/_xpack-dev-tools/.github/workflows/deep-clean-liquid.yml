@@ -2,7 +2,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Deep clean xPack {{packageConfig.longName}}'
+name: 'Deep clean xPack {{packageConfig.descriptiveName}}'
 
 on:
   workflow_dispatch:

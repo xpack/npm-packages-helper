@@ -2,7 +2,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Build xPack {{packageConfig.longName}} linux-arm'
+name: 'Build xPack {{packageConfig.descriptiveName}} linux-arm'
 
 on:
   workflow_dispatch:

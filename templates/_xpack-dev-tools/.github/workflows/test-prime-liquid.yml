@@ -3,7 +3,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Test xPack {{packageConfig.longName}} on supported platforms'
+name: 'Test xPack {{packageConfig.descriptiveName}} on supported platforms'
 
 on:
   workflow_dispatch:
@@ -341,7 +341,7 @@ jobs:
 {% endfor %}
 {% if packageConfig.showTestsResults == 'true' %}
   generate-tests-report:
-    name: 'Generate tests report for {{packageConfig.longName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
+    name: 'Generate tests report for {{packageConfig.descriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
     runs-on: ubuntu-24.04
     needs: [{{platforms_array | join: "-test, " | append: "-test"}}]
 
@@ -357,7 +357,7 @@ jobs:
           ls -lR {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts
           touch {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "---" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
-          echo "title: {{packageConfig.longName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
+          echo "title: {{packageConfig.descriptiveName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "date: $(date "+%Y-%m-%d %H:%M:%S %z")" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md

@@ -26,7 +26,7 @@
     "actions": {
       "deep-clean": [
         "rm -rf build xpacks node_modules package-lock.json",
-        "rm -rf ${HOME}/Work/xpack-dev-tools-build/{{packageConfig.shortName}}-[0-9]*-*"
+        "rm -rf ${HOME}/Work/xpack-dev-tools-build/{{packageConfig.permalinkName}}-[0-9]*-*"
       ],
       "install": [
         "npm install",
@@ -107,7 +107,7 @@
         "actions": {
           "deep-clean": [
             "{% raw %}rm -rf {{properties.buildFolderRelativePathPosix}}{% endraw %}",
-            "rm -rf ${HOME}/Work/xpack-dev-tools-build/{{packageConfig.shortName}}-[0-9]*-*/{% raw %}{{configuration.name}}{% endraw %}"
+            "rm -rf ${HOME}/Work/xpack-dev-tools-build/{{packageConfig.permalinkName}}-[0-9]*-*/{% raw %}{{configuration.name}}{% endraw %}"
           ],
           "install": "{% raw %}xpm install --config {{configuration.name}}{% endraw %}"
         }
@@ -124,7 +124,7 @@
       "common-docker": {
         "hidden": true,
         "properties": {
-          "containerName": "{{packageConfig.shortName}}-{% raw %}{{package.version}}-{{configuration.name}}{% endraw %}",
+          "containerName": "{{packageConfig.permalinkName}}-{% raw %}{{package.version}}-{{configuration.name}}{% endraw %}",
           "force32": ""
         },
         "actions": {
