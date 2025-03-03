@@ -150,19 +150,27 @@ function compute_context()
 
   if [ -f "${project_folder_path}/website/package.json" ]
   then
-    xpack_has_folder_website="true"
+    xpack_has_folder_website_package="true"
   else
-    xpack_has_folder_website="false"
+    xpack_has_folder_website_package="false"
   fi
-  export xpack_has_folder_website
+  export xpack_has_folder_website_package
 
   if [ -f "${project_folder_path}/build-assets/package.json" ]
   then
-    xpack_has_folder_build_assets="true"
+    xpack_has_folder_build_assets_package="true"
   else
-    xpack_has_folder_build_assets="false"
+    xpack_has_folder_build_assets_package="false"
   fi
-  export xpack_has_folder_build_assets
+  export xpack_has_folder_build_assets_package
+
+  if [ -f "${project_folder_path}/tests/package.json" ]
+  then
+    xpack_has_folder_tests_package="true"
+  else
+    xpack_has_folder_tests_package="false"
+  fi
+  export xpack_has_folder_tests_package
 
   if (git branch -a | grep master) >/dev/null
   then
@@ -263,8 +271,9 @@ function compute_context()
 
   # Edit the json and add properties one by one.
   export xpack_context=$(echo '{}' | json -o json-0 \
-  -e "this.hasFolderWebsite=\"${xpack_has_folder_website}\"" \
-  -e "this.hasFolderBuildAssets=\"${xpack_has_folder_build_assets}\"" \
+  -e "this.hasFolderWebsitePackage=\"${xpack_has_folder_website_package}\"" \
+  -e "this.hasFolderBuildAssetsPackage=\"${xpack_has_folder_build_assets_package}\"" \
+  -e "this.hasFolderTestsPackage=\"${xpack_has_folder_tests_package}\"" \
   -e "this.hasBranchMaster=\"${xpack_has_branch_master}\"" \
   -e "this.hasBranchDevelopment=\"${xpack_has_branch_development}\"" \
   -e "this.hasBranchXpackDevelopment=\"${xpack_has_branch_xpack_development}\"" \
@@ -361,7 +370,7 @@ function compute_context()
   -e "this.packageDescription=\"${xpack_npm_package_description}\"" \
   -e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
   -e "this.githubProjectName=\"${xpack_xpack_github_project_name}\"" \
-  -e "this.hasWebsiteFolder=\"${xpack_has_folder_website}\"" \
+  -e "this.hasWebsiteFolder=\"${xpack_has_folder_website_package}\"" \
   -e "this.isTypeScript=\"${xpack_is_typescript}\"" \
   -e "this.isJavaScript=\"${xpack_is_javascript}\"" \
   -e "this.isNpmBinary=\"${xpack_npm_package_is_binary}\"" \
@@ -390,6 +399,7 @@ function compute_context()
     xpack_permalink_name=""
     xpack_long_xpack_name=""
     xpack_use_self_hosted_runners=""
+    xpack_has_test_all="true"
   else
     xpack_is_organization_web="$(echo "${xpack_npm_package_top_config}" | json isOrganizationWeb)"
     xpack_is_web_deploy_only="$(echo "${xpack_npm_package_top_config}" | json isWebDeployOnly)"
@@ -401,6 +411,7 @@ function compute_context()
     xpack_descriptive_name="$(echo "${xpack_npm_package_top_config}" | json descriptiveName)"
     xpack_permalink_name="$(echo "${xpack_npm_package_top_config}" | json permalinkName)"
     xpack_use_self_hosted_runners="$(echo "${xpack_npm_package_top_config}" | json useSelfHostedRunners)"
+    xpack_has_test_all="$(echo "${xpack_npm_package_top_config}" | json hasTestAll)"
 
     if [ ! -z "${xpack_descriptive_name}" ]
     then
@@ -426,6 +437,7 @@ function compute_context()
   export xpack_permalink_name
   export xpack_long_xpack_name
   export xpack_use_self_hosted_runners
+  export xpack_has_test_all
 
   xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
   xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
@@ -466,7 +478,7 @@ function compute_context()
 
   # ---------------------------------------------------------------------------
 
-  if [ -f "${website_folder_path}/package.json" ]
+  if [ ! -z ${website_folder_path+x} ] && [ -f "${website_folder_path}/package.json" ]
   then
 
     echo
@@ -659,7 +671,7 @@ function compute_context()
     export xpack_xpack_semver
     export xpack_xpack_subversion
 
-    if [ "${xpack_has_two_numbers_version}" == "true" ] && [[ "${xpack_release_semver}" =~ .*[.]0*$ ]]
+    if [ "${xpack_has_two_numbers_version:-}" == "true" ] && [[ "${xpack_release_semver}" =~ .*[.]0*$ ]]
     then
       # Remove the patch number, if zero.
       xpack_upstream_version="$(echo ${xpack_release_semver} | sed -e 's|[.]0*$||')"

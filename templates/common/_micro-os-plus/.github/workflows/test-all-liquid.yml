@@ -1,0 +1,97 @@
+# -----------------------------------------------------------------------------
+# DO NOT EDIT!
+# Automatically generated from npm-packages-helper/templates/*.
+#
+{%- if githubProjectOrganization == 'micro-os-plus' %}
+# This file is part of the µOS++ project (http://micro-os-plus.github.io).
+{%- else %}
+# This file is part of the xPack project (http://xpack.github.io).
+{%- endif %}
+# Copyright (c) 2021 Liviu Ionescu. All rights reserved.
+#
+# Permission to use, copy, modify, and/or distribute this software
+# for any purpose is hereby granted, under the terms of the MIT license.
+#
+# If a copy of the license was not distributed with this file, it can
+# be obtained from https://opensource.org/licenses/mit.
+#
+# -----------------------------------------------------------------------------
+
+# {{packageHomepage}}
+# https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/test-ci.yml
+
+# Workflow for running some tests on each Push.
+name: Run all tests
+
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+
+on:
+  # Runs on manual triggering.
+  workflow_dispatch:
+
+jobs:
+  ci-test:
+    name: 'All {{packageConfig.descriptiveName}} tests'
+
+    runs-on:  {% raw %}${{ matrix.os }}{% endraw %}
+
+    strategy:
+      matrix:
+        # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners
+        os: [ 'ubuntu-24.04', 'ubuntu-22.04', 'ubuntu-24.04-arm', 'ubuntu-22.04-arm', 'macos-13', 'macos-14', 'windows-2022', 'windows-2019' ]
+        # https://nodejs.org/en - use LTS
+        node-version: [ '20' ]
+        # https://www.npmjs.com/package/xpm
+        xpm-version: [ '0.20.7' ]
+
+    steps:
+    - name: Checkout
+      # https://github.com/actions/checkout/
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 3
+
+    - name: {% raw %}Setup Node.js ${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
+      # https://github.com/actions/setup-node
+      uses: actions/setup-node@v4
+      with:
+        node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
+
+    - name: {% raw %}Install xpm@${{ matrix.xpm-version }} on ${{ matrix.os }}{% endraw %}
+      run: npm install -g {% raw %}xpm@${{ matrix.xpm-version }}{% endraw %}
+
+    - name: Show environment
+      run: |
+        id
+        uname -a
+        node --version
+        npm --version
+        xpm --version
+        env | sort
+
+    - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
+      run: |
+        npm ci -C tests
+        xpm run install-all -C tests
+
+    - name: Clean xPack cache Linux
+      if: runner.os == 'Linux'
+      run: |
+        rm -rf "${HOME}/.cache/xPacks"
+
+    - name: Clean xPack cache macOS
+      if: runner.os == 'macOS'
+      run: |
+        rm -rf "${HOME}/Library/Caches/xPacks"
+
+    - name: Clean xPack cache Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Remove-Item -LiteralPath "$env:LOCALAPPDATA\Caches\xPacks" -Force -Recurse
+
+    - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
+      run: xpm run test-all -C tests
+      env:
+          CI: true

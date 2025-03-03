@@ -226,14 +226,14 @@ then
 
 fi
 
-if [ "${xpack_has_folder_build_assets}" != "true" ]
+if [ "${xpack_has_folder_build_assets_package}" != "true" ]
 then
   skip_pages_array+=(\
     "build-assets/package.json" \
   )
 fi
 
-if [ "${xpack_has_folder_website}" != "true" ]
+if [ "${xpack_has_folder_website_package}" != "true" ]
 then
   skip_pages_array+=(\
     ".github/workflows/publish-github-pages.yml" \
@@ -251,6 +251,23 @@ if [ "${xpack_npm_package_version}" == "0.0.0" ]
 then
   skip_pages_array+=(\
     ".npmignore" \
+  )
+fi
+
+if [ "${xpack_has_test_all}" == "false" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/test-all.yml" \
+  )
+fi
+
+if [ "${xpack_has_folder_tests_package}" != "true" ]
+then
+  skip_pages_array+=(\
+    "tests/cmake/common-options.cmake" \
+    "tests/cmake/tests-main.cmake" \
+    "tests/meson/common-options/meson.build" \
+    "tests/package.json" \
   )
 fi
 

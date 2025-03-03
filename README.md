@@ -322,8 +322,8 @@ Miscellaneous:
 
 Booleans (`true`/`false`):
 
-- `hasFolderWebsite`
-- `hasFolderBuildAssets`
+- `hasFolderWebsitePackage`
+- `hasFolderBuildAssetsPackage`
 - `hasBranchMaster`
 - `hasBranchDevelopment`
 - `hasBranchXpackDevelopment`

@@ -110,7 +110,7 @@ else
   echo "Processing template from ${templates_folder_path}..."
   echo
 
-  cd "${templates_folder_path}"
+  cd "${templates_folder_path}/common"
 
   # Main pass to copy/generate common files.
   find . -type f -print0 | sort -zn | \

@@ -4,13 +4,13 @@
 # Automatically generated from npm-packages-helper/templates/*.
 #
 # This file is part of the xPack project (http://xpack.github.io).
-# Copyright (c) 2020 Liviu Ionescu. All rights reserved.
+# Copyright (c) 2022 Liviu Ionescu. All rights reserved.
 #
 # Permission to use, copy, modify, and/or distribute this software
 # for any purpose is hereby granted, under the terms of the MIT license.
 #
 # If a copy of the license was not distributed with this file, it can
-# be obtained from https://opensource.org/licenses/mit/.
+# be obtained from https://opensource.org/licenses/mit.
 #
 # -----------------------------------------------------------------------------
 
@@ -34,20 +34,18 @@ IFS=$'\n\t'
 # -----------------------------------------------------------------------------
 # Identify the script location, to reach, for example, the helper scripts.
 
-script_path="$0"
-if [[ "${script_path}" != /* ]]
+build_script_path="$0"
+if [[ "${build_script_path}" != /* ]]
 then
   # Make relative path absolute.
-  script_path="$(pwd)/$0"
+  build_script_path="$(pwd)/$0"
 fi
 
-script_name="$(basename "${script_path}")"
-
-script_folder_path="$(dirname "${script_path}")"
+script_folder_path="$(dirname "${build_script_path}")"
 script_folder_name="$(basename "${script_folder_path}")"
 
 # =============================================================================
-# Run the application tests.
+# Build the application.
 
 scripts_folder_path="${script_folder_path}"
 root_folder_path="$(dirname ${script_folder_path})"
@@ -60,32 +58,14 @@ fi
 
 helper_folder_path="${root_folder_path}/xpacks/@xpack-dev-tools/xbb-helper"
 
-tests_folder_path="$(dirname "${scripts_folder_path}")/tests"
-
-# -----------------------------------------------------------------------------
-
-export XBB_WHILE_RUNNING_SEPARATE_TESTS="y"
-
-# -----------------------------------------------------------------------------
-# Options must be parsed as early as possible, being used even in application.sh.
-
-source "${helper_folder_path}/build-scripts/test-parse-options.sh"
-
-tests_parse_options "$@"
-
 # -----------------------------------------------------------------------------
 
 source "${scripts_folder_path}/application.sh"
 
 # Common definitions.
-source "${helper_folder_path}/build-scripts/test-common.sh"
+source "${helper_folder_path}/build-scripts/build-common.sh"
 
-# Possibly override common definitions.
-source "${scripts_folder_path}/tests/run.sh"
-if [ -f "${scripts_folder_path}/tests/update.sh" ]
-then
-  source "${scripts_folder_path}/tests/update.sh"
-fi
+source "${scripts_folder_path}/versioning.sh"
 
 if [ ${#XBB_APPLICATION_COMMON_DEPENDENCIES[@]} -ne 0 ]
 then
@@ -107,9 +87,11 @@ fi
 
 # -----------------------------------------------------------------------------
 
-tests_perform_common
+help_message="    bash $0 [--win] [--debug] [--development] [--jobs N] [--help]"
+build_common_parse_options "${help_message}" "$@"
 
-# Completed successfully.
+build_common_run
+
 exit 0
 
 # -----------------------------------------------------------------------------
