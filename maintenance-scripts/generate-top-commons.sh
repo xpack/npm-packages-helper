@@ -74,16 +74,8 @@ project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_pa
 
 templates_folder_path="$(dirname "${script_folder_path}")/templates"
 
-if [ -d "${project_folder_path}/website" ]
-then
-  website_folder_path="${project_folder_path}/website"
-else
-  website_folder_path=""
-fi
-
 export project_folder_path
 export templates_folder_path
-export website_folder_path
 
 # -----------------------------------------------------------------------------
 
