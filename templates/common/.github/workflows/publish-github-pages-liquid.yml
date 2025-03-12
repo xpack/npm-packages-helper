@@ -96,12 +96,12 @@ jobs:
       - name: Install dependencies
         run: (cd website; npm ci)
 
-{%- if packageWebsiteConfig.useDoxygen == 'true' %}
+{%- if packageConfig.useDoxygen == 'true' %}
 
       - name: Install Doxygen
         # https://www.doxygen.nl/download.html
         env:
-          DOXYGEN_VERSION: "1.10.0"
+          DOXYGEN_VERSION: "1.13.2"
         run: |
           curl https://www.doxygen.nl/files/doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz --output doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
           tar xf doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
@@ -111,7 +111,7 @@ jobs:
           ls -l website
 
       - name: Build the Doxygen site
-        run: (cd website; .local/bin/doxygen config.doxyfile)
+        run: (cd website/doxygen; .local/bin/doxygen config.doxyfile)
 {%- else %}
 
       - name: Build the Docusaurus site
@@ -131,8 +131,8 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
-{%- if packageWebsiteConfig.useDoxygen == 'true' %}
-          path: './website/html'
+{%- if packageConfig.useDoxygen == 'true' %}
+          path: './website/doxygen/html'
 {%- else %}
           path: './website/build'
 {%- endif %}

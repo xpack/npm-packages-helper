@@ -245,6 +245,12 @@ then
   skip_pages_array+=(\
     ".github/workflows/publish-github-pages-from-remote.yml" \
   )
+else
+  skip_pages_array+=(\
+    ".clang-format" \
+    ".github/workflows/test-all.yml" \
+    ".github/workflows/test-ci.yml" \
+  )
 fi
 
 if [ "${xpack_npm_package_version}" == "0.0.0" ]

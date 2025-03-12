@@ -220,6 +220,18 @@ function compute_context()
   fi
   export xpack_has_branch_webpreview
 
+  if [ "${xpack_has_branch_xpack_development}" == "true" ]
+  then
+    xpack_branch_development="xpack-development"
+  elif [ "${xpack_has_branch_development}" == "true" ]
+  then
+    xpack_branch_development="development"
+  else
+    echo "Branch development?"
+    exit 1
+  fi
+  export xpack_branch_development
+
   if [ "${xpack_has_branch_website}" == "true" ]
   then
     xpack_branch_website="website"
@@ -280,6 +292,7 @@ function compute_context()
   -e "this.hasBranchWebsite=\"${xpack_has_branch_website}\"" \
   -e "this.hasBranchWebpreview=\"${xpack_has_branch_webpreview}\"" \
   -e "this.branchMain=\"${xpack_branch_main}\"" \
+  -e "this.branchDevelopment=\"${xpack_branch_development}\"" \
   -e "this.branchWebsite=\"${xpack_branch_website}\"" \
   -e "this.branchWebpreview=\"${xpack_branch_webpreview}\"" \
   -e "this.releaseDate=\"${xpack_release_date}\"" \
@@ -318,10 +331,18 @@ function compute_context()
   # Remove the pre-release.
   export xpack_release_semver="$(echo "${xpack_release_version}" | sed -e 's|[-].*||')"
 
-  export xpack_release_subversion="$(echo "${xpack_release_version}" | sed -e 's|.*[-]||' -e 's|[.][0-9]*||')"
+  if [ "${xpack_release_version}" != "${xpack_release_semver}" ]
+  then
+    xpack_release_subversion="$(echo "${xpack_release_version}" | sed -e 's|.*[-]||' -e 's|[.][0-9]*||')"
 
-  # Use the package.json one, but remove the `pre` used during development.
-  export xpack_release_npm_subversion="$(echo "${xpack_release_version}" | sed -e 's|[.-]pre.*||' -e 's|.*[.]||')"
+    # Use the package.json one, but remove the `pre` used during development.
+    xpack_release_npm_subversion="$(echo "${xpack_release_version}" | sed -e 's|[.-]pre.*||' -e 's|.*[.]||')"
+  else
+    xpack_release_subversion=""
+    xpack_release_npm_subversion=""
+  fi
+  export xpack_release_subversion
+  export xpack_release_npm_subversion
 
   xpack_github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
 
@@ -415,7 +436,8 @@ function compute_context()
 
     if [ ! -z "${xpack_descriptive_name}" ]
     then
-      if [ "${xpack_descriptive_name:0:6}" != "xPack " ]
+      if [ "${xpack_descriptive_name:0:6}" != "xPack " ] &&
+         [ "${githubProjectOrganization:0:6}" == "xpack-" ]
       then
         xpack_long_xpack_name="xPack ${xpack_descriptive_name}"
       else
