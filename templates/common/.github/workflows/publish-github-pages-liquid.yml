@@ -106,13 +106,13 @@ jobs:
           curl https://www.doxygen.nl/files/doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz --output doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
           tar xf doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
           ls -l doxygen-$DOXYGEN_VERSION
-          mkdir -pv website/.local/bin
-          ln -sv $(pwd)/doxygen-$DOXYGEN_VERSION/bin/doxygen website/.local/bin/doxygen
-          ls -l website
+          mkdir -pv website/doxygen/.local/bin
+          ln -sv $(pwd)/doxygen-$DOXYGEN_VERSION/bin/doxygen website/doxygen/.local/bin/doxygen
+          ls -lLA website website/doxygen
 
       - name: Build the Doxygen site
         run: (cd website/doxygen; .local/bin/doxygen config.doxyfile)
-{%- else %}
+{%- endif %}
 
       - name: Build the Docusaurus site
 {%- if packageConfig.isWebPreview == "true" %}
@@ -120,7 +120,6 @@ jobs:
           DOCUSAURUS_IS_PREVIEW: 'true'
 {%- endif %}
         run: (cd website; npm run build)
-{%- endif %}
 
       - name: Setup Pages
         # https://github.com/actions/configure-pages
@@ -132,7 +131,7 @@ jobs:
         with:
           # Upload entire repository
 {%- if packageConfig.useDoxygen == 'true' %}
-          path: './website/doxygen/html'
+          path: './website/build'
 {%- else %}
           path: './website/build'
 {%- endif %}

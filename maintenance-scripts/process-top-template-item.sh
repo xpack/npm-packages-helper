@@ -277,6 +277,13 @@ then
   )
 fi
 
+if [ "${xpack_base_url_preview}" == "${xpack_base_url}" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/trigger-publish-github-pages-preview.yml" \
+  )
+fi
+
 # -----------------------------------------------------------------------------
 
 skip_pages_array+=("END")

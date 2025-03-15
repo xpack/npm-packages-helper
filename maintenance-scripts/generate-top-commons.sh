@@ -95,7 +95,9 @@ fi
 
 if [ "${do_init}" == "true" ]
 then
-  : # TODO
+  # TODO
+  echo "--init not implemented yet"
+  exit 1
 else
 
   echo

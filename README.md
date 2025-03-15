@@ -201,7 +201,7 @@ For Web deployment only projects, the second is not necessary.
 
 ```json
     "generate-top-commons-init": "bash -x node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --xpack",
-    "create-website-init": "bash -x node_modules/@xpack/docusaurus-template-liquid/maintenance-scripts/generate-commons.sh --init"
+    "create-website-init": "bash -x node_modules/@xpack/docusaurus-template-liquid/maintenance-scripts/generate-commons.sh --micro-os-plus --init",
 ```
 
 Run them. For Web deployment only projects, the second is not necessary.
@@ -227,7 +227,12 @@ In `website`:
 
 ```sh
 npm install
-npm run link-deps
+npm run link-helpers
+```
+
+Update the `websiteConfig` and generate commons:
+
+```sh
 npm run generate-website-commons
 ```
 

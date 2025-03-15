@@ -70,7 +70,9 @@ lib/**/*.ts
 typedoc.json
 tsconfig.tsbuildinfo
 
+{%- if githubProjectOrganization != "micro-os-plus" %}
 src/
+{%- endif %}
 xpacks/
 node_modules/
 docs/
@@ -88,5 +90,6 @@ docs/
 build-assets/
 wrappers/
 extras/
+inspiration/
 
 #end
