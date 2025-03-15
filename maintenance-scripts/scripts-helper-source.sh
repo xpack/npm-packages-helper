@@ -344,7 +344,8 @@ function compute_context()
   export xpack_release_subversion
   export xpack_release_npm_subversion
 
-  xpack_github_full_name="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e 's|^https://github.com/||' -e 's|^git+https://github.com/||' -e 's|[.]git$||')"
+  xpack_github_repository_url="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e  's|^git+||')"
+  xpack_github_full_name="$(echo "${xpack_github_repository_url}" | sed -e 's|^https://github.com/||' -e 's|[.]git$||')"
 
   export xpack_github_project_organization="$(echo "${xpack_github_full_name}" | sed -e 's|/.*||')"
   export xpack_xpack_github_project_name="$(echo "${xpack_github_full_name}" | sed -e 's|/$||' -e 's|.git$||' -e 's|.*/||')"
@@ -389,6 +390,7 @@ function compute_context()
   -e "this.releaseSubversion=\"${xpack_release_subversion}\"" \
   -e "this.releaseNpmSubversion=\"${xpack_release_npm_subversion}\"" \
   -e "this.packageDescription=\"${xpack_npm_package_description}\"" \
+  -e "this.repositoryUrl=\"${xpack_github_repository_url}\"" \
   -e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
   -e "this.githubProjectName=\"${xpack_xpack_github_project_name}\"" \
   -e "this.hasWebsiteFolder=\"${xpack_has_folder_website_package}\"" \
