@@ -9,7 +9,7 @@
 # for any purpose is hereby granted, under the terms of the MIT license.
 #
 # If a copy of the license was not distributed with this file, it can
-# be obtained from https://opensource.org/licenses/mit.
+# be obtained from https://opensource.org/licenses/MIT.
 #
 # -----------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ then
     )
   fi
 
-  if [ "${xpack_skip_tests}" == "true" ] ||
+  if [ "${xpack_skip_ci_tests}" == "true" ] ||
     [ "${xpack_npm_package_version}" == "0.0.0" ]
   then
     skip_pages_array+=(\

@@ -34,7 +34,7 @@
 {%- elsif isTypeScript == "true" %}
     "prepare": "npm run compile && npm run lint",
 {%- endif %}
-{%- if packageConfig.skipTests != "true" and packageVersion != "0.0.0" %}
+{%- if packageConfig.skipCiTests != "true" and packageVersion != "0.0.0" %}
     "pretest-coverage": "npm run lint",
     "pretest-no-coverage": "npm run lint",
     "test-coverage": "tap --show-full-coverage",

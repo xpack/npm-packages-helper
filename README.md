@@ -18,6 +18,41 @@ https://github.com/xpack/npm-packages-helper.git \
 git -C ~/Work/xpack/npm-packages-helper.git pull
 ```
 
+## Add to micro-os-plus projects
+
+```sh
+npm install del-cli json liquidjs --save-dev
+npm link @xpack/npm-packages-helper
+```
+
+```json
+  "scripts": {
+    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --micro-os-plus",
+    ...
+  }
+  ...
+  "topConfig": {
+    "descriptiveName": "µTest++ Testing Framework",
+    "permalinkName": "micro-test-plus",
+    "useDoxygen": "true"
+  },
+  "engines": {
+    "node": " >=18.0.0"
+  }
+```
+
+```sh
+npm run generate-top-commons-init
+```
+
+
+
+
+
+
+
+
+
 ## Getting started
 
 - create the GitHub project
@@ -252,7 +287,7 @@ The top `xpack.github.io` project:
   "githubProjectName": "xpack.github.io",
   "isTypeScript": "false",
   "isJavaScript": "false",
-  "skipTests": "true",
+  "skipCiTests": "true",
   "hasBranchMaster": "true",
   "hasBranchDevelopment": "true",
   "hasBranchWebsite": "false",
@@ -269,7 +304,7 @@ The top `xpack.github.io` project:
   "releaseDate": "2025-01-06 21:19:55 +0200",
   "packageConfig": {
     "isOrganizationWeb": "true",
-    "skipTests": "true",
+    "skipCiTests": "true",
     "hasTriggerPublishPreview": "true"
   },
   "packageBuildConfig": {},
@@ -313,7 +348,7 @@ Booleans (`true`/`false`):
 
 - `isOrganizationWeb`
 - `isWebDeployOnly`
-- `skipTests`
+- `skipCiTests`
 - `showTestsResults`
 - `hasTriggerPublish`
 - `hasTriggerPublishPreview`

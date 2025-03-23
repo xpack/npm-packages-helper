@@ -7,7 +7,7 @@
 # for any purpose is hereby granted, under the terms of the MIT license.
 #
 # If a copy of the license was not distributed with this file, it can
-# be obtained from https://opensource.org/licenses/mit.
+# be obtained from https://opensource.org/licenses/MIT.
 #
 # -----------------------------------------------------------------------------
 
@@ -226,6 +226,9 @@ function compute_context()
   elif [ "${xpack_has_branch_development}" == "true" ]
   then
     xpack_branch_development="development"
+  elif [ "${xpack_has_branch_webpreview}" == "true" ]
+  then
+    xpack_branch_development="webpreview"
   else
     echo "Branch development?"
     exit 1
@@ -317,6 +320,8 @@ function compute_context()
   export xpack_npm_package_version="$(json -f "${project_folder_path}/package.json" version)"
   export xpack_npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
 
+  export xpack_npm_package_keywords="$(json -f "${project_folder_path}/package.json" keywords)"
+
   export xpack_npm_package_homepage="$(json -f "${project_folder_path}/package.json" homepage)"
   xpack_npm_package_homepage_preview="$(json -f "${project_folder_path}/package.json" homepagePreview)"
   if [ -z "${xpack_npm_package_homepage_preview}" ]
@@ -393,6 +398,7 @@ function compute_context()
   -e "this.repositoryUrl=\"${xpack_github_repository_url}\"" \
   -e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
   -e "this.githubProjectName=\"${xpack_xpack_github_project_name}\"" \
+  -e "this.packageKeywords=${xpack_npm_package_keywords}" \
   -e "this.hasWebsiteFolder=\"${xpack_has_folder_website_package}\"" \
   -e "this.isTypeScript=\"${xpack_is_typescript}\"" \
   -e "this.isJavaScript=\"${xpack_is_javascript}\"" \
@@ -413,7 +419,7 @@ function compute_context()
     xpack_npm_package_top_config="{}"
     xpack_is_organization_web="false"
     xpack_is_web_deploy_only="false"
-    xpack_skip_tests="false"
+    xpack_skip_ci_tests="false"
     xpack_show_test_results="false"
     xpack_has_trigger_publish="false"
     xpack_has_trigger_publish_preview="false"
@@ -426,7 +432,7 @@ function compute_context()
   else
     xpack_is_organization_web="$(echo "${xpack_npm_package_top_config}" | json isOrganizationWeb)"
     xpack_is_web_deploy_only="$(echo "${xpack_npm_package_top_config}" | json isWebDeployOnly)"
-    xpack_skip_tests="$(echo "${xpack_npm_package_top_config}" | json skipTests)"
+    xpack_skip_ci_tests="$(echo "${xpack_npm_package_top_config}" | json skipCiTests)"
     xpack_show_test_results="$(echo "${xpack_npm_package_top_config}" | json showTestsResults)"
     xpack_has_trigger_publish="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublish)"
     xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublishPreview)"
@@ -439,7 +445,7 @@ function compute_context()
     if [ ! -z "${xpack_descriptive_name}" ]
     then
       if [ "${xpack_descriptive_name:0:6}" != "xPack " ] &&
-         [ "${githubProjectOrganization:0:6}" == "xpack-" ]
+         [ "${xpack_github_project_organization:0:6}" == "xpack-" ]
       then
         xpack_long_xpack_name="xPack ${xpack_descriptive_name}"
       else
@@ -452,7 +458,7 @@ function compute_context()
   export xpack_npm_package_top_config
   export xpack_is_organization_web
   export xpack_is_web_deploy_only
-  export xpack_skip_tests
+  export xpack_skip_ci_tests
   export xpack_show_test_results
   export xpack_has_trigger_publish
   export xpack_has_trigger_publish_preview
@@ -508,13 +514,7 @@ function compute_context()
     echo
     echo "Processing website/package.json..."
 
-    # Web site configuration. Prefer the one in the dedicated folder to the top.
-    if [ ! -z "${website_folder_path:-""}" ] && [ -f "${website_folder_path}/package.json" ]
-    then
-      xpack_npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
-    else
-      xpack_npm_package_website_config="$(json -f "${project_folder_path}/package.json" -o json-0 websiteConfig)"
-    fi
+    xpack_npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
 
     if [ -z "${xpack_npm_package_website_config}" ]
     then
@@ -536,6 +536,8 @@ function compute_context()
     export xpack_has_custom_maintainer="$(echo "${xpack_npm_package_website_config}" | json hasCustomMaintainer)"
     export xpack_has_custom_about="$(echo "${xpack_npm_package_website_config}" | json hasCustomAbout)"
     export xpack_has_custom_user="$(echo "${xpack_npm_package_website_config}" | json hasCustomUser)"
+    export xpack_has_custom_user_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomUserSidebar)"
+    export xpack_has_custom_getting_started_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomGettingStartedSidebar)"
     export xpack_has_top_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasTopHomepageFeatures)"
     export xpack_has_homepage_tools="$(echo "${xpack_npm_package_website_config}" | json hasHomepageTools)"
 
@@ -602,6 +604,30 @@ function compute_context()
     #   -e "this.branch=\"${xpack_dt_branch}\"" \
     #   )
     # fi
+  fi
+
+  # ---------------------------------------------------------------------------
+
+  if [ ! -z ${tests_folder_path+x} ] && [ -f "${tests_folder_path}/package.json" ]
+  then
+
+    echo
+    echo "Processing tests/package.json..."
+
+    # Tests configuration.
+    xpack_npm_package_tests_config="$(json -f "${tests_folder_path}/package.json" -o json-0 testsConfig)"
+
+    if [ -z "${xpack_npm_package_tests_config}" ]
+    then
+      xpack_npm_package_tests_config="{}"
+    fi
+
+    export xpack_has_skip_micro_os_plus_trace="$(echo "${xpack_npm_package_tests_config}" | json skipMICRO_OS_PLUS_TRACE)"
+
+    # Edit the json and add more properties one by one.
+    export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+      -e "this.packageTestsConfig=${xpack_npm_package_tests_config}" \
+    )
   fi
 
   # ---------------------------------------------------------------------------

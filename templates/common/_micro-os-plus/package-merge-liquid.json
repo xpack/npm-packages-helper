@@ -1,4 +1,7 @@
 {
+  "name": "{{packageScopedName}}",
+  "version": "{{packageVersion}}",
+  "description": "{{packageDescription}}",
   "main": "",
   "scripts": {
     "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --micro-os-plus",
@@ -16,12 +19,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}.git"
+    "url": "git+{{repositoryUrl}}"
   },
   "bugs": {
     "url": "https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/issues"
   },
   "homepage": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
+  {%- comment %}keywords{% endcomment %}
   "author": {
     "name": "Liviu Ionescu",
     "email": "ilg@livius.net",

@@ -9,7 +9,7 @@
 # for any purpose is hereby granted, under the terms of the MIT license.
 #
 # If a copy of the license was not distributed with this file, it can
-# be obtained from https://opensource.org/licenses/mit.
+# be obtained from https://opensource.org/licenses/MIT.
 #
 # -----------------------------------------------------------------------------
 
@@ -60,6 +60,13 @@ parse_options "$@"
 
 # -----------------------------------------------------------------------------
 
+tmp_file_path="$(mktemp -t top_commons.XXXXX)"
+
+# Used to enforce an exit code of 255, required by xargs.
+trap 'trap_handler ${from_relative_file_path} $LINENO $? ${tmp_file_path}; return 255' ERR
+
+# -----------------------------------------------------------------------------
+
 if [ "${is_xpack}" != "true" ] &&
    [ "${is_xpack_dev_tools}" != "true" ] &&
    [ "${is_micro_os_plus}" != "true" ]
@@ -95,9 +102,14 @@ fi
 
 if [ "${do_init}" == "true" ]
 then
-  # TODO
-  echo "--init not implemented yet"
-  exit 1
+  if [ "${is_micro_os_plus}" == "true" ]
+  then
+    cd "${templates_folder_path}/common/_micro-os-plus"
+    substitute "package-merge-liquid.json" "package.json" "${project_folder_path}"
+  else
+    echo "--init not implemented yet"
+    exit 1
+  fi
 else
 
   echo
