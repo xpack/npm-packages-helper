@@ -106,12 +106,14 @@ jobs:
           curl https://www.doxygen.nl/files/doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz --output doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
           tar xf doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
           ls -l doxygen-$DOXYGEN_VERSION
-          mkdir -pv website/doxygen/.local/bin
-          ln -sv $(pwd)/doxygen-$DOXYGEN_VERSION/bin/doxygen website/doxygen/.local/bin/doxygen
-          ls -lLA website website/doxygen
+          mkdir -pv .local/bin
+          ln -sv $(pwd)/doxygen-$DOXYGEN_VERSION/bin/doxygen .local/bin/doxygen
+
+      - name: Add local Doxygen to PATH
+        run: echo "$(pwd)/.local/bin" >> $GITHUB_PATH
 
       - name: Build the Doxygen site
-        run: (cd website/doxygen; .local/bin/doxygen config.doxyfile)
+        run: (cd website; npm run doxygen)
 {%- endif %}
 
       - name: Build the Docusaurus site
@@ -119,7 +121,7 @@ jobs:
         env:
           DOCUSAURUS_IS_PREVIEW: 'true'
 {%- endif %}
-        run: (cd website; npm run build)
+        run: (cd website; npm run generate-doxygen; npm run build)
 
       - name: Setup Pages
         # https://github.com/actions/configure-pages
