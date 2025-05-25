@@ -59,10 +59,12 @@ npm run generate-top-commons-init
   - name
     - like `logger-ts`, or `xcdl-cli-ts` for Node.js modules
     - like `xpm-preview` for web sites (later to be renamed to `xpm`)
+    - like `web-preview`
   - description
     - like 'A Node.js CommonJS/ES6 module with ...'
     - like 'The xPack project manager command line tool' (shown in CLI too)
     - like 'Web site for the xpm web; (preview for now, to be renamed as xpm)'
+    - like 'Web site preview for https://micro-os-plus.github.io'
   - public
   - README
   - .gitignore Node
@@ -84,7 +86,7 @@ npm run generate-top-commons-init
 npm init --yes
 ```
 
-Update license MIT, Copyright (c) 2024 Liviu Ionescu. All rights reserved.
+Update license MIT, Copyright (c) 2025 Liviu Ionescu. All rights reserved.
 
 ## Update `package.json`
 
