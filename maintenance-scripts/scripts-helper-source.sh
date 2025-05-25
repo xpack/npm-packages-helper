@@ -231,7 +231,8 @@ function compute_context()
     xpack_branch_development="webpreview"
   else
     echo "Branch development?"
-    exit 1
+    xpack_branch_development="none"
+    # exit 1
   fi
   export xpack_branch_development
 
@@ -321,6 +322,11 @@ function compute_context()
   export xpack_npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
 
   export xpack_npm_package_keywords="$(json -f "${project_folder_path}/package.json" keywords)"
+  if [ -z "${xpack_npm_package_keywords}" ]
+  then
+    xpack_npm_package_keywords="[]"
+  fi
+  export xpack_npm_package_keywords
 
   export xpack_npm_package_homepage="$(json -f "${project_folder_path}/package.json" homepage)"
   xpack_npm_package_homepage_preview="$(json -f "${project_folder_path}/package.json" homepagePreview)"
