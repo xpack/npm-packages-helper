@@ -58,6 +58,7 @@ source "${script_folder_path}/scripts-helper-source.sh"
 # $1 = relative file path to source, starts with `./`
 # $2 = absolute folder path to destination
 
+# echo
 # echo "argv: $@"
 # echo "pwd: $(pwd)"
 # set -x
