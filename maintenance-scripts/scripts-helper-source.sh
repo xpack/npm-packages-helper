@@ -458,6 +458,7 @@ function compute_context()
         xpack_long_xpack_name="${xpack_descriptive_name}"
       fi
     else
+      echo "Missing descriptiveName in topConfig"
       xpack_long_xpack_name=""
     fi
   fi
@@ -789,6 +790,7 @@ function substitute()
   # $3 - destination absolute folder path
 
   local to_absolute_file_path="${3}/${to_relative_file_path}"
+  mkdir -pv "$(dirname ${to_absolute_file_path})"
 
   echo "liquidjs -> ${to_relative_file_path}"
   # pwd
@@ -811,6 +813,7 @@ function substitute_and_merge()
   # $3 - destination absolute folder path
 
   local to_absolute_file_path="${3}/${to_relative_file_path}"
+  mkdir -pv "$(dirname ${to_absolute_file_path})"
 
   echo "liquidjs | merge -> ${to_relative_file_path}"
 
@@ -842,7 +845,7 @@ function process_file() {
 
   # ---------------------------------------------------------------------------
 
-  mkdir -p "$(dirname ${to_absolute_file_path})"
+  mkdir -pv "$(dirname ${to_absolute_file_path})"
 
   if [[ "$(basename "${from_relative_file_path}")" =~ .*-merge-liquid.* ]]
   then
