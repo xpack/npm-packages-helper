@@ -63,7 +63,7 @@ parse_options "$@"
 tmp_file_path="$(mktemp -t top_commons.XXXXX)"
 
 # Used to enforce an exit code of 255, required by xargs.
-trap 'trap_handler ${from_relative_file_path} $LINENO $? ${tmp_file_path}; return 255' ERR
+# trap 'trap_handler ${from_relative_file_path} $LINENO $? ${tmp_file_path}; return 255' ERR
 
 # -----------------------------------------------------------------------------
 
@@ -105,6 +105,7 @@ then
   if [ "${is_micro_os_plus}" == "true" ]
   then
     cd "${templates_folder_path}/common/_micro-os-plus"
+    # Destructive, it does not merge.
     substitute "package-merge-liquid.json" "package.json" "${project_folder_path}"
   else
     echo "--init not implemented yet"
