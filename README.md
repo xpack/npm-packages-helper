@@ -30,6 +30,13 @@ npm link @xpack/npm-packages-helper
     "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --micro-os-plus",
     ...
   }
+```
+
+```sh
+npm run generate-top-commons-init
+```
+
+```json
   ...
   "topConfig": {
     "descriptiveName": "µTest++ Testing Framework",
@@ -40,16 +47,6 @@ npm link @xpack/npm-packages-helper
     "node": " >=18.0.0"
   }
 ```
-
-```sh
-npm run generate-top-commons-init
-```
-
-
-
-
-
-
 
 
 
@@ -215,6 +212,7 @@ For the top web project, add to top `package.json`:
   "homepagePreview": ".../web-preview/",
   ...
   "topConfig": {
+    "descriptiveName": "The µOS++ Framework",
     "isOrganizationWeb": "true",
     "hasTriggerPublishPreview": "true",
     "hasEmptyMaster": "true"
