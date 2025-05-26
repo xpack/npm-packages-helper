@@ -545,6 +545,8 @@ function compute_context()
     export xpack_has_custom_user="$(echo "${xpack_npm_package_website_config}" | json hasCustomUser)"
     export xpack_has_custom_user_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomUserSidebar)"
     export xpack_has_custom_getting_started_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomGettingStartedSidebar)"
+    export xpack_has_custom_config_doxyfile="$(echo "${xpack_npm_package_website_config}" | json hasCustomConfigDoxyfile)"
+
     export xpack_has_top_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasTopHomepageFeatures)"
     export xpack_has_homepage_tools="$(echo "${xpack_npm_package_website_config}" | json hasHomepageTools)"
 
