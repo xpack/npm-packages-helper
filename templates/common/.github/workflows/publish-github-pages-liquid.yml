@@ -121,7 +121,7 @@ jobs:
         env:
           DOCUSAURUS_IS_PREVIEW: 'true'
 {%- endif %}
-        run: (cd website; npm run build)
+        run: (cd website; npm run generate-doxygen; npm run build)
 
       - name: Setup Pages
         # https://github.com/actions/configure-pages
