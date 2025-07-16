@@ -18,6 +18,37 @@ https://github.com/xpack/npm-packages-helper.git \
 git -C ~/Work/xpack/npm-packages-helper.git pull
 ```
 
+## Add to xPack Node.js library & CLI projects
+
+```sh
+npm install del-cli json liquidjs --save-dev
+npm link @xpack/npm-packages-helper
+```
+
+```json
+  "scripts": {
+    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --xpack",
+    ...
+  }
+```
+
+```sh
+npm run generate-top-commons-init
+```
+
+Add top config before engines:
+
+```json
+  ...
+  "topConfig": {
+    "descriptiveName": "CLI application to convert Doxygen XMLs into Docusaurus docs",
+    "permalinkName": "doxygen2docusaurus-ts"
+  },
+  "engines": {
+    "node": " >=20.0.0"
+  }
+```
+
 ## Add to micro-os-plus projects
 
 ```sh

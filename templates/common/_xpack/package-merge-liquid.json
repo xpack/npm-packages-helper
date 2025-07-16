@@ -1,15 +1,24 @@
 {
+  "name": "{{packageScopedName}}",
+  "version": "{{packageVersion}}",
+  "description": "{{packageDescription}}",
   "scripts": {
+    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack",
 {%- if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}
 {%- if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
     "compile": "tsc --build --verbose src",
 {%- endif %}
+    "prettier": "prettier src --write",
 {%- if isJavaScript == "true" %}
     "fix": "standard --fix lib tests",
     "dev-cycle": "npm run fix && npm run test",
 {%- elsif isTypeScript == "true" %}
+{%- if packageConfig.useEslint == "true" %}
+    "fix": "eslint --fix",
+{%- else %}
     "fix": "ts-standard --fix src tests && standard esm",
+{%- endif %}
     "dev-cycle": "npm run fix && npm run compile && npm run test",
 {%- endif %}
 {%- endif %}
@@ -27,29 +36,34 @@
 {%- if isJavaScript == "true" %}
     "lint": "standard lib",
 {%- elsif isTypeScript == "true" %}
+{%- if packageConfig.useEslint == "true" %}
+    "lint": "eslint",
+{%- else %}
     "lint": "ts-standard src && standard esm",
+{%- endif %}
 {%- endif %}
 {%- if isJavaScript == "true" %}
     "prepare": "npm run lint",
 {%- elsif isTypeScript == "true" %}
-    "prepare": "npm run compile && npm run lint",
+    "prepare": "npm run prettier && npm run lint && npm run compile",
 {%- endif %}
 {%- if packageConfig.skipCiTests != "true" and packageVersion != "0.0.0" %}
     "pretest-coverage": "npm run lint",
     "pretest-no-coverage": "npm run lint",
     "test-coverage": "tap --show-full-coverage",
     "test-no-coverage": "tap --disable-coverage",
-    "tap": "tap --reporter=tap",{% endif %}
+    "tap": "tap --reporter=tap",
+    "test": "npm run test-coverage",{% else %}
+    "test": "echo 'No tests defined'",{% endif %}
     "prepublishOnly": "npm run lint && npm run test",
     "postpublish": "git push origin --follow-tags",
     "clean": "del-cli cjs 'tests/**/cjs' 'src/**/*.d.ts' 'src/**/*.d.ts.map' 'src/**/*.js' 'src/**/*.js.map' 'tests/**/*.d.ts' 'tests/**/*.d.ts.map' 'tests/**/*.js' 'tests/**/*.js.map' '**/tsconfig.tsbuildinfo' .nyc_output coverage",
     "deep-clean": "npm run clean && rm -rf node_modules package-lock.json",
-    "show-versions": "echo $(which node) $(node --version) && echo $(which npm) $(npm --version)",
-    "dumpconf": "env | sort | uniq",
 {%- else %}
     "deep-clean": "del-cli node_modules package-lock.json",
 {%- endif %}
-    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack"
+    "dumpconf": "env | sort | uniq",
+    "show-versions": "echo $(which node) $(node --version) && echo $(which npm) $(npm --version)"
   },
   "repository": {
     "type": "git",
@@ -64,24 +78,26 @@
   "bugs": {
     "url": "https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/issues"
   },
+  "homepage": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
   "dependencies": {},
   "devDependencies": { {% if isTypeScript == "true" %}
-    "@types/node": "^18.11.9",
-    "@types/tap": "^15.0.12",{% endif %}
+    "@tsconfig/node20": "^20.1.6",
+    "@types/node": "^24.0.14",{%- if packageConfig.skipCiTests != "true" %}
+    "@types/tap": "^15.0.12",{% endif %}{% endif %}
     "del-cli": "^6.0.0",
     "json": "^11.0.0",
-    "liquidjs": "^10.19.1"
-{%- if isJavaScript == "true" or isTypeScript == "true" %},
+    "liquidjs": "^10.19.1"{%- if isJavaScript == "true" or isTypeScript == "true" %}{%- if packageConfig.skipCiTests != "true" %},
+    "tap": "^21.0.1"{% endif %}{% endif %}{%- if isTypeScript == "true" %},
+    "ts-node": "^10.9.2"{%- if packageConfig.useEslint == "true" %},
+    "eslint": "^9.31.0",
+    "eslint-config-love": "^121.0.0"{% else %},
     "standard": "^17.1.2",
-    "tap": "^21.0.1"
-{%- endif %}
-{%- if isTypeScript == "true" %},
-    "ts-node": "^10.9.2",
-    "ts-standard": "^12.0.2",
-    "typedoc": "^0.26.11",
-    "typescript": "^4.9.5"
-{%- endif %}
+    "ts-standard": "^12.0.2"{% endif %},
+    "prettier": "3.6.2",
+    "typedoc": "^0.28.7",
+    "typescript": "^5.8.3"{%- endif %}
   }
+{%- if packageConfig.skipCiTests != "true" %}
 {%- if isJavaScript == "true" or isTypeScript == "true" %},
   "tap": {
     "files": [
@@ -93,6 +109,8 @@
     ],
     "reporter": "base"
   },
+{%- endif %}
+{%- if packageConfig.useEslint != "true" %}
   "eslintConfig": {
     "rules": {
       "max-len": [
@@ -104,13 +122,14 @@
       ]
     }
   }
+{%- endif %}
 {%- if isJavaScript == "true" %},
   "standard": {
     "ignore": [
       "/website/"
     ]
   }
-{%- elsif isTypeScript == "true" %},
+{%- elsif isTypeScript == "true" and packageConfig.useEslint != "true" %},
   "ts-standard": {
     "ignore": [
       "/website/",
@@ -120,8 +139,13 @@
   }
 {%- endif %}
 {%- endif %},
-  "topConfig": {},
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
   "engines": {
-    "node": " >=18.0.0"
+    "node": " >=20.0.0"
   }
 }
