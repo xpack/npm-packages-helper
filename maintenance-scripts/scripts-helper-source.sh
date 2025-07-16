@@ -419,6 +419,8 @@ function compute_context()
   # ---------------------------------------------------------------------------
 
   # Top configuration (topConfig).
+  xpack_npm_package="$(json -f "${project_folder_path}/package.json" -o json-0)"
+
   xpack_npm_package_top_config="$(json -f "${project_folder_path}/package.json" -o json-0 topConfig)"
   if [ -z "${xpack_npm_package_top_config}" ]
   then
@@ -491,6 +493,7 @@ function compute_context()
 
   # Edit the json and add properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+  -e "this.packag=${xpack_npm_package}" \
   -e "this.packageConfig=${xpack_npm_package_top_config}" \
   -e "this.longXpackName=\"${xpack_long_xpack_name}\"" \
   -e "this.baseUrl=\"${xpack_base_url}\"" \

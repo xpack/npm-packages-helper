@@ -107,6 +107,11 @@ then
     cd "${templates_folder_path}/common/_micro-os-plus"
     # Destructive, it does not merge.
     substitute "package-merge-liquid.json" "package.json" "${project_folder_path}"
+  elif [ "${is_xpack}" == "true" ]
+  then
+    cd "${templates_folder_path}/common/_xpack"
+    # Destructive, it does not merge.
+    substitute "package-merge-liquid.json" "package.json" "${project_folder_path}"
   else
     echo "--init not implemented yet"
     exit 1
