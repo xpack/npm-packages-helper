@@ -320,6 +320,7 @@ function compute_context()
   export xpack_npm_package_name="$(echo "${xpack_npm_package_scoped_name}" | sed -e 's|^@[a-zA-Z0-9-]*/||')"
   export xpack_npm_package_version="$(json -f "${project_folder_path}/package.json" version)"
   export xpack_npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
+  export xpack_npm_package_type="$(json -f "${project_folder_path}/package.json" type)"
 
   export xpack_npm_package_keywords="$(json -f "${project_folder_path}/package.json" keywords)"
   if [ -z "${xpack_npm_package_keywords}" ]
@@ -390,6 +391,27 @@ function compute_context()
   fi
   export xpack_npm_package_is_binary
 
+  if [ ! -z "$(json -f "${project_folder_path}/package.json" prettier)" ]
+  then
+    xpack_npm_package_use_prettier="true"
+  else
+    xpack_npm_package_use_prettier="false"
+  fi
+
+  if [ ! -z "$(json -f "${project_folder_path}/package.json" devDependencies.typescript-eslint)" ]
+  then
+    xpack_npm_package_use_typescript_eslint="true"
+  else
+    xpack_npm_package_use_typescript_eslint="false"
+  fi
+
+  if [ ! -z "$(json -f "${project_folder_path}/package.json" devDependencies.'@microsoft/api-extractor')" ]
+  then
+    xpack_npm_package_use_api_extractor="true"
+  else
+    xpack_npm_package_use_api_extractor="false"
+  fi
+
   # Edit the json and add properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
   -e "this.packageScopedName=\"${xpack_npm_package_scoped_name}\"" \
@@ -414,6 +436,9 @@ function compute_context()
   -e "this.packageDependenciesTypescriptVersion=\"${xpack_npm_package_dependencies_typescript_version}\"" \
   -e "this.packageHomepage=\"${xpack_npm_package_homepage}\"" \
   -e "this.packageHomepagePreview=\"${xpack_npm_package_homepage_preview}\"" \
+  -e "this.packageUsePrettier=\"${xpack_npm_package_use_prettier}\"" \
+  -e "this.packageUseTypeScriptEslint=\"${xpack_npm_package_use_typescript_eslint}\"" \
+  -e "this.packageUseApiExtractor=\"${xpack_npm_package_use_api_extractor}\"" \
   )
 
   # ---------------------------------------------------------------------------
@@ -434,9 +459,13 @@ function compute_context()
     xpack_has_empty_master="false"
     xpack_descriptive_name=""
     xpack_permalink_name=""
+    xpack_prefer_short_name="false"
+    xpack_preferred_name=""
     xpack_long_xpack_name=""
     xpack_use_self_hosted_runners=""
     xpack_has_test_all="true"
+    xpack_has_no_github_releases=""
+    xpack_has_cli=""
   else
     xpack_is_organization_web="$(echo "${xpack_npm_package_top_config}" | json isOrganizationWeb)"
     xpack_is_web_deploy_only="$(echo "${xpack_npm_package_top_config}" | json isWebDeployOnly)"
@@ -447,8 +476,11 @@ function compute_context()
     xpack_has_empty_master="$(echo "${xpack_npm_package_top_config}" | json hasEmptyMaster)"
     xpack_descriptive_name="$(echo "${xpack_npm_package_top_config}" | json descriptiveName)"
     xpack_permalink_name="$(echo "${xpack_npm_package_top_config}" | json permalinkName)"
+    xpack_prefer_short_name="$(echo "${xpack_npm_package_top_config}" | json preferShortName)"
     xpack_use_self_hosted_runners="$(echo "${xpack_npm_package_top_config}" | json useSelfHostedRunners)"
     xpack_has_test_all="$(echo "${xpack_npm_package_top_config}" | json hasTestAll)"
+    xpack_has_no_github_releases="$(echo "${xpack_npm_package_top_config}" | json hasNoGithubReleases)"
+    xpack_has_cli="$(echo "${xpack_npm_package_top_config}" | json hasCli)"
 
     if [ ! -z "${xpack_descriptive_name}" ]
     then
@@ -463,7 +495,15 @@ function compute_context()
       echo "Missing descriptiveName in topConfig"
       xpack_long_xpack_name=""
     fi
+
+    if [ "${xpack_prefer_short_name}" == "true" ]
+    then
+      xpack_preferred_name="${xpack_permalink_name:-${xpack_npm_package_name}}"
+    else
+      xpack_preferred_name="${xpack_descriptive_name}"
+    fi
   fi
+
   export xpack_npm_package_top_config
   export xpack_is_organization_web
   export xpack_is_web_deploy_only
@@ -474,9 +514,13 @@ function compute_context()
   export xpack_has_empty_master
   export xpack_descriptive_name
   export xpack_permalink_name
+  export xpack_prefer_short_name
+  export xpack_preferred_name
   export xpack_long_xpack_name
   export xpack_use_self_hosted_runners
   export xpack_has_test_all
+  export xpack_has_no_github_releases
+  export xpack_has_cli
 
   xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
   xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
@@ -493,9 +537,10 @@ function compute_context()
 
   # Edit the json and add properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-  -e "this.packag=${xpack_npm_package}" \
+  -e "this.package=${xpack_npm_package}" \
   -e "this.packageConfig=${xpack_npm_package_top_config}" \
   -e "this.longXpackName=\"${xpack_long_xpack_name}\"" \
+  -e "this.preferredName=\"${xpack_preferred_name}\"" \
   -e "this.baseUrl=\"${xpack_base_url}\"" \
   -e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
   -e "this.showTestsResults=\"${xpack_show_test_results}\"" \
@@ -553,13 +598,13 @@ function compute_context()
     export xpack_has_top_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasTopHomepageFeatures)"
     export xpack_has_homepage_tools="$(echo "${xpack_npm_package_website_config}" | json hasHomepageTools)"
 
-    export xpack_has_cli="$(echo "${xpack_npm_package_website_config}" | json hasCli)"
     export xpack_has_policies="$(echo "${xpack_npm_package_website_config}" | json hasPolicies)"
     export xpack_skip_install_command="$(echo "${xpack_npm_package_website_config}" | json skipInstallCommand)"
     export xpack_skip_install_guide="$(echo "${xpack_npm_package_website_config}" | json skipInstallGuide)"
     export xpack_skip_releases="$(echo "${xpack_npm_package_website_config}" | json skipReleases)"
     export xpack_skip_faq="$(echo "${xpack_npm_package_website_config}" | json skipFaq)"
     export xpack_skip_contributor_guide="$(echo "${xpack_npm_package_website_config}" | json skipContributorGuide)"
+    export xpack_skip_tests="$(echo "${xpack_npm_package_website_config}" | json skipTests)"
 
     export xpack_website_config_is_arm_toolchain="$(echo "${xpack_npm_package_website_config}" | json isArmToolchain)"
     export xpack_website_config_is_gcc_toolchain="$(echo "${xpack_npm_package_website_config}" | json isGccToolchain)"
@@ -844,6 +889,12 @@ function process_file() {
 
   if [ -f "${to_absolute_file_path}" ]
   then
+    if [ "${do_force}" != "true" ]
+    then
+      echo "${to_relative_file_path} exists"
+      return 0
+    fi
+
     # Be sure destination is writeable.
     chmod -f +w "${to_absolute_file_path}"
   fi

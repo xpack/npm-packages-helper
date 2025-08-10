@@ -122,9 +122,29 @@ else
   echo "Processing template from ${templates_folder_path}..."
   echo
 
+  echo
+  echo "Common files, cleanups..."
+
+  cd "${templates_folder_path}/common"
+
+  # Preliminary pass to remove _common folders.
+  find . -type d -name '_common' -print0 | sort -zn | \
+    xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-item.sh" --remove-folder '{}' "${project_folder_path}"
+
+  echo
+  echo "Common files, overridden..."
+
   cd "${templates_folder_path}/common"
 
   # Main pass to copy/generate common files.
+  find . -type f -print0 | sort -zn | \
+    xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-item.sh" --force '{}' "${project_folder_path}"
+
+  echo
+  echo "First time proposals..."
+
+  cd "${templates_folder_path}/first-time"
+
   find . -type f -print0 | sort -zn | \
     xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-item.sh" '{}' "${project_folder_path}"
 

@@ -63,6 +63,24 @@ source "${script_folder_path}/scripts-helper-source.sh"
 # echo "pwd: $(pwd)"
 # set -x
 
+do_remove_folder="false"
+do_force="false"
+
+if [ "${1}" == "--remove-folder" ]
+then
+  # Ask to override and write protect.
+  do_remove_folder="true"
+  shift
+elif [ "${1}" == "--force" ]
+then
+  # Ask to override and write protect.
+  do_force="true"
+  shift
+fi
+
+export do_remove_folder
+export do_force
+
 # -----------------------------------------------------------------------------
 
 # If one of the selector paths is present, but not the right one, exit.
@@ -70,6 +88,35 @@ if check_if_should_ignore_path "$@"
 then
   exit 0
 fi
+
+# -----------------------------------------------------------------------------
+
+if [ "${do_remove_folder}" == "true" ]
+then
+  from_relative_folder_path="$(echo "${1}" | sed -e 's|^\.\/||')"
+  # Superfluous, `find -type d` should not allow this.
+  if [ ! -d "${from_relative_folder_path}" ]
+  then
+    echo "${from_relative_folder_path} not a folder"
+    exit 1
+  fi
+
+  to_relative_folder_path="$(echo "${1}" | sed -e 's|/_xpack/|/|' -e 's|/_xpack-dev-tools/|/|' -e 's|^\.\/||')"
+  to_absolute_folder_path="${2}/${to_relative_folder_path}"
+
+  if [ -d "${to_absolute_folder_path}" ]
+  then
+    echo "rm ${to_relative_folder_path}"
+    if [ "${do_dry_run}" != "true" ]
+    then
+      rm -rf "${to_absolute_folder_path}"
+    fi
+  fi
+
+  exit 0
+fi
+
+# -----------------------------------------------------------------------------
 
 prepare_paths "$@"
 
@@ -131,6 +178,17 @@ then
   then
     skip_pages_array+=(\
       ".github/workflows/trigger-publish-github-pages-preview.yml" \
+    )
+  fi
+
+  if [ "${xpack_is_web_deploy_only}" == "true" ]
+  then
+    skip_pages_array+=(\
+      "config/api-extractor.json" \
+      "src/tsconfig.json" \
+      "eslint.config.js" \
+      "tsconfig-original.json" \
+      "tsconfig.eslint.json" \
     )
   fi
 
@@ -307,8 +365,6 @@ fi
 set -o nounset # Exit if variable not set.
 
 # -----------------------------------------------------------------------------
-
-export do_force="false"
 
 process_file
 
