@@ -2,9 +2,19 @@
   "name": "{{packageScopedName}}",
   "version": "{{packageVersion}}",
   "description": "{{packageDescription}}",
+{%- if isTypeScript == "true" %}
+  "type": "module",
+  "main": "./dist/index.js",
+  "typings": "./dist/{{packageName}}.d.ts",
+  "bin": {
+    "{{packageName}}": "./bin/{{packageName}}.js"
+  },
+{%- endif %}
   "scripts": {
     "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack",
 {%- if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}
+    "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile && npm run api-extractor",
+    "api-extractor": "api-extractor run --local --verbose",
 {%- if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
     "compile": "tsc --build --verbose src",
@@ -15,7 +25,7 @@
     "dev-cycle": "npm run fix && npm run test",
 {%- elsif isTypeScript == "true" %}
 {%- if packageConfig.useEslint == "true" %}
-    "fix": "eslint --fix",
+    "fix": "eslint --fix src",
 {%- else %}
     "fix": "ts-standard --fix src tests && standard esm",
 {%- endif %}
@@ -37,7 +47,7 @@
     "lint": "standard lib",
 {%- elsif isTypeScript == "true" %}
 {%- if packageConfig.useEslint == "true" %}
-    "lint": "eslint",
+    "lint": "eslint src",
 {%- else %}
     "lint": "ts-standard src && standard esm",
 {%- endif %}
@@ -45,7 +55,8 @@
 {%- if isJavaScript == "true" %}
     "prepare": "npm run lint",
 {%- elsif isTypeScript == "true" %}
-    "prepare": "npm run prettier && npm run lint && npm run compile",
+    "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile && npm run api-extractor",
+    "api-extractor": "api-extractor run --local --verbose",
 {%- endif %}
 {%- if packageConfig.skipCiTests != "true" and packageVersion != "0.0.0" %}
     "pretest-coverage": "npm run lint",
@@ -57,7 +68,7 @@
     "test": "echo 'No tests defined'",{% endif %}
     "prepublishOnly": "npm run lint && npm run test",
     "postpublish": "git push origin --follow-tags",
-    "clean": "del-cli cjs 'tests/**/cjs' 'src/**/*.d.ts' 'src/**/*.d.ts.map' 'src/**/*.js' 'src/**/*.js.map' 'tests/**/*.d.ts' 'tests/**/*.d.ts.map' 'tests/**/*.js' 'tests/**/*.js.map' '**/tsconfig.tsbuildinfo' .nyc_output coverage",
+    "clean": "del-cli dist cjs 'tests/**/cjs' 'src/**/*.d.ts' 'src/**/*.d.ts.map' 'src/**/*.js' 'src/**/*.js.map' 'tests/**/*.d.ts' 'tests/**/*.d.ts.map' 'tests/**/*.js' 'tests/**/*.js.map' '**/tsconfig.tsbuildinfo' .nyc_output coverage",
     "deep-clean": "npm run clean && rm -rf node_modules package-lock.json",
 {%- else %}
     "deep-clean": "del-cli node_modules package-lock.json",
@@ -78,7 +89,14 @@
   "bugs": {
     "url": "https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/issues"
   },
+
+{%- if packageConfig.isWebPreview == "true" %}
+  "homepage": "https://{{githubProjectOrganization}}.github.io/{{packageName}}/",
+  "homepagePreview": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
+{%- else %}
   "homepage": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
+{%- endif %}
+
   "dependencies": {},
   "devDependencies": { {% if isTypeScript == "true" %}
     "@tsconfig/node20": "^20.1.6",
@@ -88,16 +106,21 @@
     "json": "^11.0.0",
     "liquidjs": "^10.19.1"{%- if isJavaScript == "true" or isTypeScript == "true" %}{%- if packageConfig.skipCiTests != "true" %},
     "tap": "^21.0.1"{% endif %}{% endif %}{%- if isTypeScript == "true" %},
+    "@microsoft/api-extractor": "^7.52.8",
     "ts-node": "^10.9.2"{%- if packageConfig.useEslint == "true" %},
     "eslint": "^9.31.0",
-    "eslint-config-love": "^121.0.0"{% else %},
+    "@eslint/js": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript-eslint": "^8.38.0"{% else %},
     "standard": "^17.1.2",
     "ts-standard": "^12.0.2"{% endif %},
     "prettier": "3.6.2",
     "typescript": "^5.8.3"{%- endif %}
-  }
+  },
+
+{%- if isJavaScript == "true" or isTypeScript == "true" %}
+
 {%- if packageConfig.skipCiTests != "true" %}
-{%- if isJavaScript == "true" or isTypeScript == "true" %},
   "tap": {
     "files": [
 {%- if isJavaScript == "true" %}
@@ -109,6 +132,7 @@
     "reporter": "base"
   },
 {%- endif %}
+
 {%- if packageConfig.useEslint != "true" %}
   "eslintConfig": {
     "rules": {
@@ -120,30 +144,34 @@
         }
       ]
     }
-  }
+  },
 {%- endif %}
-{%- if isJavaScript == "true" %},
+
+{%- if isJavaScript == "true" %}
   "standard": {
     "ignore": [
       "/website/"
     ]
-  }
-{%- elsif isTypeScript == "true" and packageConfig.useEslint != "true" %},
+  },
+{%- elsif isTypeScript == "true" and packageConfig.useEslint != "true" %}
   "ts-standard": {
     "ignore": [
       "/website/",
       "**/*.d.ts",
       "**/*.js"
     ]
-  }
+  },
 {%- endif %}
-{%- endif %},
+
   "prettier": {
     "printWidth": 80,
     "semi": false,
     "singleQuote": true,
     "trailingComma": "es5"
   },
+
+{%- endif %}
+
   "engines": {
     "node": " >=20.0.0"
   }

@@ -21,6 +21,8 @@ git -C ~/Work/xpack/npm-packages-helper.git pull
 ## Add to xPack Node.js library & CLI projects
 
 ```sh
+npm init --yes
+
 npm install del-cli json liquidjs --save-dev
 npm link @xpack/npm-packages-helper
 ```
@@ -250,11 +252,49 @@ For the top web project, add to top `package.json`:
   }
 ```
 
-For Web deployment only projects (`web-preview`, `xpm`, `xcdl`), add:
+### Web deployment only
+
+For Web deployment only projects (`xpm`, `xcdl`)
+
+- create Git project
+- run npm init, install deps,
+- add generate-top-commons-init script
+- add isWebDeployOnly
 
 ```json
   "topConfig": {
-    "isWebDeployOnly": "true",
+    "descriptiveName": "xxx website",
+    "isWebDeployOnly": "true"
+  }
+```
+
+- run generate-top-commons-init
+- add topConfig again
+- run generate-top-commons
+
+In the main project:
+
+- add a webpreview branch
+- Pages use Actions
+- edit Environment to it
+- add:
+
+```
+  "homepage": "https://xpack.github.io/xpm/",
+  "homepagePreview": "https://xpack.github.io/xpm-js/",
+
+  "topConfig": {
+    "hasTriggerPublish": "true",
+    "isWebPreview": "true"
+  }
+```
+
+### Web preview only
+
+For Web preview only projects (`web-preview`), add:
+
+```json
+  "topConfig": {
     "isWebPreview": "true"
   }
 ```
@@ -424,3 +464,173 @@ Miscellaneous
 - `packageHomepagePreview`
 - `baseUrl`
 - `baseUrlPreview`
+
+## Example
+
+```
+"xpack_context": {
+  "hasFolderWebsitePackage": "true",
+  "hasFolderBuildAssetsPackage": "false",
+  "hasFolderTestsPackage": "false",
+  "hasBranchMaster": "true",
+  "hasBranchDevelopment": "true",
+  "hasBranchXpackDevelopment": "false",
+  "hasBranchWebsite": "true",
+  "hasBranchWebpreview": "false",
+  "branchMain": "master",
+  "branchDevelopment": "development",
+  "branchWebsite": "website",
+  "branchWebpreview": "development",
+  "releaseDate": "2025-08-03 11:35:13 +0300",
+  "packageScopedName": "@xpack/doxygen2docusaurus",
+  "packageScope": "xpack",
+  "packageName": "doxygen2docusaurus",
+  "packageVersion": "1.0.2",
+  "releaseVersion": "1.0.2",
+  "releaseSemver": "1.0.2",
+  "releaseSubversion": "",
+  "releaseNpmSubversion": "",
+  "packageDescription": "A Node.js CLI application to convert Doxygen XML files into Docusaurus documentation",
+  "repositoryUrl": "https://github.com/xpack/doxygen2docusaurus-cli-ts.git",
+  "githubProjectOrganization": "xpack",
+  "githubProjectName": "doxygen2docusaurus-cli-ts",
+  "packageKeywords": [
+    "docusaurus",
+    "doxygen",
+    "cli"
+  ],
+  "hasWebsiteFolder": "true",
+  "isTypeScript": "true",
+  "isJavaScript": "false",
+  "isNpmBinary": "true",
+  "packageEnginesNodeVersion": "20.0.0",
+  "packageEnginesNodeVersionMajor": "20",
+  "packageDependenciesTypescriptVersion": "5.8.3",
+  "packageHomepage": "https://xpack.github.io/doxygen2docusaurus-cli-ts/",
+  "packageHomepagePreview": "https://xpack.github.io/doxygen2docusaurus-cli-ts/",
+  "packageUsePrettier": "true",
+  "packageUseTypeScriptEslint": "true",
+  "packageUseApiExtractor": "true",
+  "package": {
+    ...
+  },
+  "packageConfig": {
+    "descriptiveName": "doxygen2docusaurus",
+    "permalinkName": "doxygen2docusaurus",
+    "skipCiTests": "true",
+    "hasCli": "true",
+    "useEslint": "true"
+  },
+  "longXpackName": "doxygen2docusaurus",
+  "baseUrl": "/doxygen2docusaurus-cli-ts/",
+  "baseUrlPreview": "/doxygen2docusaurus-cli-ts/",
+  "showTestsResults": "",
+  "packageBuildConfig": {},
+  "packageWebsiteConfig": {
+    "title": "doxygen2docusaurus - Doxygen Documentation Converter",
+    "tagline": "A Node.js CLI application to convert Doxygen XML files into Docusaurus documentation",
+    "hasCustomHomepageFeatures": "true",
+    "hasTSDocDocusaurusApi": "true",
+    "skipTests": "true",
+    "preferShortName": "true",
+    "nodeVersion": "20.18.0"
+  },
+  "isXpackBinary": "false",
+  "isXpack": "false",
+  "isNpmPublished": "true",
+  "platforms": ""
+}
+```
+
+## Config names summary
+
+logger-ts
+    -"packageScopedName": "@xpack/logger"
+    "descriptiveName": "xPack Logger"
+
+mock-console-ts
+    -"packageScopedName": "@xpack/mock-console"
+    "descriptiveName": "xPack Mock Console"
+
+xpm-js
+    -"packageScopedName": "xpm"
+    "descriptiveName": "xPack Project Manager",
+    "permalinkName": "xpm", <--- (without -js)
+    "preferShortName": "true",
+
+    web
+    "programName": "xpm",
+
+xcdl-cli-ts
+    -"packageScopedName": "xcdl"
+    "descriptiveName": "xPack Component Manager",
+    "permalinkName": "xcdl" <--- (without -cli-ts)
+    "preferShortName": "true",
+
+    web
+    "programName": "xcdl",
+
+doxygen2docusaurus-cli-ts
+    -"packageScopedName": "@xpack/doxygen2docusaurus"
+    "descriptiveName": "Doxygen Documentation Converter",
+    "permalinkName": "doxygen2docusaurus", <--- (without -cli-ts)
+    "preferShortName": "true",
+
+    web
+    "programName": "doxygen2docusaurus",
+
+xpack.github.io
+    "descriptiveName": "xPack Project",
+    "isOrganizationWeb": "true",
+    "hasTriggerPublishPreview": "true",
+    "hasEmptyMaster": "true"
+
+web-preview
+    "isWebDeployOnly": "true",
+    "isWebPreview": "true"
+
+xpm
+    "isWebDeployOnly": "true"
+
+xcdl
+    "isWebDeployOnly": "true"
+
+---
+
+aarch64-none-elf-gcc
+    -"packageScopedName": "@xpack-dev-tools/aarch64-none-elf-gcc"
+    "descriptiveName": "xPack GNU AArch64 Embedded GCC",
+    "upstreamDescriptiveName": "GNU AArch64 Embedded GCC",
+    "permalinkName": "aarch64-none-elf-gcc",
+
+    web
+    "programName": "aarch64-none-elf-gcc",
+
+...
+
+xpack-build-box
+    "descriptiveName": "xPack Build Box",
+    "permalinkName": "xbb"
+
+xpack-dev-tools.github.io
+    "descriptiveName": "Binary Development Tools",
+    "permalinkName": "xpack-dev-tools.github.io",
+    "isOrganizationWeb": "true",
+    "hasTriggerPublishPreview": "true",
+    "hasEmptyMaster": "true"
+
+web-preview
+    "isWebDeployOnly": "true",
+    "isWebPreview": "true"
+
+---
+
+micro-test-plus-xpack
+    -"packageScopedName": "@micro-os-plus/micro-test-plus"
+    "descriptiveName": "µTest++ Testing Framework",
+    "permalinkName": "micro-test-plus",
+
+utils-lists-xpack
+    -"packageScopedName": "@micro-os-plus/utils-lists"
+    "descriptiveName": "µOS++ Intrusive Lists",
+    "permalinkName": "utils-lists",
