@@ -7,7 +7,7 @@
 {%- else %}
 # This file is part of the xPack project (http://xpack.github.io).
 {%- endif %}
-# Copyright (c) 2021 Liviu Ionescu. All rights reserved.
+# Copyright (c) 2021-2025 Liviu Ionescu. All rights reserved.
 #
 # Permission to use, copy, modify, and/or distribute this software
 # for any purpose is hereby granted, under the terms of the MIT license.
@@ -39,7 +39,7 @@ jobs:
     strategy:
       matrix:
         # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners
-        os: [ 'ubuntu-24.04', 'ubuntu-22.04', 'ubuntu-24.04-arm', 'ubuntu-22.04-arm', 'macos-13', 'macos-14', 'windows-2022', 'windows-2019' ]
+        os: [ 'ubuntu-24.04', 'ubuntu-22.04', 'ubuntu-24.04-arm', 'ubuntu-22.04-arm', 'macos-15-intel', 'macos-15', 'windows-2025', 'windows-2022' ]
         # https://nodejs.org/en - use LTS
         node-version: [ '20' ]
         # https://www.npmjs.com/package/xpm
@@ -48,13 +48,13 @@ jobs:
     steps:
     - name: Checkout
       # https://github.com/actions/checkout/
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 3
 
     - name: {% raw %}Setup Node.js ${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
       # https://github.com/actions/setup-node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
 
