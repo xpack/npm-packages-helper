@@ -53,8 +53,6 @@
       "trigger-workflow-build-win32-x64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-win32-x64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% when "linux-arm64" %}
       "trigger-workflow-build-linux-arm64": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-arm64.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
-{% when "linux-arm" %}
-      "trigger-workflow-build-linux-arm": "{% raw %}bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-build.sh --workflow build-linux-arm.yml --xpm-version {{properties.xpm-version}} --loglevel {{properties.xpm-install-loglevel}}{% endraw %}",
 {% endcase %}
 {% endfor %}
       "trigger-workflow-test-prime": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-prime.sh",
@@ -62,10 +60,8 @@
 {% case platform %}
 {% when "linux-x64" %}
       "trigger-workflow-test-docker-linux-x64": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-docker-linux-x64.sh",
-{% when "linux-arm64", "linux-arm" %}
-      "trigger-workflow-test-docker-linux-arm": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-docker-linux-arm.sh",
-{% when "darwin-x64" %}
-      "trigger-travis-macos": "bash xpacks/@xpack-dev-tools/xbb-helper/travis/trigger-travis-macos.sh",
+{% when "linux-arm64" %}
+      "trigger-workflow-test-docker-linux-arm64": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-docker-linux-arm.sh",
 {% endcase %}
 {% endfor %}
       "trigger-workflow-publish-release": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-publish-release.sh",
@@ -79,7 +75,7 @@
       "test-xpm": "{% raw %}bash {{properties.dbg}} scripts/test.sh --xpm{% endraw %}"
 {% for platform in platforms_array %}
 {% case platform %}
-{% when "linux-x64", "linux-arm64", "linux-arm", "darwin-x64", "darwin-arm64" %},
+{% when "linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64" %},
       "build-native": "{% raw %}bash {{properties.dbg}} scripts/build.sh{% endraw %}",
       "build-native-develop": "{% raw %}bash {{properties.dbg}} scripts/build.sh --development{% endraw %}",
       "build-native-develop-debug": "{% raw %}bash {{properties.dbg}} scripts/build.sh --development --debug{% endraw %}"
@@ -213,15 +209,6 @@
         ],
         "properties": {
           "dockerImage": "ilegeul/debian:arm64v8-10-xbb-v6.0.0"
-        }
-      }{% when "linux-arm" %},
-      "linux-arm": {
-        "inherit": [
-          "linux-x64"
-        ],
-        "properties": {
-          "dockerImage": "ilegeul/ubuntu:arm32v7-18.04-xbb-v5.2.2",
-          "force32": "linux32"
         }
       }{% when "win32-x64" %},
       "win32-x64": {

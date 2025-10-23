@@ -709,7 +709,7 @@ function compute_context()
       # set -x
       xpack_platforms_array=()
       # The order is relevant, it is kept when generating tabs and lists.
-      for platform in win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-arm64 linux-arm
+      for platform in win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-arm64
       do
         platform_object="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries.platforms.${platform})"
         if [ ! -z "${platform_object}" ]
@@ -731,7 +731,7 @@ function compute_context()
   # For top webs, to display the full list of platforms.
   if [ "${xpack_is_organization_web}" == "true" ] && [ -z "${xpack_platforms}" ]
   then
-    xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64,linux-arm"
+    xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64"
   fi
 
   export xpack_npm_package_xpack

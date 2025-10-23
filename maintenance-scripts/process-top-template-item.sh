@@ -197,7 +197,7 @@ then
   platforms_with_commas=",${xpack_platforms},"
   if [ "${platforms_with_commas}" == ",all," ]
   then
-    platforms_with_commas=",linux-x64,linux-arm64,linux-arm,darwin-x64,darwin-arm64,win32-x64,"
+    platforms_with_commas=",linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64,"
   fi
 
   if [ "${xpack_is_organization_web}" == "true" ] ||
@@ -274,8 +274,7 @@ then
         ".github/workflows/build-win32-x64.yml" \
       )
     fi
-    if [[ ! "${platforms_with_commas}" =~ ,linux-arm, ]] &&
-       [[ ! "${platforms_with_commas}" =~ ,linux-arm64, ]]
+    if [[ ! "${platforms_with_commas}" =~ ,linux-arm64, ]]
     then
       skip_pages_array+=(\
         ".github/workflows/test-docker-linux-arm.yml" \
