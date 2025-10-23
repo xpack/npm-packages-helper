@@ -2,7 +2,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Publish the xPack {{packageConfig.descriptiveName}} release'
+name: 'Publish the {{packageConfig.descriptiveName}} release'
 
 on:
   workflow_dispatch:
@@ -33,12 +33,12 @@ jobs:
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
@@ -60,7 +60,7 @@ jobs:
           bodyFile: '.github/workflows/body-github-release.md'
           commit: 'xpack-development'
           draft: true
-          name: 'xPack {{packageConfig.descriptiveName}} v{% raw %}${{github.event.inputs.version}}{% endraw %}'
+          name: '{{packageConfig.descriptiveName}} v{% raw %}${{github.event.inputs.version}}{% endraw %}'
           omitBodyDuringUpdate: true
           omitDraftDuringUpdate: true
           omitNameDuringUpdate: true

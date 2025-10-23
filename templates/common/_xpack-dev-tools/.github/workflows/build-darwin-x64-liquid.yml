@@ -2,7 +2,7 @@
 
 {%- assign platforms_array = platforms | split: "," %}
 
-name: 'Build xPack {{packageConfig.descriptiveName}} darwin-x64'
+name: 'Build {{packageConfig.descriptiveName}} darwin-x64'
 
 on:
   workflow_dispatch:
@@ -49,7 +49,7 @@ jobs:
 {%- if packageConfig.useSelfHostedRunners == "true" %}
     runs-on: [self-hosted, macos, intel]
 {%- else %}
-    runs-on: macos-13
+    runs-on: macos-15-intel
 {%- endif %}
     env:
       XBB_ENVIRONMENT_MACOSX_DEPLOYMENT_TARGET: '11.0'
@@ -58,6 +58,7 @@ jobs:
         run: |
           uname -a
           sw_vers
+          df -gH /
           ls -lA /Library/Developer/CommandLineTools/SDKs || true
           ls -lA /Applications
           xcode-select --print-path
@@ -66,10 +67,32 @@ jobs:
           ls -l /Library/Developer/CommandLineTools/usr/include || true
           echo "pwd: $(pwd)"
           echo "whoami: $(whoami)"
-          echo "node: $(node --version)"
-          echo "npm: $(npm --version)"
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
+
+      - name: 'Remove Homebrew'
+        uses: xpack/remove-homebrew-action@v1
+
+      - name: 'Install Python packages'
+        run: |
+          pip3 install distlib
+
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          check-latest: true
+
+      - name: 'Install xpm'
+        timeout-minutes: 1440
+        run: |
+          npm install --location=global xpm@{% raw %}${{github.event.inputs.xpm_version}}{% endraw %}
+
+      - name: 'Verify Node.js, npm and xpm'
+        run: |
+          echo "$(which node): $(node --version)"
+          echo "$(which npm): $(npm --version)"
+          echo "$(which xpm): $(xpm --version)"
 
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
@@ -81,18 +104,15 @@ jobs:
         with:
           fetch-depth: 3
 
-      - name: 'Install xpm'
-        timeout-minutes: 1440
-        run: |
-          npm install --location=global xpm@{% raw %}${{github.event.inputs.xpm_version}}{% endraw %}
-          xpm --version
-
       - name: 'Build {{platform}} binaries'
         timeout-minutes: 1440
         run: |
           xpm install --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
           xpm install --config {{platform}} --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
           xpm run build --config {{platform}} -C build-assets
+
+      - name: 'Show results'
+        run: |
           ls -l build-assets/build/{{platform}}/application
           ls -l build-assets/build/{{platform}}/deploy
 
@@ -132,8 +152,8 @@ jobs:
 
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
-    runs-on: macos-13
+    # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+    runs-on: macos-15-intel
     needs: [{{platform}}-build]
 
     steps:
@@ -141,10 +161,11 @@ jobs:
         run: |
           uname -a
           sw_vers
+          df -gH /
           ls -lA /Library/Developer/CommandLineTools/SDKs || true
           ls -lA /Applications
 {%- if packageConfig.useSelfHostedRunners == "true" %}
-          sudo xcode-select --switch /Applications/Xcode_14.2.app
+          sudo xcode-select --switch /Applications/Xcode_16.4.app
 {%- endif %}
           xcode-select --print-path
           xcodebuild -version || true
@@ -155,14 +176,17 @@ jobs:
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
 
+      - name: 'Remove Homebrew'
+        uses: xpack/remove-homebrew-action@v1
+
       # https://github.com/actions/checkout
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper

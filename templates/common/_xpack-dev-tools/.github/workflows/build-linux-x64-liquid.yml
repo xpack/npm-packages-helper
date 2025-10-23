@@ -2,7 +2,7 @@
 
 {%- assign platforms_array = platforms | split: "," %}
 
-name: 'Build xPack {{packageConfig.descriptiveName}} linux-x64'
+name: 'Build {{packageConfig.descriptiveName}} linux-x64'
 
 on:
   workflow_dispatch:
@@ -60,12 +60,22 @@ jobs:
         run: |
           uname -a
           lsb_release -sd
+          df -BG -H /
           echo "whoami: $(whoami)"
           echo "pwd: $(pwd)"
-          echo "node: $(node --version)"
-          echo "npm: $(npm --version)"
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
+
+      - name: 'Install xpm'
+        timeout-minutes: 1440
+        run: |
+          npm install --location=global xpm@{% raw %}${{github.event.inputs.xpm_version}}{% endraw %}
+
+      - name: 'Verify Node.js, npm and xpm'
+        run: |
+          echo "$(which node): $(node --version)"
+          echo "$(which npm): $(npm --version)"
+          echo "$(which xpm): $(xpm --version)"
 
 {%- if packageConfig.useSelfHostedRunners == "true" %}
 
@@ -80,18 +90,15 @@ jobs:
         with:
           fetch-depth: 3
 
-      - name: 'Install xpm'
-        timeout-minutes: 1440
-        run: |
-          npm install --location=global xpm@{% raw %}${{github.event.inputs.xpm_version}}{% endraw %}
-          xpm --version
-
       - name: 'Build {{platform}} binaries'
         timeout-minutes: 1440
         run: |
           xpm install --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
           xpm run docker-prepare --config {{platform}} --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
           xpm run docker-build --config {{platform}} -C build-assets
+
+      - name: 'Show results'
+        run: |
           ls -l build-assets/build/{{platform}}/application
           ls -l build-assets/build/{{platform}}/deploy
 
@@ -139,6 +146,7 @@ jobs:
         run: |
           uname -a
           lsb_release -sd
+          df -BG -H /
           echo "whoami: $(whoami)"
           echo "pwd: $(pwd)"
           ls -lLA
@@ -146,12 +154,12 @@ jobs:
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper

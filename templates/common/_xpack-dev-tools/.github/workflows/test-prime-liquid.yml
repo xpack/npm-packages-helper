@@ -3,7 +3,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Test xPack {{packageConfig.descriptiveName}} on supported platforms'
+name: 'Test {{packageConfig.descriptiveName}} on supported platforms'
 
 on:
   workflow_dispatch:
@@ -40,12 +40,12 @@ jobs:
           env | sort | grep -E '^[^ \t]+='
 
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
@@ -80,12 +80,12 @@ jobs:
           env | sort | grep -E '^[^ \t]+='
 
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
@@ -103,59 +103,11 @@ jobs:
           path: {% raw %}${{github.workspace}}{% endraw %}/build-assets/build/{{platform}}/artefacts/tests-report-*.md
           overwrite: true
 {% endif %}
-{% when "linux-arm" %}
-  {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    runs-on: [self-hosted, linux, arm, xbbla32]
-
-    steps:
-      - name: 'Show environment'
-        run: |
-          uname -a
-          lsb_release -sd
-          echo "whoami: $(whoami)"
-          echo "pwd: $(pwd)"
-          ls -lLA
-          env | sort | grep -E '^[^ \t]+='
-
-      - name: 'Clean working area' # Mandatory for self-hosted runners.
-        run: |
-          chmod -Rf a+w * || true
-          rm -rf * .git*
-
-      # https://github.com/actions/checkout
-      - name: 'Checkout project'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 3
-
-      - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
-        with:
-          repository: xpack-dev-tools/xbb-helper-xpack
-          path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
-          ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
-          fetch-depth: 3
-
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} docker test'
-        uses: docker://arm32v7/node:lts-slim # Currently based on debian:12-slim
-        with:
-          entrypoint: /bin/bash # /usr/bin/linux32
-          args: /github/workspace/build-assets/scripts/test.sh --image debian --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
-
-{% if packageConfig.showTestsResults == 'true' %}
-      - name: Upload platform tests report
-        uses: actions/upload-artifact@v4
-        with:
-          name: tests-report-{{platform}}
-          path: {% raw %}${{github.workspace}}{% endraw %}/build-assets/build/{{platform}}/artefacts/tests-report-*.md
-          overwrite: true
-{% endif %}
 {% when "darwin-x64" %}
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
-    runs-on: macos-13
+    # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+    runs-on: macos-15-intel
 
     steps:
       - name: 'Show environment'
@@ -164,7 +116,7 @@ jobs:
           sw_vers
           ls -lA /Library/Developer/CommandLineTools/SDKs || true
           ls -lA /Applications
-          sudo xcode-select --switch /Applications/Xcode_14.2.app
+          sudo xcode-select --switch /Applications/Xcode_16.4.app
           xcode-select --print-path
           xcodebuild -version || true
           pkgutil --pkg-info=com.apple.pkg.CLTools_Executables || true
@@ -174,19 +126,24 @@ jobs:
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
 
+      - name: 'Remove Homebrew'
+        uses: xpack/remove-homebrew-action@v1
+
+{%- if packageConfig.useSelfHostedRunners == "true" %}
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
           chmod -Rf a+w * || true
           rm -rf * .git*
+{%- endif %}
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
@@ -207,8 +164,8 @@ jobs:
 {% when "darwin-arm64" %}
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md
-    runs-on: macos-14
+    # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+    runs-on: macos-15
 
     steps:
       - name: 'Show environment'
@@ -217,7 +174,7 @@ jobs:
           sw_vers
           ls -lA /Library/Developer/CommandLineTools/SDKs || true
           ls -lA /Applications
-          sudo xcode-select --switch /Applications/Xcode_15.4.app
+          sudo xcode-select --switch /Applications/Xcode_16.4.app
           xcode-select --print-path
           xcodebuild -version || true
           pkgutil --pkg-info=com.apple.pkg.CLTools_Executables || true
@@ -227,19 +184,25 @@ jobs:
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
 
+      - name: 'Remove Homebrew'
+        uses: xpack/remove-homebrew-action@v1
+
+{%- if packageConfig.useSelfHostedRunners == "true" %}
+
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
           chmod -Rf a+w * || true
           rm -rf * .git*
+{%- endif %}
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
@@ -259,8 +222,8 @@ jobs:
 {% endif %}
 {% when "win32-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    runs-on: windows-2022
+    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test 2025'
+    runs-on: windows-2025
     defaults:
       run:
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
@@ -278,19 +241,38 @@ jobs:
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 3
 
       - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: xpack-dev-tools/xbb-helper-xpack
           path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
           ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
           fetch-depth: 3
 
+      - name: 'Move workspace to short path for MinGW compatibility'
+        run: |
+          echo Creating D:\t short name folder...
+          mkdir D:\t
+
+          echo Moving workspace to D:\t...
+          robocopy "%GITHUB_WORKSPACE%" "D:\t" /E /MOVE /NFL /NDL /NJH /NJS /NC /NS
+
+          if %ERRORLEVEL% LEQ 3 (
+            echo ✓ Workspace successfully moved to D:\t
+            dir D:\t
+          ) else (
+            echo ✗ Failed to move workspace, robocopy exit code: %ERRORLEVEL%
+            exit /b 1
+          )
+        shell: cmd
+
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
+        working-directory: D:\t
+        # Run the test from the short path
         run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 
 {% if packageConfig.showTestsResults == 'true' %}
@@ -301,42 +283,6 @@ jobs:
           path: {% raw %}${{github.workspace}}{% endraw %}/build-assets/build/{{platform}}/artefacts/tests-report-*.md
           overwrite: true
 {%- endif %}
-
-  # One more run with the oldest Windows available.
-  {{platform}}-test2:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test 2019'
-    runs-on: windows-2019
-    defaults:
-      run:
-        # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
-        shell: bash # for --
-
-    steps:
-      - name: 'Show environment'
-        run: |
-          uname -a
-          systeminfo # lsb_release -sd
-          echo "whoami: $(whoami)"
-          echo "pwd: $(pwd)"
-          ls -lLA
-          env | sort | grep -E '^[^ \t]+='
-
-      # https://github.com/actions/checkout
-      - name: 'Checkout project'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 3
-
-      - name: 'Checkout helper {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}'
-        uses: actions/checkout@v4
-        with:
-          repository: xpack-dev-tools/xbb-helper-xpack
-          path: build-assets/xpacks/@xpack-dev-tools/xbb-helper
-          ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
-          fetch-depth: 3
-
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
-        run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 {% endcase %}
 {% endfor %}
 {% if packageConfig.showTestsResults == 'true' %}
