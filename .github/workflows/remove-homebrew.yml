@@ -1,0 +1,26 @@
+name: Remove Homebrew
+
+on:
+  workflow_dispatch:
+
+jobs:
+  remove-homebrew:
+    name: Remove Homebrew from macOS runner
+    runs-on: macos-latest
+    steps:
+      - name: Show environment
+        run: |
+          uname -a
+          sw_vers
+          echo "whoami: $(whoami)"
+          echo "pwd: $(pwd)"
+          ls -lLA
+          env | sort | grep -E '^[^ \t]+='
+
+      - name: Remove Homebrew
+        uses: xpack/remove-homebrew-action@v1
+
+      - name: Verify removal
+        run: |
+          which brew || echo "Homebrew is not installed."
+          brew --version || echo "brew command not found."
