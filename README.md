@@ -77,7 +77,7 @@ npm run generate-top-commons-init
     "useDoxygen": "true"
   },
   "engines": {
-    "node": " >=18.0.0"
+    "node": " >=20.0"
   }
 ```
 
@@ -155,7 +155,7 @@ Update license MIT, Copyright (c) 2025 Liviu Ionescu. All rights reserved.
   "bundleDependencies": [],
   "topConfig": {},
   "engines": {
-    "node": " >=18.0.0"
+    "node": " >=20.0"
   }
 }
 ```
@@ -180,7 +180,7 @@ The preview sites have a simplified configuration:
     "isWebDeployOnly": "true"
   },
   "engines": {
-    "node": " >=18.0.0"
+    "node": " >=20.0"
   }
 ```
 
@@ -602,9 +602,17 @@ aarch64-none-elf-gcc
     "descriptiveName": "xPack GNU AArch64 Embedded GCC",
     "upstreamDescriptiveName": "GNU AArch64 Embedded GCC",
     "permalinkName": "aarch64-none-elf-gcc",
+    "useSelfHostedRunners": "true"
 
     web
     "programName": "aarch64-none-elf-gcc",
+
+m4
+    "descriptiveName": "xPack GNU M4",
+    "upstreamDescriptiveName": "GNU M4",
+    "permalinkName": "m4",
+    "skipCiTests": "true",
+    "useSelfHostedRunners": "false"
 
 ...
 
