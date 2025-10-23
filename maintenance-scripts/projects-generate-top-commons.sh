@@ -107,6 +107,10 @@ function generate_top_commons()
     run_verbose npm run npm-link-helpers
     run_verbose npm run generate-top-commons
 
+    run_verbose npm run deep-clean
+    run_verbose npm run npm-install
+    run_verbose npm run npm-link-helpers
+
     run_verbose mkdir -pv "${stamps_folder_path}"
     run_verbose touch "${stamps_folder_path}/${git_folder_name}"
   )
@@ -126,6 +130,8 @@ then
   export stamps_folder_path="${xpack_github_folder_path}/stamps/${stamps_folder_name}"
   export packages_folder_path="${xpack_github_folder_path}/packages"
   export www_folder_path="${xpack_github_folder_path}/www"
+  echo "Stamps folder path: '${stamps_folder_path}'..."
+  echo
 
   for file_path in "${packages_folder_path}"/*/.git "${www_folder_path}"/*/.git
   do
@@ -137,6 +143,8 @@ then
   export stamps_folder_path="${xpack_dev_tools_github_folder_path}/stamps/${stamps_folder_name}"
   export xpacks_folder_path="${xpack_dev_tools_github_folder_path}/xPacks"
   export www_folder_path="${xpack_dev_tools_github_folder_path}/www"
+  echo "Stamps folder path: '${stamps_folder_path}'..."
+  echo
 
   for file_path in "${xpacks_folder_path}"/*/.git "${www_folder_path}"/*/.git "${xpack_dev_tools_github_folder_path}/xpack-build-box.git/.git"
   do

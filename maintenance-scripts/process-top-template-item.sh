@@ -342,6 +342,13 @@ then
   )
 fi
 
+if [ "${xpack_use_self_hosted_runners}" != "true" ]
+then
+  skip_pages_array+=(\
+    ".github/workflows/deep-clean.yml" \
+  )
+fi
+
 # -----------------------------------------------------------------------------
 
 skip_pages_array+=("END")
