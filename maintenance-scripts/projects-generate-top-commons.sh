@@ -130,7 +130,14 @@ then
   export stamps_folder_path="${xpack_github_folder_path}/stamps/${stamps_folder_name}"
   export packages_folder_path="${xpack_github_folder_path}/packages"
   export www_folder_path="${xpack_github_folder_path}/www"
-  echo "Stamps folder path: '${stamps_folder_path}'..."
+  
+  if [ "${do_restart}" == "true" ]
+  then
+    echo "Clearing stamps folder path: '${stamps_folder_path}'..."
+    rm -rf "${stamps_folder_path}"
+  else
+    echo "Stamps folder path: '${stamps_folder_path}'..."
+  fi
   echo
 
   for file_path in "${packages_folder_path}"/*/.git "${www_folder_path}"/*/.git
@@ -143,7 +150,14 @@ then
   export stamps_folder_path="${xpack_dev_tools_github_folder_path}/stamps/${stamps_folder_name}"
   export xpacks_folder_path="${xpack_dev_tools_github_folder_path}/xPacks"
   export www_folder_path="${xpack_dev_tools_github_folder_path}/www"
-  echo "Stamps folder path: '${stamps_folder_path}'..."
+
+  if [ "${do_restart}" == "true" ]
+  then
+    echo "Clearing stamps folder path: '${stamps_folder_path}'..."
+    rm -rf "${stamps_folder_path}"
+  else
+    echo "Stamps folder path: '${stamps_folder_path}'..."
+  fi
   echo
 
   for file_path in "${xpacks_folder_path}"/*/.git "${www_folder_path}"/*/.git "${xpack_dev_tools_github_folder_path}/xpack-build-box.git/.git"

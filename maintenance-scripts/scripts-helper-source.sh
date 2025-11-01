@@ -21,6 +21,7 @@ function parse_options() {
   is_micro_os_plus="false"
   accepted_path=""
   do_push="false"
+  do_restart="false"
 
   while [ $# -gt 0 ]
   do
@@ -37,6 +38,11 @@ function parse_options() {
 
       --push )
         do_push="true"
+        shift
+        ;;
+
+      --restart )
+        do_restart="true"
         shift
         ;;
 
@@ -74,6 +80,7 @@ function parse_options() {
   export is_micro_os_plus
   export accepted_path
   export do_push
+  export do_restart
 }
 
 # -----------------------------------------------------------------------------

@@ -7,6 +7,7 @@
     "xpack-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack",
     "xpack-commit-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack",
     "xpack-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack --push",
+    "xpack-dev-tools-generate-top-commons-restart": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack-dev-tools --restart",
     "xpack-dev-tools-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack-dev-tools",
     "xpack-dev-tools-commit-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools",
     "xpack-dev-tools-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools --push",
