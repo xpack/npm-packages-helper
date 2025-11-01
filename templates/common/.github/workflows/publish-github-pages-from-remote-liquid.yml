@@ -64,13 +64,13 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: (cd website; npm ci)
+        run: npm --prefix website ci
 
       - name: Build the Docusaurus site
         env:
           DOCUSAURUS_BASEURL: '{{baseUrl}}'{% if packageConfig.isWebPreview == "true" %}
           DOCUSAURUS_IS_PREVIEW: 'true'{% endif %}
-        run: (cd website; npm run build)
+        run: npm --prefix website run build
 
       - name: Setup Pages
         # https://github.com/actions/configure-pages

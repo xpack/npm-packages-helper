@@ -94,7 +94,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: (cd website; npm ci)
+        run: npm --prefix website ci
 
 {%- if packageConfig.useDoxygen == 'true' %}
 
@@ -113,7 +113,7 @@ jobs:
         run: echo "$(pwd)/.local/bin" >> $GITHUB_PATH
 
       - name: Build the Doxygen site
-        run: (cd website; npm run doxygen)
+        run: npm --prefix website run doxygen
 {%- endif %}
 
       - name: Build the Docusaurus site
@@ -121,7 +121,7 @@ jobs:
         env:
           DOCUSAURUS_IS_PREVIEW: 'true'
 {%- endif %}
-        run: (cd website; npm run build)
+        run: npm --prefix website run build
 
       - name: Setup Pages
         # https://github.com/actions/configure-pages

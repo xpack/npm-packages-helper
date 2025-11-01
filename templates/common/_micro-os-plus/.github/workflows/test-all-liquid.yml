@@ -72,7 +72,7 @@ jobs:
 
     - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
       run: |
-        npm ci -C tests
+        npm --prefix tests ci 
         xpm run install-all -C tests
 
     - name: Clean xPack cache Linux
