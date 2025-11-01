@@ -103,12 +103,12 @@ function generate_top_commons()
 
     run_verbose git checkout "${development_branch}"
 
-    run_verbose npm run npm-install
+    run_verbose npm install
     run_verbose npm run npm-link-helpers
     run_verbose npm run generate-top-commons
 
     run_verbose npm run deep-clean
-    run_verbose npm run npm-install
+    run_verbose npm install
     run_verbose npm run npm-link-helpers
 
     run_verbose mkdir -pv "${stamps_folder_path}"
@@ -130,7 +130,7 @@ then
   export stamps_folder_path="${xpack_github_folder_path}/stamps/${stamps_folder_name}"
   export packages_folder_path="${xpack_github_folder_path}/packages"
   export www_folder_path="${xpack_github_folder_path}/www"
-  
+
   if [ "${do_restart}" == "true" ]
   then
     echo "Clearing stamps folder path: '${stamps_folder_path}'..."
