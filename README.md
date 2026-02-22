@@ -47,7 +47,7 @@ Add top config before engines:
     "permalinkName": "doxygen2docusaurus-ts"
   },
   "engines": {
-    "node": " >=20.0.0"
+    "node": ">=20.0"
   }
 ```
 
@@ -77,7 +77,7 @@ npm run generate-top-commons-init
     "useDoxygen": "true"
   },
   "engines": {
-    "node": " >=20.0"
+    "node": ">=20.0"
   }
 ```
 
@@ -116,7 +116,7 @@ npm run generate-top-commons-init
 npm init --yes
 ```
 
-Update license MIT, Copyright (c) 2025 Liviu Ionescu. All rights reserved.
+Update license MIT, Copyright (c) 2025-2026 Liviu Ionescu. All rights reserved.
 
 ## Update `package.json`
 
@@ -155,7 +155,7 @@ Update license MIT, Copyright (c) 2025 Liviu Ionescu. All rights reserved.
   "bundleDependencies": [],
   "topConfig": {},
   "engines": {
-    "node": " >=20.0"
+    "node": ">=20.0"
   }
 }
 ```
@@ -180,7 +180,7 @@ The preview sites have a simplified configuration:
     "isWebDeployOnly": "true"
   },
   "engines": {
-    "node": " >=20.0"
+    "node": ">=20.0"
   }
 ```
 
