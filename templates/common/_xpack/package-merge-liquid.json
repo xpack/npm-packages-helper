@@ -5,7 +5,7 @@
 {%- if isTypeScript == "true" %}
   "type": "module",
   "main": "./dist/index.js",
-  "typings": "./dist/{{packageName}}.d.ts",
+  "typings": "./dist/index.d.ts",
   "bin": {
     "{{packageName}}": "./bin/{{packageName}}.js"
   },
@@ -13,19 +13,24 @@
   "scripts": {
     "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack",
 {%- if packageConfig.isWebDeployOnly != "true" and packageVersion != "0.0.0" %}
-    "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile && npm run api-extractor",
+    "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile",
+{%- if packageUseApiExtractor == "true" %}
     "api-extractor": "api-extractor run --local --verbose",
+{%- endif %}
 {%- if isTypeScript == "true" %}
     "compile-watch": "tsc --build --verbose --watch src",
-    "compile": "tsc --build --verbose src",
+    "compile": "tsc --project tsconfig.json",
+    "fix-compile": "npm run prettier && npm run fix && npm run compile",
 {%- endif %}
-    "prettier": "prettier src --write",
+{%- if packageConfig.usePrettier == "true" %}
+    "prettier": "prettier src tests/tap --write --config config/.prettierrc.json --ignore-path config/.prettierignore",
+{%- endif %}
 {%- if isJavaScript == "true" %}
-    "fix": "standard --fix lib tests",
+    "fix": "standard --fix src tests",
     "dev-cycle": "npm run fix && npm run test",
 {%- elsif isTypeScript == "true" %}
 {%- if packageConfig.useEslint == "true" %}
-    "fix": "eslint --fix src",
+    "fix": "eslint --config config/eslint.config.js --fix src",
 {%- else %}
     "fix": "ts-standard --fix src tests && standard esm",
 {%- endif %}
@@ -44,10 +49,10 @@
     "postversion": "git push origin --all && git push origin --tags",
     "git-log": "git log --pretty='%cd * %h %s' --date=short",
 {%- if isJavaScript == "true" %}
-    "lint": "standard lib",
+    "lint": "standard src",
 {%- elsif isTypeScript == "true" %}
 {%- if packageConfig.useEslint == "true" %}
-    "lint": "eslint src",
+    "lint": "eslint --config config/eslint.config.js src",
 {%- else %}
     "lint": "ts-standard src && standard esm",
 {%- endif %}
@@ -55,8 +60,7 @@
 {%- if isJavaScript == "true" %}
     "prepare": "npm run lint",
 {%- elsif isTypeScript == "true" %}
-    "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile && npm run api-extractor",
-    "api-extractor": "api-extractor run --local --verbose",
+    "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile",
 {%- endif %}
 {%- if packageConfig.skipCiTests != "true" and packageVersion != "0.0.0" %}
     "pretest-coverage": "npm run lint",
@@ -64,11 +68,11 @@
     "test-coverage": "tap --show-full-coverage",
     "test-no-coverage": "tap --disable-coverage",
     "tap": "tap --reporter=tap",
-    "test": "npm run test-coverage",{% else %}
+    {% if packageConfig.testCoverage == "false" %}"test": "npm run test-no-coverage",{% else %}"test": "npm run test-coverage",{% endif %}{% else %}
     "test": "echo 'No tests defined'",{% endif %}
     "prepublishOnly": "npm run lint && npm run test",
     "postpublish": "git push origin --follow-tags",
-    "clean": "del-cli dist cjs 'tests/**/cjs' 'src/**/*.d.ts' 'src/**/*.d.ts.map' 'src/**/*.js' 'src/**/*.js.map' 'tests/**/*.d.ts' 'tests/**/*.d.ts.map' 'tests/**/*.js' 'tests/**/*.js.map' '**/tsconfig.tsbuildinfo' .nyc_output coverage",
+    "clean": "del-cli --force dist .tap",
     "deep-clean": "npm run clean && rm -rf node_modules package-lock.json",
 {%- else %}
     "deep-clean": "del-cli node_modules package-lock.json",
@@ -100,77 +104,20 @@
   "dependencies": {},
   "devDependencies": { {% if isTypeScript == "true" %}
     "@tsconfig/node20": "^20.1.6",
-    "@types/node": "^24.0.14",{%- if packageConfig.skipCiTests != "true" %}
+    "@types/node": "^25.0.9",{%- if packageConfig.skipCiTests != "true" %}
     "@types/tap": "^15.0.12",{% endif %}{% endif %}
-    "del-cli": "^6.0.0",
+    "del-cli": "^7.0.0",
     "json": "^11.0.0",
-    "liquidjs": "^10.19.1"{%- if isJavaScript == "true" or isTypeScript == "true" %}{%- if packageConfig.skipCiTests != "true" %},
-    "tap": "^21.0.1"{% endif %}{% endif %}{%- if isTypeScript == "true" %},
-    "@microsoft/api-extractor": "^7.52.8",
+    "liquidjs": "^10.24.0"{%- if isJavaScript == "true" or isTypeScript == "true" %}{%- if packageConfig.skipCiTests != "true" %},
+    "tap": "^21.5.1"{% endif %}{% endif %}{%- if isTypeScript == "true" %},
     "ts-node": "^10.9.2"{%- if packageConfig.useEslint == "true" %},
     "eslint": "^9.31.0",
     "@eslint/js": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
-    "typescript-eslint": "^8.38.0"{% else %},
-    "standard": "^17.1.2",
-    "ts-standard": "^12.0.2"{% endif %},
-    "prettier": "3.6.2",
+    "typescript-eslint": "^8.38.0"{% endif %},
+    "prettier": "^3.8.1",
     "typescript": "^5.8.3"{%- endif %}
   },
-
-{%- if isJavaScript == "true" or isTypeScript == "true" %}
-
-{%- if packageConfig.skipCiTests != "true" %}
-  "tap": {
-    "files": [
-{%- if isJavaScript == "true" %}
-      "tests/tap/*.js"
-{%- elsif isTypeScript == "true" %}
-      "tests/tap/*.ts"
-{%- endif %}
-    ],
-    "reporter": "base"
-  },
-{%- endif %}
-
-{%- if packageConfig.useEslint != "true" %}
-  "eslintConfig": {
-    "rules": {
-      "max-len": [
-        "error",
-        80,
-        {
-          "ignoreUrls": true
-        }
-      ]
-    }
-  },
-{%- endif %}
-
-{%- if isJavaScript == "true" %}
-  "standard": {
-    "ignore": [
-      "/website/"
-    ]
-  },
-{%- elsif isTypeScript == "true" and packageConfig.useEslint != "true" %}
-  "ts-standard": {
-    "ignore": [
-      "/website/",
-      "**/*.d.ts",
-      "**/*.js"
-    ]
-  },
-{%- endif %}
-
-  "prettier": {
-    "printWidth": 80,
-    "semi": false,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
-
-{%- endif %}
 
   "engines": {
     "node": ">=20.0"
