@@ -1,3 +1,19 @@
+/*
+ * DO NOT EDIT!
+ * Automatically generated from npm-packages-helper/templates/*.
+ *
+ * This file is part of the xPack project (http://xpack.github.io).
+ * Copyright (c) 2021-2026 Liviu Ionescu. All rights reserved.
+ *
+ * Permission to use, copy, modify, and/or distribute this software
+ * for any purpose is hereby granted, under the terms of the MIT license.
+ *
+ * If a copy of the license was not distributed with this file, it can
+ * be obtained from https://opensource.org/license/mit.
+ */
+
+// ----------------------------------------------------------------------------
+
 // https://typescript-eslint.io/packages/typescript-eslint/
 // https://eslint.org/docs/latest/use/configure/configuration-files
 
@@ -5,7 +21,12 @@
 
 import eslint from '@eslint/js'
 import prettierConfig from 'eslint-config-prettier'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import tseslint from 'typescript-eslint'
+
+const configFilePath = fileURLToPath(import.meta.url)
+const configFolderPath = path.dirname(configFilePath)
 
 export default tseslint.config({
   extends: [
@@ -14,6 +35,7 @@ export default tseslint.config({
     tseslint.configs.stylisticTypeChecked,
     prettierConfig,
   ],
+  ignores: [],
   rules: {
     'max-len': [
       'warn',
@@ -30,7 +52,7 @@ export default tseslint.config({
       // ask TypeScript's type checking service for each source file's type information
       projectService: true,
       // tells our parser the absolute path of your project's root directory
-      tsconfigRootDir: import.meta.dirname,
+      tsconfigRootDir: path.resolve(configFolderPath, '..'),
     },
   },
 })
