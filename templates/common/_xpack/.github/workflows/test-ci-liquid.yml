@@ -40,7 +40,11 @@ on:
       - '.github/FUNDING.yml'
       - '.github/workflows/publish-github-pages*.yml'
       - '.github/workflows/trigger-publish-github-pages*.yml'
-      - 'typedoc.json'
+
+# Allow one concurrent run.
+concurrency:
+  group: 'test'
+  cancel-in-progress: true
 
 jobs:
   npm-test:
@@ -48,22 +52,22 @@ jobs:
     strategy:
       matrix:
         # https://github.com/actions/setup-node
-        node-version: [20, 22]
-        # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners
-        os: [ubuntu-24.04, macos-15-intel, macos-15, windows-2025]
+        node-version: [ {{ packageConfig.githubActionsNodeVersions | join: ', ' }} ]
+        # https://github.com/actions/runner-images
+        os: [ '{{ packageConfig.githubActionsOses | join: '\', \'' }}' ]
 
     runs-on: {% raw %}${{matrix.os}}{% endraw %}
 
     steps:
     - name: Checkout
       # https://github.com/actions/checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6.0.2
       with:
         fetch-depth: 1
 
     - name: Setup Node.js {% raw %}${{matrix.node-version}} on ${{matrix.os}}{% endraw %}
       # https://github.com/actions/setup-node
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6.2.0
       with:
         node-version: {% raw %}${{matrix.node-version}}{% endraw %}
         cache: 'npm'
