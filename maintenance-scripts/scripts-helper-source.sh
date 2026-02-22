@@ -398,6 +398,13 @@ function compute_context()
   fi
   export xpack_npm_package_is_binary
 
+  if [ ! -z "$(json -f "${project_folder_path}/package.json" standard)" ]
+  then
+    xpack_npm_package_use_standard="true"
+  else
+    xpack_npm_package_use_standard="false"
+  fi
+
   if [ ! -z "$(json -f "${project_folder_path}/package.json" prettier)" ]
   then
     xpack_npm_package_use_prettier="true"
@@ -444,9 +451,15 @@ function compute_context()
   -e "this.packageHomepage=\"${xpack_npm_package_homepage}\"" \
   -e "this.packageHomepagePreview=\"${xpack_npm_package_homepage_preview}\"" \
   -e "this.packageUsePrettier=\"${xpack_npm_package_use_prettier}\"" \
+  -e "this.packageUseStandard=\"${xpack_npm_package_use_standard}\"" \
   -e "this.packageUseTypeScriptEslint=\"${xpack_npm_package_use_typescript_eslint}\"" \
   -e "this.packageUseApiExtractor=\"${xpack_npm_package_use_api_extractor}\"" \
   )
+
+  export xpack_npm_package_use_typescript_eslint
+  export xpack_npm_package_use_api_extractor
+  export xpack_npm_package_use_standard
+  export xpack_npm_package_use_prettier
 
   # ---------------------------------------------------------------------------
 
