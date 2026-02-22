@@ -146,7 +146,7 @@ fi
 # Compute exclusions.
 
 # Destination relative file paths to skip.
-skip_pages_array=("BEGIN")
+skip_pages_array=("BEGIN" ".gitkeep")
 
 if [ "${is_xpack}" == "true" ]
 then
@@ -156,11 +156,14 @@ then
     skip_pages_array+=(\
       "tsconfig-common.json" \
       "tsconfig.json" \
+      "src/tsconfig.json" \
+      "tsconfig.eslint.json" \
+      "tsconfig-original.json" \
     )
   fi
 
   if [ "${xpack_skip_ci_tests}" == "true" ] ||
-    [ "${xpack_npm_package_version}" == "0.0.0" ]
+     [ "${xpack_npm_package_version}" == "0.0.0" ]
   then
     skip_pages_array+=(\
       ".github/workflows/test-ci.yml" \
@@ -189,6 +192,27 @@ then
       "eslint.config.js" \
       "tsconfig-original.json" \
       "tsconfig.eslint.json" \
+    )
+  fi
+
+  if [ "${xpack_npm_package_use_typescript_eslint}" != "true" ]
+  then
+    skip_pages_array+=(\
+      ".prettierignore" \
+    )
+  fi
+
+  if [ "${xpack_npm_package_use_typescript_eslint}" != "true" ]
+  then
+    skip_pages_array+=(\
+      "eslint.config.js" \
+    )
+  fi
+
+  if [ "${xpack_npm_package_use_api_extractor}" != "true" ]
+  then
+    skip_pages_array+=(\
+      "config/api-extractor.json" \
     )
   fi
 
