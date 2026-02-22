@@ -9,5 +9,15 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "files.associations": { "*.json": "jsonc" }
+  "files.associations": {
+    "*.json": "jsonc"
+  },
+  "cSpell.language": "en-GB",
+  "cSpell.ignoreWords": [],
+  "xpack.exclude": [
+    "**/tests/**",
+    "**/tmp/**"
+  ],
+  "prettier.configPath": "config/.prettierrc.json",
+  "prettier.ignorePath": "config/.prettierignore"
 }
