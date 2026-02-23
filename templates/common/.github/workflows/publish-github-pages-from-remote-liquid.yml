@@ -13,6 +13,9 @@
 #
 # -----------------------------------------------------------------------------
 
+# {{packageHomepage}}
+# https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/publish-github-pages-from-remote.yml
+
 # Simple workflow for deploying static content to GitHub Pages
 name: GitHub Pages
 

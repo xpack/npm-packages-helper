@@ -14,6 +14,11 @@
 # -----------------------------------------------------------------------------
 
 # Simple workflow to trigger the deployment of GitHub Pages in another project
+
+# -----------------------------------------------------------------------------
+
+# {{packageHomepage}}
+# https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/trigger-publish-github-pages.yml
 name: Trigger Remote GitHub Pages
 
 on:

@@ -20,13 +20,17 @@
 # https://github.com/actions/checkout
 # https://github.com/actions/setup-node
 
+# -----------------------------------------------------------------------------
+
+# {{packageHomepage}}
+# https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/test-ci.yml
 name: CI on Push
 
 on:
   push:
     branches:
-      - 'master'
-      - 'development'
+      - '{{ branchMain }}'
+      - '{{ branchDevelopment }}'
     tags-ignore:
       - '**'
     paths-ignore:
@@ -36,10 +40,12 @@ on:
       - '**.md'
       - '.gitignore'
       - '.npmignore'
+      - '.clang-format'
       - '.vscode/**'
       - '.github/FUNDING.yml'
       - '.github/workflows/publish-github-pages*.yml'
       - '.github/workflows/trigger-publish-github-pages*.yml'
+      - 'README*.md'
 
 # Allow one concurrent run.
 concurrency:
@@ -47,7 +53,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  npm-test:
+  ci-test:
+    name: 'CI {{ githubProjectName }} test'
 
     strategy:
       matrix:
