@@ -222,7 +222,7 @@ jobs:
 {% endif %}
 {% when "win32-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test 2025'
+    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: windows-2025
     defaults:
       run:
