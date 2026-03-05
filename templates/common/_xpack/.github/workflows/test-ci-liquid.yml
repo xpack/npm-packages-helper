@@ -54,7 +54,7 @@ concurrency:
 
 jobs:
   ci-test:
-    name: 'CI {{ githubProjectName }} test'
+    name: '{{ githubProjectName }} test'
 
     strategy:
       matrix:
