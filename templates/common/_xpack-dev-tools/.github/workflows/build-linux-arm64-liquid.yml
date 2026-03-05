@@ -47,7 +47,7 @@ jobs:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
     timeout-minutes: 2880 # 2 days
 {%- if packageConfig.useSelfHostedRunners == "true" %}
-    runs-on: [self-hosted, linux, arm64, xbbla, xbblax]
+    runs-on: [self-hosted, linux, arm64, xbbla]
 {%- else %}
     runs-on: ubuntu-24.04-arm
 {%- endif %}
