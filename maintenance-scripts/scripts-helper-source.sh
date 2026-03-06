@@ -894,6 +894,7 @@ function substitute_and_merge()
     liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${tmp_file_path}" --strict-filters --strict-variables --lenient-if
 
     # json -f "${tmp_file_path}"
+    echo >> "${to_absolute_file_path}"
 
     # https://trentm.com/json
     cat "${to_absolute_file_path}" "${tmp_file_path}" | json --deep-merge >"${to_absolute_file_path}.new"
