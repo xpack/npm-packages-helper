@@ -685,7 +685,16 @@ function compute_context()
 
   # ---------------------------------------------------------------------------
 
-  if [ ! -z ${tests_folder_path+x} ] && [ -f "${tests_folder_path}/package.json" ]
+  if [ ! -z ${tests_folder_path+x} ] && [ -f "${tests_folder_path}/config/micro-os-plus-build-helper.json" ]
+  then
+
+    echo
+    echo "Processing tests/config/micro-os-plus-build-helper.json..."
+
+    # Tests configuration.
+    xpack_npm_package_tests_config="$(json -f "${tests_folder_path}/config/micro-os-plus-build-helper.json" -o json-0)"
+  
+  elif [ ! -z ${tests_folder_path+x} ] && [ -f "${tests_folder_path}/package.json" ]
   then
 
     echo
@@ -694,18 +703,40 @@ function compute_context()
     # Tests configuration.
     xpack_npm_package_tests_config="$(json -f "${tests_folder_path}/package.json" -o json-0 testsConfig)"
 
-    if [ -z "${xpack_npm_package_tests_config}" ]
-    then
-      xpack_npm_package_tests_config="{}"
-    fi
-
-    export xpack_has_skip_micro_os_plus_trace="$(echo "${xpack_npm_package_tests_config}" | json skipMICRO_OS_PLUS_TRACE)"
-
-    # Edit the json and add more properties one by one.
-    export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-      -e "this.packageTestsConfig=${xpack_npm_package_tests_config}" \
-    )
   fi
+
+  if [ -z "${xpack_npm_package_tests_config}" ]
+  then
+    xpack_npm_package_tests_config="{}"
+  fi
+
+  export xpack_has_skip_micro_os_plus_trace="$(echo "${xpack_npm_package_tests_config}" | json skipMICRO_OS_PLUS_TRACE)"
+
+  # Extract platforms array from tests config
+  xpack_tests_platforms_json="$(echo "${xpack_npm_package_tests_config}" | json platforms)"
+  # echo ${xpack_tests_platforms_json}
+  
+  xpack_tests_platforms_array=()
+  
+  if [ ! -z "${xpack_tests_platforms_json}" ] && [ "${xpack_tests_platforms_json}" != "null" ]
+  then
+    # Convert JSON array to bash array
+    while IFS= read -r platform
+    do
+      if [ ! -z "${platform}" ]
+      then
+        xpack_tests_platforms_array+=("${platform}")
+      fi
+    done < <(echo "${xpack_tests_platforms_json}" | json -a)
+  fi
+  
+  export xpack_tests_platforms_array
+  # echo ${xpack_tests_platforms_array[@]}
+
+  # Edit the json and add more properties one by one.
+  export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+    -e "this.packageTestsConfig=${xpack_npm_package_tests_config}" \
+  )
 
   # ---------------------------------------------------------------------------
 
