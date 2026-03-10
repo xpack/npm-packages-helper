@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Checkout
         # https://github.com/actions/checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
         with:
           repository: '{% raw %}${{inputs.repository}}{% endraw %}'
           ref: '{% raw %}${{inputs.ref}}{% endraw %}'
@@ -62,9 +62,9 @@ jobs:
 
       - name: Use Nodejs
         # https://github.com/actions/setup-node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6.3.0
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install dependencies
         run: npm --prefix website ci
@@ -77,11 +77,11 @@ jobs:
 
       - name: Setup Pages
         # https://github.com/actions/configure-pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v5.0.0
 
       - name: Upload artifact
         # https://github.com/actions/upload-pages-artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v4.0.0
         with:
           # Upload entire repository
           path: './website/build'
@@ -89,4 +89,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         # https://github.com/actions/deploy-pages
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4.0.5
