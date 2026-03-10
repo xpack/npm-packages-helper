@@ -73,8 +73,7 @@ npm run generate-top-commons-init
   ...
   "topConfig": {
     "descriptiveName": "µTest++ Testing Framework",
-    "permalinkName": "micro-test-plus",
-    "useDoxygen": "true"
+    "permalinkName": "micro-test-plus"
   },
   "engines": {
     "node": ">=20.0"
