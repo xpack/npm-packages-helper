@@ -2,25 +2,6 @@
   "name": "@xpack/npm-packages-helper",
   "version": "1.0.1",
   "description": "Common scripts and templates used by xPack node modules and web sites",
-  "main": "",
-  "scripts": {
-    "xpack-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack",
-    "xpack-commit-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack",
-    "xpack-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack --push",
-    "xpack-dev-tools-generate-top-commons-restart": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack-dev-tools --restart",
-    "xpack-dev-tools-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack-dev-tools",
-    "xpack-dev-tools-commit-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools",
-    "xpack-dev-tools-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools --push",
-    "xpack-dev-tools-custom-action": "bash maintenance-scripts/projects-custom-action.sh --xpack-dev-tools",
-    "xpack-dev-tools-git-push": "bash maintenance-scripts/projects-git-push.sh --xpack-dev-tools",
-    "npm-install": "npm install",
-    "npm-outdated": "npm outdated",
-    "npm-pack": "npm pack",
-    "npm-link": "npm link",
-    "git-log": "git log --pretty='%cd * %h %s' --date=short",
-    "deep-clean": "del-cli node_modules package-lock.json *.tgz",
-    "postversion": "git push origin --all && git push origin --tags"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xpack/npm-packages-helper.git"
@@ -43,6 +24,24 @@
   "devDependencies": {
     "json": "^11.0.0",
     "liquidjs": "^10.25.0"
+  },
+  "scripts": {
+    "xpack-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack",
+    "xpack-commit-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack",
+    "xpack-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack --push",
+    "xpack-dev-tools-generate-top-commons-restart": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack-dev-tools --restart",
+    "xpack-dev-tools-generate-top-commons": "bash maintenance-scripts/projects-generate-top-commons.sh --xpack-dev-tools",
+    "xpack-dev-tools-commit-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools",
+    "xpack-dev-tools-commit-and-push-top-commons": "bash maintenance-scripts/projects-commit-and-push-top-commons.sh --xpack-dev-tools --push",
+    "xpack-dev-tools-custom-action": "bash maintenance-scripts/projects-custom-action.sh --xpack-dev-tools",
+    "xpack-dev-tools-git-push": "bash maintenance-scripts/projects-git-push.sh --xpack-dev-tools",
+    "npm-install": "npm install",
+    "npm-outdated": "npm outdated",
+    "npm-pack": "npm pack",
+    "npm-link": "npm link",
+    "git-log": "git log --pretty='%cd * %h %s' --date=short",
+    "deep-clean": "del-cli node_modules package-lock.json *.tgz",
+    "postversion": "git push origin --all && git push origin --tags"
   },
   "engines": {
     "node": ">=20.0"
