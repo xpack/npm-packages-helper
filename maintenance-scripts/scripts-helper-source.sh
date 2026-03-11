@@ -705,7 +705,7 @@ function compute_context()
 
   fi
 
-  if [ -z "${xpack_npm_package_tests_config}" ]
+  if [ -z "${xpack_npm_package_tests_config:-}" ]
   then
     xpack_npm_package_tests_config="{}"
   fi
