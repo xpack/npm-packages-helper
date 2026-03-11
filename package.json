@@ -1,6 +1,6 @@
 {
   "name": "@xpack/npm-packages-helper",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Common scripts and templates used by xPack node modules and web sites",
   "main": "",
   "scripts": {
