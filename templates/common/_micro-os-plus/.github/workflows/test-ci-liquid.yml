@@ -59,48 +59,55 @@ jobs:
   ci-test:
     name: '{{packageConfig.descriptiveName}} tests'
 
-    runs-on:  {% raw %}${{ matrix.os }}{% endraw %}
+    runs-on: {% raw %}${{ matrix.os }}{% endraw %}
 
     strategy:
       matrix:
         # https://github.com/actions/runner-images
-        os: [ 'ubuntu-24.04', 'ubuntu-24.04-arm', 'macos-15-intel', 'macos-15', 'windows-2025' ]
+        os: 
+          [ 
+            'ubuntu-24.04', 
+            'ubuntu-24.04-arm', 
+            'macos-15-intel', 
+            'macos-15', 
+            'windows-2025' 
+          ]
         # https://nodejs.org/en - use LTS
         node-version: [ '24' ]
         # https://www.npmjs.com/package/xpm
         xpm-version: [ '0.23.2' ]
 
     steps:
-    - name: Checkout
-      # https://github.com/actions/checkout/
-      uses: actions/checkout@v6.0.1
-      with:
-        fetch-depth: 3
+      - name: Checkout
+        # https://github.com/actions/checkout/
+        uses: actions/checkout@v6.0.1
+        with:
+          fetch-depth: 3
 
-    - name: {% raw %}Setup Node.js ${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
-      # https://github.com/actions/setup-node
-      uses: actions/setup-node@v6.1.0
-      with:
-        node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
+      - name: {% raw %}Setup Node.js ${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
+        # https://github.com/actions/setup-node
+        uses: actions/setup-node@v6.1.0
+        with:
+          node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
 
-    - name: {% raw %}Install xpm@${{ matrix.xpm-version }} on ${{ matrix.os }}{% endraw %}
-      run: npm install -g {% raw %}xpm@${{ matrix.xpm-version }}{% endraw %}
+      - name: {% raw %}Install xpm@${{ matrix.xpm-version }} on ${{ matrix.os }}{% endraw %}
+        run: npm install -g {% raw %}xpm@${{ matrix.xpm-version }}{% endraw %}
 
-    - name: Show environment
-      run: |
-        id
-        uname -a
-        node --version
-        npm --version
-        xpm --version
-        env | sort
+      - name: Show environment
+        run: |
+          id
+          uname -a
+          node --version
+          npm --version
+          xpm --version
+          env | sort
 
-    - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
-      run: |
-        npm {% if hasFolderTestsPackage == "true" %}--prefix tests {% endif %}ci
-        xpm run install-ci{% if hasFolderTestsPackage == "true" %} -C tests{% endif %}
+      - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
+        run: |
+          npm {% if hasFolderTestsPackage == "true" %}--prefix tests {% endif %}ci
+          xpm run install-ci{% if hasFolderTestsPackage == "true" %} -C tests{% endif %}
 
-    - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
-      run: xpm run test-ci{% if hasFolderTestsPackage == "true" %} -C tests{% endif %}
-      env:
-          CI: true
+      - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
+        run: xpm run test-ci{% if hasFolderTestsPackage == "true" %} -C tests{% endif %}
+        env:
+            CI: true
