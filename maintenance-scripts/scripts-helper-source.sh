@@ -730,8 +730,14 @@ function compute_context()
     done < <(echo "${xpack_tests_platforms_json}" | json -a)
   fi
   
-  export xpack_tests_platforms_array
-  # echo ${xpack_tests_platforms_array[@]}
+  if [ ${#xpack_tests_platforms_array[@]} -eq 0 ] && [ "${is_micro_os_plus}" == "true" ]
+  then
+    echo "No platforms defined in tests/config/micro-os-plus-build-helper.json"
+    exit 1
+  fi
+  
+  # Convert array to comma-separated string
+  export xpack_tests_platforms="$(IFS=','; echo "${xpack_tests_platforms_array[*]}")"
 
   # Edit the json and add more properties one by one.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
@@ -773,9 +779,9 @@ function compute_context()
           xpack_platforms_array+=("${platform}")
         fi
       done
-      set +o nounset # Do not exit if variable not set (empty skip_pages_array).
-      xpack_platforms="$(echo "${xpack_platforms_array[@]}" | tr ' ' ',')"
-      set -o nounset # Exit if variable not set.
+      # Convert array to comma-separated string
+      export xpack_platforms="$(IFS=','; echo "${xpack_platforms_array[*]}")"
+
     fi
   fi
 
