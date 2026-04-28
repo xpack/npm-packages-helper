@@ -54,8 +54,6 @@
 
 {%- if isNpmPublished == "true" %}
     "npm-pack": "npm pack",
-    "npm-version-patch": "npm version patch",
-    "npm-version-minor": "npm version minor",
     "postversion": "git push origin --all && git push origin --tags",
     "git-log": "git log --pretty='%cd * %h %s' --date=short",
 
@@ -96,6 +94,7 @@
 {%- else %}
     "deep-clean": "del-cli --force node_modules package-lock.json",
 {%- endif %}
+    "npm-audit": "npm audit fix --force",
 
     "dumpconf": "env | sort | uniq",
     "show-versions": "echo $(which node) $(node --version) && echo $(which npm) $(npm --version)"
@@ -123,9 +122,12 @@
   "homepage": "https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/",
 {%- endif %}
 
+ "$dependenciesUrls": {
+    "@tsconfig/node20": "https://www.npmjs.com/package/@tsconfig/node20"
+  },
   "dependencies": {},
   "devDependencies": { {% if isTypeScript == "true" %}
-    "@tsconfig/node20": "^20.1.6",
+    "@tsconfig/node20": "^20.1.9",
     "@types/node": "^25.0.9",{%- if packageConfig.skipCiTests != "true" %}
     "@types/tap": "^15.0.12",{% endif %}{% endif %}
     "del-cli": "^7.0.0",
@@ -136,7 +138,7 @@
     "eslint": "^9.31.0",
     "@eslint/js": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
-    "typescript-eslint": "^8.38.0"{% endif %},
+    "typescript-eslint": "^8.59.1"{% endif %},
     "prettier": "^3.8.1",
     "typescript": "^5.8.3"{%- endif %}
   },
