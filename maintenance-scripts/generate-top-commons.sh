@@ -10,7 +10,7 @@
 #
 # If a copy of the license was not distributed with this file, it can be
 # obtained from https://opensource.org/licenses/mit.
-##
+#
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -54,7 +54,7 @@ argv="$@"
 
 source "${script_folder_path}/scripts-helper-source.sh"
 
-# Parse --init, --dry-run, --xpack, --xpack-dev-tools
+# Parse --init, --dry-run, --xpack, --xpack-dev-tools, --micro-os-plus
 # and leave variables in the environment.
 parse_options "$@"
 

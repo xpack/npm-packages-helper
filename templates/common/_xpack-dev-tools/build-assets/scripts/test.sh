@@ -11,7 +11,7 @@
 #
 # If a copy of the license was not distributed with this file, it can be
 # obtained from https://opensource.org/licenses/mit.
-##
+#
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------

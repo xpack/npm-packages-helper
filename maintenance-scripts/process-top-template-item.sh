@@ -10,7 +10,7 @@
 #
 # If a copy of the license was not distributed with this file, it can be
 # obtained from https://opensource.org/licenses/mit.
-##
+#
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -342,7 +342,7 @@ then
   )
 fi
 
-if [ "${xpack_has_test_all}" == "false" ]
+if [ "${xpack_has_test_all}" != "true" ]
 then
   skip_pages_array+=(\
     ".github/workflows/test-all.yml" \
