@@ -57,7 +57,7 @@ concurrency:
 
 jobs:
   ci-test:
-    name: '{{packageConfig.descriptiveName}} tests'
+    name: '{{topConfig.descriptiveName}} tests'
 
     runs-on: {% raw %}${{ matrix.os }}{% endraw %}
 
@@ -104,10 +104,10 @@ jobs:
 
       - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
         run: |
-          npm {% if hasFolderTestsPackage == "true" %}--prefix tests {% endif %}ci
-          xpm run install-ci{% if hasFolderTestsPackage == "true" %} -C tests{% endif %}
+          npm {% if hasFolderTestsPackage %}--prefix tests {% endif %}ci
+          xpm run install-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
 
       - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
-        run: xpm run test-ci{% if hasFolderTestsPackage == "true" %} -C tests{% endif %}
+        run: xpm run test-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
         env:
             CI: true

@@ -118,12 +118,12 @@ function prepare_paths() {
 function run_verbose()
 {
   # Does not include the .exe extension.
-  local app_path="$1"
+  local _app_path="$1"
   shift
 
   echo
-  echo "[${app_path} $@]"
-  "${app_path}" "$@" 2>&1
+  echo "[${_app_path} $@]"
+  "${_app_path}" "$@" 2>&1
 }
 
 # -----------------------------------------------------------------------------
@@ -147,515 +147,872 @@ function compute_context()
     exit 1
   fi
 
-  # Create an empty json context.
+  # The goal is to create a json context with all the relevant information 
+  # about the project, to be used in liquid templates.
+  # At the same time create shell environment variables to be used in scripts.
+
+  # Start by creating an empty json context and add properties to it later.
   export xpack_context=$(echo '{}' | json -o json-0)
 
   # ---------------------------------------------------------------------------
 
+  inspect_environment
+
+  # ---------------------------------------------------------------------------
+
+  process_top_package_json
+  process_top_config
+
+  # The order is relevant, as some of the variables depend on top config.
+  process_xpack
+
+  # ---------------------------------------------------------------------------
+
+  if [ ! -z ${website_folder_path+x} ]
+  then
+    process_website_config
+  fi
+
+  # ---------------------------------------------------------------------------
+
+  if [ ! -z ${tests_folder_path+x} ]
+  then
+    process_tests_config
+  fi
+
+  # ---------------------------------------------------------------------------
+
+  # Temporary, until all projects are updated to use config/*.json files.
+  if [ ! -f "${project_folder_path}/config/top-templates.json" ]
+  then
+    write_top_template_config
+  fi
+
+  if [ ! -z ${website_folder_path+x} ] && [ -f "${website_folder_path}/package.json" ]
+  then
+    if [ ! -f "${website_folder_path}/config/website-templates.json" ]
+    then
+      write_website_template_config
+    fi
+  fi
+
+  # ---------------------------------------------------------------------------
+
+  echo
+  echo -n '"xpack_context": '
+  echo "${xpack_context}" | json
+
+  export xpack_context
+
+  echo
+  echo "environment variables: "
+  echo
+  env | egrep '^xpack_' | sort
+
+  echo
+}
+
+# -----------------------------------------------------------------------------
+
+function inspect_environment()
+{
   echo
   echo "Processing project $(basename "${project_folder_path}") properties..."
 
-  if [ -f "${project_folder_path}/website/package.json" ]
-  then
-    xpack_has_folder_website_package="true"
-  else
-    xpack_has_folder_website_package="false"
-  fi
-  export xpack_has_folder_website_package
+  serialise_boolean_property_to "xpack_context" "hasFolderWebsitePackage" \
+    "$([ -f "${project_folder_path}/website/package.json" ] && echo true || echo false)" "xpack_"
 
-  if [ -f "${project_folder_path}/build-assets/package.json" ]
-  then
-    xpack_has_folder_build_assets_package="true"
-  else
-    xpack_has_folder_build_assets_package="false"
-  fi
-  export xpack_has_folder_build_assets_package
+  serialise_boolean_property_to "xpack_context" "hasFolderBuildAssetsPackage" \
+    "$([ -f "${project_folder_path}/build-assets/package.json" ] && echo true || echo false)" "xpack_"
 
-  if [ -f "${project_folder_path}/tests/package.json" ]
-  then
-    xpack_has_folder_tests_package="true"
-  else
-    xpack_has_folder_tests_package="false"
-  fi
-  export xpack_has_folder_tests_package
+  serialise_boolean_property_to "xpack_context" "hasFolderTestsPackage" \
+    "$([ -f "${project_folder_path}/tests/package.json" ] && echo true || echo false)" "xpack_"
 
-  if (git branch -a | grep master) >/dev/null
-  then
-    xpack_has_branch_master="true"
-  else
-    xpack_has_branch_master="false"
-  fi
-  export xpack_has_branch_master
+  serialise_boolean_property_to "xpack_context" "hasBranchMaster" \
+    "$(git branch -a | grep -q master && echo true || echo false)" "xpack_"
 
-  if (git branch -a | grep development) >/dev/null
-  then
-    xpack_has_branch_development="true"
-  else
-    xpack_has_branch_development="false"
-  fi
-  export xpack_has_branch_development
+  serialise_boolean_property_to "xpack_context" "hasBranchDevelopment" \
+    "$(git branch -a | grep -q development && echo true || echo false)" "xpack_"
 
-  if (git branch -a | grep xpack) >/dev/null
-  then
-    xpack_has_branch_xpack="true"
-  else
-    xpack_has_branch_xpack="false"
-  fi
-  export xpack_has_branch_xpack
+  serialise_boolean_property_to "xpack_context" "hasBranchXpack" \
+    "$(git branch -a | grep -q xpack && echo true || echo false)" "xpack_"
 
-  if (git branch -a | grep xpack-development) >/dev/null
-  then
-    xpack_has_branch_xpack_development="true"
-  else
-    xpack_has_branch_xpack_development="false"
-  fi
-  export xpack_has_branch_xpack_development
+  serialise_boolean_property_to "xpack_context" "hasBranchXpackDevelopment" \
+    "$(git branch -a | grep -q xpack-development && echo true || echo false)" "xpack_"
 
-  if (git branch -a | grep website) >/dev/null
-  then
-    xpack_has_branch_website="true"
-  else
-    xpack_has_branch_website="false"
-  fi
-  export xpack_has_branch_website
+  serialise_boolean_property_to "xpack_context" "hasBranchWebsite" \
+    "$(git branch -a | grep -q website && echo true || echo false)" "xpack_"
 
-  if (git branch -a | grep webpreview) >/dev/null
-  then
-    xpack_has_branch_webpreview="true"
-  else
-    xpack_has_branch_webpreview="false"
-  fi
-  export xpack_has_branch_webpreview
+  serialise_boolean_property_to "xpack_context" "hasBranchWebpreview" \
+    "$(git branch -a | grep -q webpreview && echo true || echo false)" "xpack_" 
 
   if [ "${xpack_has_branch_xpack_development}" == "true" ]
   then
-    xpack_branch_development="xpack-development"
+    serialise_string_property_to "xpack_context" "branchDevelopment" "xpack-development" "xpack_"
   elif [ "${xpack_has_branch_development}" == "true" ]
   then
-    xpack_branch_development="development"
+    serialise_string_property_to "xpack_context" "branchDevelopment" "development" "xpack_"
   elif [ "${xpack_has_branch_webpreview}" == "true" ]
   then
-    xpack_branch_development="webpreview"
+    serialise_string_property_to "xpack_context" "branchDevelopment" "webpreview" "xpack_"
   else
     echo "Branch development?"
-    xpack_branch_development="none"
+    serialise_string_property_to "xpack_context" "branchDevelopment" "none" "xpack_"
     # exit 1
   fi
-  export xpack_branch_development
 
   if [ "${xpack_has_branch_website}" == "true" ]
   then
-    xpack_branch_website="website"
+    serialise_string_property_to "xpack_context" "branchWebsite" "website" "xpack_"
   elif [ "${xpack_has_branch_master}" == "true" ]
   then
-    xpack_branch_website="master"
+    serialise_string_property_to "xpack_context" "branchWebsite" "master" "xpack_"
   else
     echo "Branch?"
     exit 1
   fi
-  export xpack_branch_website
 
   if [ "${xpack_has_branch_webpreview}" == "true" ]
   then
-    xpack_branch_webpreview="webpreview"
+    serialise_string_property_to "xpack_context" "branchWebpreview" "webpreview" "xpack_"
   elif [ "${xpack_has_branch_development}" == "true" ]
   then
-    xpack_branch_webpreview="development"
+    serialise_string_property_to "xpack_context" "branchWebpreview" "development" "xpack_"
   elif [ "${xpack_has_branch_master}" == "true" ]
   then
-    xpack_branch_webpreview="master"
+    serialise_string_property_to "xpack_context" "branchWebpreview" "master" "xpack_"
   else
     echo "Branch preview?"
     exit 1
   fi
-  export xpack_branch_webpreview
 
   if [ "${xpack_has_branch_xpack}" == "true" ]
   then
-    xpack_branch_main="xpack"
+    serialise_string_property_to "xpack_context" "branchMain" "xpack" "xpack_"
   elif [ "${xpack_has_branch_development}" == "true" ] && [ "${xpack_has_branch_master}" == "true" ]
   then
     # This is tricky, if it has development, it must also have master.
-    xpack_branch_main="master"
+    serialise_string_property_to "xpack_context" "branchMain" "master" "xpack_"
   elif [ "${xpack_has_branch_website}" == "true" ]
   then
-    xpack_branch_main="website"
+    serialise_string_property_to "xpack_context" "branchMain" "website" "xpack_"
   elif [ "${xpack_has_branch_master}" == "true" ]
   then
     # This is tricky, if it has development, it must also have master.
-    xpack_branch_main="master"
+    serialise_string_property_to "xpack_context" "branchMain" "master" "xpack_"
   else
     echo "Branch main?"
     exit 1
   fi
-  export xpack_branch_main
 
-  export xpack_release_date="$(date '+%Y-%m-%d %H:%M:%S %z')"
+  serialise_string_property_to "xpack_context" "releaseDate" "$(date '+%Y-%m-%d %H:%M:%S %z')" "xpack_"
+}
 
-  # Edit the json and add properties one by one.
-  export xpack_context=$(echo '{}' | json -o json-0 \
-  -e "this.hasFolderWebsitePackage=\"${xpack_has_folder_website_package}\"" \
-  -e "this.hasFolderBuildAssetsPackage=\"${xpack_has_folder_build_assets_package}\"" \
-  -e "this.hasFolderTestsPackage=\"${xpack_has_folder_tests_package}\"" \
-  -e "this.hasBranchMaster=\"${xpack_has_branch_master}\"" \
-  -e "this.hasBranchDevelopment=\"${xpack_has_branch_development}\"" \
-  -e "this.hasBranchXpackDevelopment=\"${xpack_has_branch_xpack_development}\"" \
-  -e "this.hasBranchWebsite=\"${xpack_has_branch_website}\"" \
-  -e "this.hasBranchWebpreview=\"${xpack_has_branch_webpreview}\"" \
-  -e "this.branchMain=\"${xpack_branch_main}\"" \
-  -e "this.branchDevelopment=\"${xpack_branch_development}\"" \
-  -e "this.branchWebsite=\"${xpack_branch_website}\"" \
-  -e "this.branchWebpreview=\"${xpack_branch_webpreview}\"" \
-  -e "this.releaseDate=\"${xpack_release_date}\"" \
-  )
+# -----------------------------------------------------------------------------
 
-  # ---------------------------------------------------------------------------
-
+function process_top_package_json()
+{
   echo
   echo "Processing top package.json..."
 
-  # https://trentm.com/json/
-  export xpack_npm_package_scoped_name="$(json -f "${project_folder_path}/package.json" name)"
+  # Read in top package.json.
+  xpack_package_json="$(json -f "${project_folder_path}/package.json" -o json-0)"
 
-  if echo "${xpack_npm_package_scoped_name}" | egrep -e '^@' >/dev/null
+  # Edit the json and add the entire package.json. Not needed for now.
+  # export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+  #   -e "this.package=${xpack_npm_package}" \
+  # )
+
+  serialise_string_property_to "xpack_context" "packageScopedName" \
+    "$(echo "${xpack_package_json}" | json name)" "xpack_"
+
+  if echo "${xpack_package_scoped_name}" | egrep -e '^@' >/dev/null
   then
-    export xpack_npm_package_scope="$(echo "${xpack_npm_package_scoped_name}" | sed -e 's|^@||' -e 's|/.*||' )"
+    serialise_string_property_to "xpack_context" "packageScope" \
+      "$(echo "${xpack_package_scoped_name}" | sed -e 's|^@||' -e 's|/.*||' )" "xpack_"
   else
-    export xpack_npm_package_scope=""
+    serialise_string_property_to "xpack_context" "packageScope" \
+      "" "xpack_"
   fi
 
-  export xpack_npm_package_name="$(echo "${xpack_npm_package_scoped_name}" | sed -e 's|^@[a-zA-Z0-9-]*/||')"
-  export xpack_npm_package_version="$(json -f "${project_folder_path}/package.json" version)"
-  export xpack_npm_package_description="$(json -f "${project_folder_path}/package.json" description)"
-  export xpack_npm_package_type="$(json -f "${project_folder_path}/package.json" type)"
+  serialise_string_property_to "xpack_context" "packageName" \
+      "$(echo "${xpack_package_scoped_name}" | sed -e 's|^@[a-zA-Z0-9-]*/||')" "xpack_"
 
-  export xpack_npm_package_keywords="$(json -f "${project_folder_path}/package.json" keywords)"
-  if [ -z "${xpack_npm_package_keywords}" ]
-  then
-    xpack_npm_package_keywords="[]"
-  fi
-  export xpack_npm_package_keywords
+  serialise_string_property_to "xpack_context" "packageVersion" \
+    "$(echo "${xpack_package_json}" | json version)" "xpack_"
 
-  export xpack_npm_package_homepage="$(json -f "${project_folder_path}/package.json" homepage)"
-  xpack_npm_package_homepage_preview="$(json -f "${project_folder_path}/package.json" homepagePreview)"
-  if [ -z "${xpack_npm_package_homepage_preview}" ]
-  then
-    xpack_npm_package_homepage_preview="${xpack_npm_package_homepage}"
-  fi
-  export xpack_npm_package_homepage_preview
+  serialise_string_property_to "xpack_context" "packageType" \
+    "$(echo "${xpack_package_json}" | json type)" "xpack_"
+
+  serialise_string_property_to "xpack_context" "packageDescription" \
+    "$(echo "${xpack_package_json}" | json description)" "xpack_"
 
   # Remove the `pre` used during development.
-  export xpack_release_version="$(echo "${xpack_npm_package_version}" | sed -e 's|[.-]pre.*||')"
+  serialise_string_property_to "xpack_context" "releaseVersion" \
+    "$(echo "${xpack_package_version}" | sed -e 's|[.-]pre.*||')" "xpack_"
 
   # Remove the pre-release.
-  export xpack_release_semver="$(echo "${xpack_release_version}" | sed -e 's|[-].*||')"
+  serialise_string_property_to "xpack_context" "releaseSemver" \
+    "$(echo "${xpack_release_version}" | sed -e 's|[-].*||')" "xpack_"
 
   if [ "${xpack_release_version}" != "${xpack_release_semver}" ]
   then
-    xpack_release_subversion="$(echo "${xpack_release_version}" | sed -e 's|.*[-]||' -e 's|[.][0-9]*||')"
+    serialise_string_property_to "xpack_context" "releaseSubversion" \
+      "$(echo "${xpack_release_version}" | sed -e 's|.*[-]||' -e 's|[.][0-9]*||')" "xpack_"
 
     # Use the package.json one, but remove the `pre` used during development.
-    xpack_release_npm_subversion="$(echo "${xpack_release_version}" | sed -e 's|[.-]pre.*||' -e 's|.*[.]||')"
+    serialise_string_property_to "xpack_context" "releaseNpmSubversion" \
+      "$(echo "${xpack_release_version}" | sed -e 's|[.-]pre.*||' -e 's|.*[.]||')" "xpack_"
   else
-    xpack_release_subversion=""
-    xpack_release_npm_subversion=""
-  fi
-  export xpack_release_subversion
-  export xpack_release_npm_subversion
+    serialise_string_property_to "xpack_context" "releaseSubversion" \
+      "" "xpack_"
 
-  xpack_github_repository_url="$(json -f "${project_folder_path}/package.json"  repository.url | sed -e  's|^git+||')"
-  xpack_github_full_name="$(echo "${xpack_github_repository_url}" | sed -e 's|^https://github.com/||' -e 's|[.]git$||')"
-
-  export xpack_github_project_organization="$(echo "${xpack_github_full_name}" | sed -e 's|/.*||')"
-  export xpack_xpack_github_project_name="$(echo "${xpack_github_full_name}" | sed -e 's|/$||' -e 's|.git$||' -e 's|.*/||')"
-
-  if [[ ${xpack_xpack_github_project_name} == *-ts ]]
-  then
-    xpack_is_typescript="true"
-  else
-    xpack_is_typescript="false"
-  fi
-  export xpack_is_typescript
-
-  if [[ ${xpack_xpack_github_project_name} == *-js ]]
-  then
-    xpack_is_javascript="true"
-  else
-    xpack_is_javascript="false"
-  fi
-  export xpack_is_javascript
-
-  export xpack_npm_package_engines_node_version="$(json -f "${project_folder_path}/package.json" engines.node | sed -e 's|[^0-9]*||')"
-  export xpack_npm_package_engines_node_version_major="$(echo "${xpack_npm_package_engines_node_version}" | sed -e 's|[.].*||')"
-
-  export xpack_npm_package_dependencies_typescript_version="$(json -f "${project_folder_path}/package.json" devDependencies.typescript | sed -e 's|[^0-9]*||')"
-
-  if [ ! -z "$(json -f "${project_folder_path}/package.json" bin)" ]
-  then
-    xpack_npm_package_is_binary="true"
-  else
-    xpack_npm_package_is_binary="false"
-  fi
-  export xpack_npm_package_is_binary
-
-  if [ ! -z "$(json -f "${project_folder_path}/package.json" standard)" ]
-  then
-    xpack_npm_package_use_standard="true"
-  else
-    xpack_npm_package_use_standard="false"
+    # Use the package.json one, but remove the `pre` used during development.
+    serialise_string_property_to "xpack_context" "releaseNpmSubversion" \
+      "" "xpack_"
   fi
 
-  if [ ! -z "$(json -f "${project_folder_path}/package.json" prettier)" ]
-  then
-    xpack_npm_package_use_prettier="true"
-  else
-    xpack_npm_package_use_prettier="false"
-  fi
+  serialise_string_property_to "xpack_context" "repositoryUrl" \
+    "$(echo "${xpack_package_json}" | json repository.url | sed -e  's|^git+||')" "xpack_"
 
-  if [ ! -z "$(json -f "${project_folder_path}/package.json" devDependencies.typescript-eslint)" ]
-  then
-    xpack_npm_package_use_typescript_eslint="true"
-  else
-    xpack_npm_package_use_typescript_eslint="false"
-  fi
+  xpack_github_full_name="$(echo "${xpack_repository_url}" | sed -e 's|^https://github.com/||' -e 's|[.]git$||')"
 
-  if [ ! -z "$(json -f "${project_folder_path}/package.json" devDependencies.'@microsoft/api-extractor')" ]
-  then
-    xpack_npm_package_use_api_extractor="true"
-  else
-    xpack_npm_package_use_api_extractor="false"
-  fi
+  serialise_string_property_to "xpack_context" "githubProjectOrganization" \
+    "$(echo "${xpack_github_full_name}" | sed -e 's|/.*||')" "xpack_"
 
-  # Edit the json and add properties one by one.
-  export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-  -e "this.packageScopedName=\"${xpack_npm_package_scoped_name}\"" \
-  -e "this.packageScope=\"${xpack_npm_package_scope}\"" \
-  -e "this.packageName=\"${xpack_npm_package_name}\"" \
-  -e "this.packageVersion=\"${xpack_npm_package_version}\"" \
-  -e "this.releaseVersion=\"${xpack_release_version}\"" \
-  -e "this.releaseSemver=\"${xpack_release_semver}\"" \
-  -e "this.releaseSubversion=\"${xpack_release_subversion}\"" \
-  -e "this.releaseNpmSubversion=\"${xpack_release_npm_subversion}\"" \
-  -e "this.packageDescription=\"${xpack_npm_package_description}\"" \
-  -e "this.repositoryUrl=\"${xpack_github_repository_url}\"" \
-  -e "this.githubProjectOrganization=\"${xpack_github_project_organization}\"" \
-  -e "this.githubProjectName=\"${xpack_xpack_github_project_name}\"" \
-  -e "this.packageKeywords=${xpack_npm_package_keywords}" \
-  -e "this.hasWebsiteFolder=\"${xpack_has_folder_website_package}\"" \
-  -e "this.isTypeScript=\"${xpack_is_typescript}\"" \
-  -e "this.isJavaScript=\"${xpack_is_javascript}\"" \
-  -e "this.isNpmBinary=\"${xpack_npm_package_is_binary}\"" \
-  -e "this.packageEnginesNodeVersion=\"${xpack_npm_package_engines_node_version}\"" \
-  -e "this.packageEnginesNodeVersionMajor=\"${xpack_npm_package_engines_node_version_major}\"" \
-  -e "this.packageDependenciesTypescriptVersion=\"${xpack_npm_package_dependencies_typescript_version}\"" \
-  -e "this.packageHomepage=\"${xpack_npm_package_homepage}\"" \
-  -e "this.packageHomepagePreview=\"${xpack_npm_package_homepage_preview}\"" \
-  -e "this.packageUsePrettier=\"${xpack_npm_package_use_prettier}\"" \
-  -e "this.packageUseStandard=\"${xpack_npm_package_use_standard}\"" \
-  -e "this.packageUseTypeScriptEslint=\"${xpack_npm_package_use_typescript_eslint}\"" \
-  -e "this.packageUseApiExtractor=\"${xpack_npm_package_use_api_extractor}\"" \
-  )
+  serialise_string_property_to "xpack_context" "githubProjectName" \
+    "$(echo "${xpack_github_full_name}" | sed -e 's|/$||' -e 's|.git$||' -e 's|.*/||')" "xpack_"
 
-  export xpack_npm_package_use_typescript_eslint
-  export xpack_npm_package_use_api_extractor
-  export xpack_npm_package_use_standard
-  export xpack_npm_package_use_prettier
+  serialise_boolean_property_to "xpack_context" "isNpmBinary" \
+    "$([ ! -z "$(echo "${xpack_package_json}" | json bin)" ] && echo true || echo false)" "xpack_"
+
+  serialise_string_property_to "xpack_context" "packageEnginesNodeVersion" \
+    "$(echo "${xpack_package_json}" | json engines.node | sed -e 's|[^0-9]*||')" "xpack_"
+
+  serialise_string_property_to "xpack_context" "packageEnginesNodeVersionMajor" \
+    "$(echo "${xpack_package_engines_node_version}" | sed -e 's|[.].*||')" "xpack_"
+
+  serialise_string_property_to "xpack_context" "packageDependenciesTypescriptVersion" \
+    "$(echo "${xpack_package_json}" | json devDependencies.typescript | sed -e 's|[^0-9]*||')" "xpack_"
+
+  serialise_string_property_to "xpack_context" "packageHomepage" \
+    "$(echo "${xpack_package_json}" | json homepage)" "xpack_"
+
+  local _homepage_preview="$(echo "${xpack_package_json}" | json homepagePreview)"
+  serialise_string_property_to "xpack_context" "packageHomepagePreview" \
+    "${_homepage_preview:-${xpack_package_homepage}}" "xpack_"
+
+  serialise_array_property_to "xpack_context" "packageKeywords" \
+    "$(echo "${xpack_package_json}" | json keywords -o json-0)" "xpack_"
+
+  # hasWebsiteFolder?
 
   # ---------------------------------------------------------------------------
+  # TODO: remove after all projects are migrated to config/*.json files.
 
-  # Top configuration (topConfig).
-  xpack_npm_package="$(json -f "${project_folder_path}/package.json" -o json-0)"
-
-  xpack_npm_package_top_config="$(json -f "${project_folder_path}/package.json" -o json-0 topConfig)"
-  if [ -z "${xpack_npm_package_top_config}" ]
+  if [ ! -f "${project_folder_path}/config/top-templates.json" ]
   then
-    xpack_npm_package_top_config="{}"
-    xpack_is_organization_web="false"
-    xpack_is_web_deploy_only="false"
-    xpack_skip_ci_tests="false"
-    xpack_show_test_results="false"
-    xpack_has_trigger_publish="false"
-    xpack_has_trigger_publish_preview="false"
-    xpack_has_empty_master="false"
-    xpack_descriptive_name=""
-    xpack_permalink_name=""
-    xpack_prefer_short_name="false"
-    xpack_preferred_name=""
-    xpack_long_xpack_name=""
-    xpack_use_self_hosted_runners=""
-    xpack_has_test_all="true"
-    xpack_has_no_github_releases=""
-    xpack_has_cli=""
-  else
-    xpack_is_organization_web="$(echo "${xpack_npm_package_top_config}" | json isOrganizationWeb)"
-    xpack_is_web_deploy_only="$(echo "${xpack_npm_package_top_config}" | json isWebDeployOnly)"
-    xpack_skip_ci_tests="$(echo "${xpack_npm_package_top_config}" | json skipCiTests)"
-    xpack_show_test_results="$(echo "${xpack_npm_package_top_config}" | json showTestsResults)"
-    xpack_has_trigger_publish="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublish)"
-    xpack_has_trigger_publish_preview="$(echo "${xpack_npm_package_top_config}" | json hasTriggerPublishPreview)"
-    xpack_has_empty_master="$(echo "${xpack_npm_package_top_config}" | json hasEmptyMaster)"
-    xpack_descriptive_name="$(echo "${xpack_npm_package_top_config}" | json descriptiveName)"
-    xpack_permalink_name="$(echo "${xpack_npm_package_top_config}" | json permalinkName)"
-    xpack_prefer_short_name="$(echo "${xpack_npm_package_top_config}" | json preferShortName)"
-    xpack_use_self_hosted_runners="$(echo "${xpack_npm_package_top_config}" | json useSelfHostedRunners)"
-    xpack_has_test_all="$(echo "${xpack_npm_package_top_config}" | json hasTestAll)"
-    xpack_has_no_github_releases="$(echo "${xpack_npm_package_top_config}" | json hasNoGithubReleases)"
-    xpack_has_cli="$(echo "${xpack_npm_package_top_config}" | json hasCli)"
 
-    if [ ! -z "${xpack_descriptive_name}" ]
+    if [[ ${xpack_github_project_name} == *-ts ]]
     then
-      if [ "${xpack_descriptive_name:0:6}" != "xPack " ] &&
-         [ "${xpack_github_project_organization:0:6}" == "xpack-" ]
-      then
-        xpack_long_xpack_name="xPack ${xpack_descriptive_name}"
-      else
-        xpack_long_xpack_name="${xpack_descriptive_name}"
-      fi
+      xpack_top_config_is_typescript="true"
     else
-      echo "Missing descriptiveName in topConfig"
-      xpack_long_xpack_name=""
+      xpack_top_config_is_typescript="false"
     fi
+    export xpack_top_config_is_typescript
 
-    if [ "${xpack_prefer_short_name}" == "true" ]
+    if [[ ${xpack_github_project_name} == *-js ]]
     then
-      xpack_preferred_name="${xpack_permalink_name:-${xpack_npm_package_name}}"
+      xpack_top_config_is_javascript="true"
     else
-      xpack_preferred_name="${xpack_descriptive_name}"
+      xpack_top_config_is_javascript="false"
     fi
-  fi
+    export xpack_top_config_is_javascript
 
-  export xpack_npm_package_top_config
-  export xpack_is_organization_web
-  export xpack_is_web_deploy_only
-  export xpack_skip_ci_tests
-  export xpack_show_test_results
-  export xpack_has_trigger_publish
-  export xpack_has_trigger_publish_preview
-  export xpack_has_empty_master
-  export xpack_descriptive_name
-  export xpack_permalink_name
-  export xpack_prefer_short_name
-  export xpack_preferred_name
-  export xpack_long_xpack_name
-  export xpack_use_self_hosted_runners
-  export xpack_has_test_all
-  export xpack_has_no_github_releases
-  export xpack_has_cli
-
-  xpack_base_url="/$(basename "${xpack_npm_package_homepage}")/"
-  xpack_base_url_preview="/$(basename "${xpack_npm_package_homepage_preview}")/"
-  if [ "${xpack_is_organization_web}" == "true" ]
-  then
-    xpack_base_url="/"
-    if [ -z "${xpack_npm_package_homepage_preview}" ]
+    if [ ! -z "$(echo "${xpack_package_json}" | json prettier)" ]
     then
-      xpack_base_url_preview="/"
+      xpack_top_config_use_prettier="true"
+    else
+      xpack_top_config_use_prettier="false"
+    fi
+    export xpack_top_config_use_prettier
+
+    if [ ! -z "$(echo "${xpack_package_json}" | json standard)" ]
+    then
+      xpack_top_config_use_standard="true"
+    else
+      xpack_top_config_use_standard="false"
+    fi
+    export xpack_top_config_use_standard
+
+    if [ ! -z "$(echo "${xpack_package_json}" | json devDependencies.typescript-eslint)" ]
+    then
+      xpack_top_config_use_typescript_eslint="true"
+    else
+      xpack_top_config_use_typescript_eslint="false"
+    fi
+    export xpack_top_config_use_typescript_eslint
+
+    if [ ! -z "$(echo "${xpack_package_json}" | json devDependencies.'@microsoft/api-extractor')" ]
+    then
+      xpack_top_config_use_api_extractor="true"
+    else
+      xpack_top_config_use_api_extractor="false"
+    fi
+    export xpack_top_config_use_api_extractor
+
+    export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+      -e "this.isTypeScript=\"${xpack_top_config_is_typescript}\"" \
+      -e "this.isJavaScript=\"${xpack_top_config_is_javascript}\"" \
+      -e "this.packageUsePrettier=\"${xpack_top_config_use_prettier}\"" \
+      -e "this.packageUseStandard=\"${xpack_top_config_use_standard}\"" \
+      -e "this.packageUseTypeScriptEslint=\"${xpack_top_config_use_typescript_eslint}\"" \
+      -e "this.packageUseApiExtractor=\"${xpack_top_config_use_api_extractor}\"" \
+    )
+
+  fi
+}
+
+# -----------------------------------------------------------------------------
+
+function process_top_config()
+{
+  if [ -f "${project_folder_path}/config/top-templates.json" ]
+  then
+    echo
+    echo "Processing config/top-templates.json..."
+
+    xpack_top_config="$(json -f "${project_folder_path}/config/top-templates.json" -o json-0)"
+  else
+    echo
+    echo "Processing top package.json topConfig..."
+
+    xpack_top_config="$(json -f "${project_folder_path}/package.json" -o json-0 topConfig)"
+  fi
+
+  # Edit the json and add an empty topConfig object.
+  export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+    -e "this.topConfig={}" \
+  )
+
+  top_config_string_properties=(
+    descriptiveName 
+    permalinkName
+    preferredName
+  )
+
+  for _prop in "${top_config_string_properties[@]}"
+  do
+    _string_property_value="$(echo "${xpack_top_config}" | json "${_prop}")"
+    serialise_string_property_to "xpack_context" "topConfig.${_prop}" \
+      "${_string_property_value:-""}" "xpack_"
+  done
+
+  top_config_boolean_properties=(
+    isOrganisationWeb 
+    isWebDeployOnly 
+    skipCiTests 
+    showTestsResults 
+    hasTriggerPublish 
+    hasTriggerPublishPreview 
+    hasEmptyMaster 
+    preferShortName 
+    hasTestAll 
+    hasNoGithubReleases 
+    hasCli 
+    useSelfHostedRunners
+    isTypescript
+    isJavascript
+    usePrettier
+    useStandard
+    useTypescriptEslint
+    useApiExtractor
+    useDoxygen
+  )
+
+  for _prop in "${top_config_boolean_properties[@]}"
+  do
+    _boolean_property_value="$(echo "${xpack_top_config}" | json "${_prop}" | tr '[:upper:]' '[:lower:]')"
+    serialise_boolean_property_to "xpack_context" "topConfig.${_prop}" \
+      "${_boolean_property_value:-false}" "xpack_"
+  done
+
+  # Add some more top properties derived from the above ones, to avoid having  
+  # to do it in liquid templates.
+
+  # Located here because it depends on descriptiveName.
+  local _xpack_long_xpack_name
+  if [ ! -z "${xpack_top_config_descriptive_name}" ]
+  then
+    if [ "${xpack_top_config_descriptive_name:0:6}" != "xPack " ] &&
+        [ "${xpack_top_config_github_project_organization:0:6}" == "xpack-" ]
+    then
+      _xpack_long_xpack_name="xPack ${xpack_top_config_descriptive_name}"
+    else
+      _xpack_long_xpack_name="${xpack_top_config_descriptive_name}"
+    fi
+  else
+    echo "Missing descriptiveName in config/top-templates.json"
+    _xpack_long_xpack_name=""
+  fi
+  serialise_string_property_to "xpack_context" "longXpackName" \
+      "${_xpack_long_xpack_name}" "xpack_"
+  
+
+  # Located here becaue they depend on isOrganisationWeb.
+  local _xpack_base_url="/$(basename "${xpack_package_homepage}")/"
+  local _xpack_base_url_preview="/$(basename "${xpack_package_homepage_preview}")/"
+  if [ "${xpack_top_config_is_organisation_web}" == "true" ]
+  then
+    _xpack_base_url="/"
+    if [ -z "${xpack_package_homepage_preview}" ]
+    then
+      _xpack_base_url_preview="/"
     fi
   fi
-  export xpack_base_url
-  export xpack_base_url_preview
-
-  # Edit the json and add properties one by one.
-  export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-  -e "this.package=${xpack_npm_package}" \
-  -e "this.packageConfig=${xpack_npm_package_top_config}" \
-  -e "this.longXpackName=\"${xpack_long_xpack_name}\"" \
-  -e "this.preferredName=\"${xpack_preferred_name}\"" \
-  -e "this.baseUrl=\"${xpack_base_url}\"" \
-  -e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
-  -e "this.showTestsResults=\"${xpack_show_test_results}\"" \
-  )
+  serialise_string_property_to "xpack_context" "baseUrl" \
+    "${_xpack_base_url}" "xpack_"
+  serialise_string_property_to "xpack_context" "baseUrlPreview" \
+    "${_xpack_base_url_preview}" "xpack_"
 
   # ---------------------------------------------------------------------------
 
-  # Build configuration, in the top. (perhaps move to build-assets?)
-  xpack_npm_package_build_config="$(json -f "${project_folder_path}/package.json" -o json-0 buildConfig)"
-  if [ -z "${xpack_npm_package_build_config}" ]
+  # TODO: remove after all projects are migrated to config/*.json files, 
+  # as this should be set in the json file, not derived from other properties.
+  if [ ! -f "${project_folder_path}/config/top-templates.json" ]
   then
-    xpack_npm_package_build_config="{}"
+    local _xpack_preferred_name
+    # Located here because it depends on descriptiveName and permalinkName.
+    if [ "${xpack_top_config_prefer_short_name}" == "true" ]
+    then
+      _xpack_preferred_name="${xpack_top_config_permalink_name:-${xpack_package_name}}"
+    else
+      _xpack_preferred_name="${xpack_top_config_descriptive_name}"
+    fi
+    serialise_string_property_to "xpack_context" "topConfig.preferredName" \
+        "${_xpack_preferred_name}" "xpack_"
   fi
-  export xpack_npm_package_build_config
 
-  # Edit the empty json and add properties one by one.
-  export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-  -e "this.packageBuildConfig=${xpack_npm_package_build_config}" \
-  )
+  export xpack_top_config
 
-  # ---------------------------------------------------------------------------
+  # Old code.
+  # if [ -z "${xpack_top_config}" ]
+  # then
+  #   xpack_top_config="{}"
+  #   xpack_is_organisation_web="false"
+  #   xpack_is_web_deploy_only="false"
+  #   xpack_skip_ci_tests="false"
+  #   xpack_show_test_results="false"
+  #   xpack_has_trigger_publish="false"
+  #   xpack_has_trigger_publish_preview="false"
+  #   xpack_has_empty_master="false"
+  #   xpack_descriptive_name=""
+  #   xpack_permalink_name=""
+  #   xpack_prefer_short_name="false"
+  #   xpack_preferred_name=""
+  #   xpack_long_xpack_name=""
+  #   xpack_use_self_hosted_runners=""
+  #   xpack_has_test_all="true"
+  #   xpack_has_no_github_releases=""
+  #   xpack_has_cli=""
+  # else
+  #   xpack_is_organisation_web="$(echo "${xpack_top_config}" | json isOrganisationWeb)"
+  #   xpack_is_web_deploy_only="$(echo "${xpack_top_config}" | json isWebDeployOnly)"
+  #   xpack_skip_ci_tests="$(echo "${xpack_top_config}" | json skipCiTests)"
+  #   xpack_show_test_results="$(echo "${xpack_top_config}" | json showTestsResults)"
+  #   xpack_has_trigger_publish="$(echo "${xpack_top_config}" | json hasTriggerPublish)"
+  #   xpack_has_trigger_publish_preview="$(echo "${xpack_top_config}" | json hasTriggerPublishPreview)"
+  #   xpack_has_empty_master="$(echo "${xpack_top_config}" | json hasEmptyMaster)"
+  #   xpack_descriptive_name="$(echo "${xpack_top_config}" | json descriptiveName)"
+  #   xpack_permalink_name="$(echo "${xpack_top_config}" | json permalinkName)"
+  #   xpack_prefer_short_name="$(echo "${xpack_top_config}" | json preferShortName)"
+  #   xpack_use_self_hosted_runners="$(echo "${xpack_top_config}" | json useSelfHostedRunners)"
+  #   xpack_has_test_all="$(echo "${xpack_top_config}" | json hasTestAll)"
+  #   xpack_has_no_github_releases="$(echo "${xpack_top_config}" | json hasNoGithubReleases)"
+  #   xpack_has_cli="$(echo "${xpack_top_config}" | json hasCli)"
 
-  if [ ! -z ${website_folder_path+x} ] && [ -f "${website_folder_path}/package.json" ]
+  #   if [ ! -z "${xpack_descriptive_name}" ]
+  #   then
+  #     if [ "${xpack_descriptive_name:0:6}" != "xPack " ] &&
+  #        [ "${xpack_github_project_organization:0:6}" == "xpack-" ]
+  #     then
+  #       xpack_long_xpack_name="xPack ${xpack_descriptive_name}"
+  #     else
+  #       xpack_long_xpack_name="${xpack_descriptive_name}"
+  #     fi
+  #   else
+  #     echo "Missing descriptiveName in topConfig"
+  #     xpack_long_xpack_name=""
+  #   fi
+
+  #   if [ "${xpack_prefer_short_name}" == "true" ]
+  #   then
+  #     xpack_preferred_name="${xpack_permalink_name:-${xpack_package_name}}"
+  #   else
+  #     xpack_preferred_name="${xpack_descriptive_name}"
+  #   fi
+  # fi
+
+  # export xpack_is_organisation_web
+  # export xpack_is_web_deploy_only
+  # export xpack_skip_ci_tests
+  # export xpack_show_test_results
+  # export xpack_has_trigger_publish
+  # export xpack_has_trigger_publish_preview
+  # export xpack_has_empty_master
+  # export xpack_descriptive_name
+  # export xpack_permalink_name
+  # export xpack_prefer_short_name
+  # export xpack_preferred_name
+  # export xpack_long_xpack_name
+  # export xpack_use_self_hosted_runners
+  # export xpack_has_test_all
+  # export xpack_has_no_github_releases
+  # export xpack_has_cli
+
+  # xpack_base_url="/$(basename "${xpack_package_homepage}")/"
+  # xpack_base_url_preview="/$(basename "${xpack_package_homepage_preview}")/"
+  # if [ "${xpack_is_organisation_web}" == "true" ]
+  # then
+  #   xpack_base_url="/"
+  #   if [ -z "${xpack_package_homepage_preview}" ]
+  #   then
+  #     xpack_base_url_preview="/"
+  #   fi
+  # fi
+  # export xpack_base_url
+  # export xpack_base_url_preview
+
+  # # Edit the json and add properties one by one.
+  # export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+  #   -e "this.packageConfig=${xpack_top_config}" \
+  #   -e "this.longXpackName=\"${xpack_long_xpack_name}\"" \
+  #   -e "this.topConfig.preferredName=\"${xpack_preferred_name}\"" \
+  #   -e "this.baseUrl=\"${xpack_base_url}\"" \
+  #   -e "this.baseUrlPreview=\"${xpack_base_url_preview}\"" \
+  #   -e "this.showTestsResults=\"${xpack_show_test_results}\"" \
+  # )
+}
+
+# TODO: remove after all projects are migrated to config/*.json files.
+function write_top_template_config()
+{
+  echo
+  echo "Writing top templates config..."
+
+  # Start with an empty json and add properties to it.
+  local _output_json="{}"
+
+  for _prop in "${top_config_string_properties[@]}"
+  do
+    local _variable_snake_name="xpack_top_config_$(echo "${_prop}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    local _string_property_value="${!_variable_snake_name}"
+
+    serialise_non_empty_string_property_to "_output_json" "${_prop}" \
+      "${_string_property_value:-""}"
+  done
+
+  for _prop in "${top_config_boolean_properties[@]}"
+  do
+    local _variable_snake_name="xpack_top_config_$(echo "${_prop}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    local _boolean_property_value="${!_variable_snake_name}"
+
+    serialise_true_boolean_property_to "_output_json" "${_prop}" \
+      "${_boolean_property_value:-"false"}"
+  done
+
+  echo "${_output_json}" | json > "${project_folder_path}/config/top-templates.json"
+}
+
+# -----------------------------------------------------------------------------
+
+function process_xpack()
+{
+  # Top xpack.
+  local _xpack_package_xpack="$(echo "${xpack_package_json}" | json xpack)"
+
+  local _xpack_platforms=""
+  if [ -z "${_xpack_package_xpack}" ]
+  then
+    _xpack_package_xpack="{}"
+
+    serialise_boolean_property_to "xpack_context" "isXpack" "false" "xpack_"
+    serialise_boolean_property_to "xpack_context" "isXpackBinary" "false" "xpack_"
+  else
+    serialise_boolean_property_to "xpack_context" "isXpack" "true" "xpack_"
+
+    local _xpack_npm_package_xpack_binaries="$(echo "${xpack_package_json}" | json xpack.binaries)"
+    if [ ! -z "${_xpack_npm_package_xpack_binaries}" ]
+    then
+      serialise_boolean_property_to "xpack_context" "isXpackBinary" "true" "xpack_"
+
+      # set -x
+      local _xpack_platforms_array=()
+      # The order is relevant, it is kept when generating tabs and lists.
+      for _platform in win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-arm64
+      do
+        local _platform_object="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries.platforms.${_platform})"
+        if [ ! -z "${_platform_object}" ]
+        then
+          local _skip_value="$(echo "${_platform_object}" | json skip)"
+          if [ "${_skip_value}" == "true" ]
+          then
+            continue
+          fi
+          _xpack_platforms_array+=("${_platform}")
+        fi
+      done
+      # Convert array to comma-separated string
+      local _xpack_platforms="$(IFS=','; echo "${_xpack_platforms_array[*]}")"
+
+    else
+      serialise_boolean_property_to "xpack_context" "isXpackBinary" "false" "xpack_"
+    fi
+  fi
+
+  # For top webs, to display the full list of platforms.
+  if [ "${xpack_top_config_is_organisation_web}" == "true" ] && [ -z "${xpack_platforms}" ]
+  then
+    _xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64"
+  fi
+  serialise_string_property_to "xpack_context" "platforms" "${_xpack_platforms}" "xpack_"
+
+  local _xpack_is_npm_published="false"
+  if [ "${xpack_is_xpack}" == "true" ] ||
+     [ "${xpack_top_config_is_typescript}" == "true" ] ||
+     [ "${xpack_top_config_is_javascript}" == "true" ]
+  then
+    if [ "${xpack_release_semver}" != "0.0.0" ]
+    then
+      _xpack_is_npm_published="true"
+    fi
+  fi
+  serialise_boolean_property_to "xpack_context" "isNpmPublished" "${_xpack_is_npm_published}" "xpack_"
+
+
+  # Note the ^ in the regex.
+  if [ "${_xpack_package_xpack}" != "{}" ] && [[ ! "${xpack_release_semver}" =~ ^0[.]0[.0].*$ ]]
+  then
+    local _xpack_xpack_version
+    if [ -f "${project_folder_path}/build-assets/scripts/VERSION" ]
+    then
+      # Prefer the VERSION content, if available.
+      _xpack_xpack_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
+    else
+      # Use the package.json one, but remove the `pre` used during development.
+      _xpack_xpack_version="${xpack_release_version}"
+    fi
+    serialise_string_property_to "xpack_context" "xpackVersion" "${_xpack_xpack_version}" "xpack_"
+
+    serialise_string_property_to "xpack_context" "xpackSemver" \
+      "$(echo "${xpack_xpack_version}" | sed -e 's|[-].*||')" "xpack_"
+
+    serialise_string_property_to "xpack_context" "xpackSubversion" \
+      "$(echo "${xpack_xpack_version}" | sed -e 's|.*[-]||')" "xpack_"
+
+    local _xpack_upstream_version
+    if [ "${xpack_has_two_numbers_version:-}" == "true" ] && [[ "${xpack_release_semver}" =~ .*[.]0*$ ]]
+    then
+      # Remove the patch number, if zero.
+      _xpack_upstream_version="$(echo ${xpack_release_semver} | sed -e 's|[.]0*$||')"
+    else
+      _xpack_upstream_version="${xpack_release_semver}"
+    fi
+    serialise_string_property_to "xpack_context" "xpackUpstreamVersion" "${_xpack_upstream_version}" "xpack_"
+  fi
+}
+
+# -----------------------------------------------------------------------------
+
+function process_website_config()
+{
+  if [ -f "${website_folder_path}/package.json" ]
   then
 
     echo
     echo "Processing website/package.json..."
 
-    xpack_npm_package_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
-
-    if [ -z "${xpack_npm_package_website_config}" ]
+    if [ -f "${website_folder_path}/config/website-templates.json" ]
     then
-      if [ "${do_init}" == "true" ] || [ "${xpack_is_web_deploy_only}" == "true" ] || [ "${is_micro_os_plus}" == "true" ]
+      xpack_website_config="$(json -f "${website_folder_path}/config/website-templates.json" -o json-0)"
+    else
+      xpack_website_config="$(json -f "${website_folder_path}/package.json" -o json-0 websiteConfig)"
+    fi
+
+    if [ -z "${xpack_website_config}" ]
+    then
+      if [ "${do_init}" == "true" ] || [ "${xpack_top_config_is_web_deploy_only}" == "true" ] || [ "${is_micro_os_plus}" == "true" ]
       then
-        xpack_npm_package_website_config="{}"
+        xpack_website_config="{}"
       else
         echo "Missing websiteConfig"
         exit 1
       fi
     fi
 
-    export xpack_has_metadata_minimum="$(echo "${xpack_npm_package_website_config}" | json hasMetadataMinimum)"
-    export xpack_has_custom_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasCustomHomepageFeatures)"
-    export xpack_has_custom_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomSidebar)"
-    export xpack_has_custom_developer="$(echo "${xpack_npm_package_website_config}" | json hasCustomDeveloper)"
-    export xpack_has_custom_getting_started="$(echo "${xpack_npm_package_website_config}" | json hasCustomGettingStarted)"
-    export xpack_has_custom_install="$(echo "${xpack_npm_package_website_config}" | json hasCustomInstall)"
-    export xpack_has_custom_maintainer="$(echo "${xpack_npm_package_website_config}" | json hasCustomMaintainer)"
-    export xpack_has_custom_about="$(echo "${xpack_npm_package_website_config}" | json hasCustomAbout)"
-    export xpack_has_custom_user="$(echo "${xpack_npm_package_website_config}" | json hasCustomUser)"
-    export xpack_has_custom_user_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomUserSidebar)"
-    export xpack_has_custom_getting_started_sidebar="$(echo "${xpack_npm_package_website_config}" | json hasCustomGettingStartedSidebar)"
-    export xpack_has_custom_config_doxyfile="$(echo "${xpack_npm_package_website_config}" | json hasCustomConfigDoxyfile)"
-
-    export xpack_has_top_homepage_features="$(echo "${xpack_npm_package_website_config}" | json hasTopHomepageFeatures)"
-    export xpack_has_homepage_tools="$(echo "${xpack_npm_package_website_config}" | json hasHomepageTools)"
-
-    export xpack_has_policies="$(echo "${xpack_npm_package_website_config}" | json hasPolicies)"
-    export xpack_skip_install_command="$(echo "${xpack_npm_package_website_config}" | json skipInstallCommand)"
-    export xpack_skip_install_guide="$(echo "${xpack_npm_package_website_config}" | json skipInstallGuide)"
-    export xpack_skip_releases="$(echo "${xpack_npm_package_website_config}" | json skipReleases)"
-    export xpack_skip_faq="$(echo "${xpack_npm_package_website_config}" | json skipFaq)"
-    export xpack_skip_contributor_guide="$(echo "${xpack_npm_package_website_config}" | json skipContributorGuide)"
-    export xpack_skip_tests="$(echo "${xpack_npm_package_website_config}" | json skipTests)"
-
-    export xpack_website_config_is_arm_toolchain="$(echo "${xpack_npm_package_website_config}" | json isArmToolchain)"
-    export xpack_website_config_is_gcc_toolchain="$(echo "${xpack_npm_package_website_config}" | json isGccToolchain)"
-
-    xpack_custom_fields="$(echo "${xpack_npm_package_website_config}" | json -o json-0 customFields)"
-
-    if [ -z "${xpack_custom_fields}" ]
-    then
-      xpack_custom_fields='{}'
-    fi
-    export xpack_custom_fields
-
-    # Edit the json and add more properties one by one.
+    # Edit the json and add an empty websiteConfig object.
     export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-    -e "this.packageWebsiteConfig=${xpack_npm_package_website_config}" \
+      -e "this.websiteConfig={}" \
     )
 
-    export xpack_has_two_numbers_version="$(echo "${xpack_npm_package_website_config}" | json hasTwoNumbersVersion)"
+    website_string_properties=(
+      armSubRelease
+      binutilsVersionMajor
+      binutilsVersionMinor
+      branding
+      customAboutTitle
+      customDeveloperTitle
+      customGettingStartedTitle
+      customInstallLabel
+      customInstallTitle
+      customMaintainerTitle
+      customUserTitle
+      gdbVersionMajor
+      metadataKeywords
+      newlibVersion
+      platforms
+      programName
+      tagline
+      title
+      triplet   
+      userGuideDescription 
+    )
 
+    for _prop in "${website_string_properties[@]}"
+    do
+      local _string_property_value="$(echo "${xpack_website_config}" | json "${_prop}")"
+      serialise_string_property_to "xpack_context" "websiteConfig.${_prop}" \
+        "${_string_property_value:-""}" "xpack_"
+    done
+
+    website_boolean_properties=(
+      has100coverage
+      hasCustomAbout
+      hasCustomAbout 
+      hasCustomConfigDoxyfile
+      hasCustomDeveloper
+      hasCustomDeveloper 
+      hasCustomDocsNavbarItem
+      hasCustomGettingStarted
+      hasCustomGettingStarted 
+      hasCustomGettingStartedSidebar
+      hasCustomGettingStartedSidebar 
+      hasCustomHomepageFeatures
+      hasCustomHomepageFeatures 
+      hasCustomInstall
+      hasCustomInstall 
+      hasCustomMaintainer
+      hasCustomMaintainer 
+      hasCustomSidebar
+      hasCustomSidebar 
+      hasCustomUser
+      hasCustomUser 
+      hasCustomUserSidebar
+      hasCustomUserSidebar 
+      hasDoxygenDocusaurusApi
+      hasDoxygenReference
+      hasHomepageTools
+      hasMetadataMinimum 
+      hasPolicies
+      hasToolsSidebar
+      hasTopHomepageFeatures
+      hasTSDocDocusaurusApi
+      hasTwoNumbersVersion
+      hasTypedocApi
+      isArmToolchain
+      isGccToolchain
+      isInstallGlobally
+      isOrganisationWeb
+      isXpmDependency
+      shareOnTwitter
+      showDeprecatedGnuMcuAnalytics
+      showDeprecatedRiscvGccAnalytics
+      skipAlgolia
+      skipContributorGuide
+      skipFaq
+      skipInstallCommand
+      skipInstallGuide
+      skipMaintainerGuide
+      skipReleases
+      skipTests
+      useApiDocumenter
+      usePluralGuides
+    )
+
+    for _prop in "${website_boolean_properties[@]}"
+    do
+      local _boolean_property_value="$(echo "${xpack_website_config}" | json "${_prop}" | tr '[:upper:]' '[:lower:]')"
+      serialise_boolean_property_to "xpack_context" "websiteConfig.${_prop}" \
+        "${_boolean_property_value:-false}" "xpack_"
+    done
+
+    export xpack_website_config
+
+    # xpack_website_custom_fields="$(echo "${xpack_website_config}" | json -o json-0 customFields)"
+
+    # if [ -z "${xpack_website_custom_fields}" ]
+    # then
+    #   xpack_website_custom_fields='{}'
+    # fi
+    # export xpack_website_custom_fields
+
+    # -------------------------------------------------------------------------
+    # Old code, to be removed.
+    # export xpack_has_metadata_minimum="$(echo "${xpack_website_config}" | json hasMetadataMinimum)"
+    # export xpack_has_custom_homepage_features="$(echo "${xpack_website_config}" | json hasCustomHomepageFeatures)"
+    # export xpack_has_custom_sidebar="$(echo "${xpack_website_config}" | json hasCustomSidebar)"
+    # export xpack_has_custom_developer="$(echo "${xpack_website_config}" | json hasCustomDeveloper)"
+    # export xpack_has_custom_getting_started="$(echo "${xpack_website_config}" | json hasCustomGettingStarted)"
+    # export xpack_has_custom_install="$(echo "${xpack_website_config}" | json hasCustomInstall)"
+    # export xpack_has_custom_maintainer="$(echo "${xpack_website_config}" | json hasCustomMaintainer)"
+    # export xpack_has_custom_about="$(echo "${xpack_website_config}" | json hasCustomAbout)"
+    # export xpack_has_custom_user="$(echo "${xpack_website_config}" | json hasCustomUser)"
+    # export xpack_has_custom_user_sidebar="$(echo "${xpack_website_config}" | json hasCustomUserSidebar)"
+    # export xpack_has_custom_getting_started_sidebar="$(echo "${xpack_website_config}" | json hasCustomGettingStartedSidebar)"
+    # export xpack_has_custom_config_doxyfile="$(echo "${xpack_website_config}" | json hasCustomConfigDoxyfile)"
+
+    # export xpack_has_top_homepage_features="$(echo "${xpack_website_config}" | json hasTopHomepageFeatures)"
+    # export xpack_has_homepage_tools="$(echo "${xpack_website_config}" | json hasHomepageTools)"
+
+    # export xpack_has_policies="$(echo "${xpack_website_config}" | json hasPolicies)"
+    # export xpack_skip_install_command="$(echo "${xpack_website_config}" | json skipInstallCommand)"
+    # export xpack_skip_install_guide="$(echo "${xpack_website_config}" | json skipInstallGuide)"
+    # export xpack_skip_releases="$(echo "${xpack_website_config}" | json skipReleases)"
+    # export xpack_skip_faq="$(echo "${xpack_website_config}" | json skipFaq)"
+    # export xpack_skip_contributor_guide="$(echo "${xpack_website_config}" | json skipContributorGuide)"
+    # export xpack_skip_tests="$(echo "${xpack_website_config}" | json skipTests)"
+
+    # export xpack_website_config_is_arm_toolchain="$(echo "${xpack_website_config}" | json isArmToolchain)"
+    # export xpack_website_config_is_gcc_toolchain="$(echo "${xpack_website_config}" | json isGccToolchain)"
+
+    # xpack_custom_fields="$(echo "${xpack_website_config}" | json -o json-0 customFields)"
+
+    # if [ -z "${xpack_custom_fields}" ]
+    # then
+    #   xpack_custom_fields='{}'
+    # fi
+    # export xpack_custom_fields
+
+    # # Edit the json and add more properties one by one.
+    # export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
+    # -e "this.packageWebsiteConfig=${xpack_website_config}" \
+    # )
+
+    # export xpack_has_two_numbers_version="$(echo "${xpack_website_config}" | json hasTwoNumbersVersion)"
+
+    # Even older code, to be removed.
     # if [ "${xpack_custom_fields}" != '{}' ]
     # then
-    #   export xpack_dt_has_two_numbers_version="$(echo "${xpack_npm_package_website_config}" | json hasTwoNumbersVersion)"
-    #   # export xpack_dt_is_organization_web="$(echo "${xpack_custom_fields}" | json isOrganizationWeb)"
+    #   export xpack_dt_has_two_numbers_version="$(echo "${xpack_website_config}" | json hasTwoNumbersVersion)"
+    #   # export xpack_dt_is_organisation_web="$(echo "${xpack_custom_fields}" | json isOrganisationWeb)"
 
-    #   if [ "${xpack_is_organization_web}" == "true" ]
+    #   if [ "${xpack_is_organisation_web}" == "true" ]
     #   then
     #     xpack_dt_version="0.0.0-0"
     #     xpack_dt_base_url="/"
     #   else
     #     xpack_dt_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
-    #     xpack_dt_base_url="/${xpack_permalink_name}-xpack/"
+    #     xpack_dt_base_url="/${xpack_top_config_permalink_name}-xpack/"
     #   fi
 
     #   export xpack_dt_version
@@ -682,190 +1039,209 @@ function compute_context()
     #   )
     # fi
   fi
+}
 
-  # ---------------------------------------------------------------------------
+function write_website_template_config()
+{
+  echo
+  echo "Writing website templates config..."
 
-  if [ ! -z ${tests_folder_path+x} ] && [ -f "${tests_folder_path}/config/micro-os-plus-build-helper.json" ]
+  # Start with an empty json and add properties to it.
+  local _output_json="{}"
+
+  for _prop in "${website_string_properties[@]}"
+  do
+    local _variable_snake_name="xpack_website_config_$(echo "${_prop}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    local _string_property_value="${!_variable_snake_name}"
+
+    serialise_non_empty_string_property_to "_output_json" "${_prop}" \
+      "${_string_property_value:-""}"
+  done
+
+  for _prop in "${website_boolean_properties[@]}"
+  do
+    local _variable_snake_name="xpack_website_config_$(echo "${_prop}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    local _boolean_property_value="${!_variable_snake_name}"
+
+    serialise_true_boolean_property_to "_output_json" "${_prop}" \
+      "${_boolean_property_value:-"false"}"
+  done
+
+  echo "${_output_json}" | json > "${website_folder_path}/config/website-templates.json"
+}
+
+# -----------------------------------------------------------------------------
+
+function process_tests_config() 
+{
+  if [ -f "${tests_folder_path}/config/tests-templates.json" ]
   then
-
     echo
-    echo "Processing tests/config/micro-os-plus-build-helper.json..."
+    echo "Processing tests/config/tests-templates.json..."
 
     # Tests configuration.
-    xpack_npm_package_tests_config="$(json -f "${tests_folder_path}/config/micro-os-plus-build-helper.json" -o json-0)"
-  
-  elif [ ! -z ${tests_folder_path+x} ] && [ -f "${tests_folder_path}/package.json" ]
+    xpack_tests_config="$(json -f "${tests_folder_path}/config/tests-templates.json" -o json-0)"  
+  elif [ -f "${tests_folder_path}/package.json" ]
   then
-
     echo
     echo "Processing tests/package.json..."
 
     # Tests configuration.
-    xpack_npm_package_tests_config="$(json -f "${tests_folder_path}/package.json" -o json-0 testsConfig)"
-
-  fi
-
-  if [ -z "${xpack_npm_package_tests_config:-}" ]
-  then
-    xpack_npm_package_tests_config="{}"
-  fi
-
-  export xpack_has_skip_micro_os_plus_trace="$(echo "${xpack_npm_package_tests_config}" | json skipMICRO_OS_PLUS_TRACE)"
-
-  # Extract platforms array from tests config
-  xpack_tests_platforms_json="$(echo "${xpack_npm_package_tests_config}" | json platforms)"
-  # echo ${xpack_tests_platforms_json}
-  
-  xpack_tests_platforms_array=()
-  
-  if [ ! -z "${xpack_tests_platforms_json}" ] && [ "${xpack_tests_platforms_json}" != "null" ]
-  then
-    # Convert JSON array to bash array
-    while IFS= read -r platform
-    do
-      if [ ! -z "${platform}" ]
-      then
-        xpack_tests_platforms_array+=("${platform}")
-      fi
-    done < <(echo "${xpack_tests_platforms_json}" | json -a)
-  fi
-  
-  # if [ ${#xpack_tests_platforms_array[@]} -eq 0 ] && [ "${is_micro_os_plus}" == "true" ]
-  # then
-  #   echo "No platforms defined in tests/config/micro-os-plus-build-helper.json"
-  #   exit 1
-  # fi
-  
-  # Convert array to comma-separated string
-  export xpack_tests_platforms="$(IFS=','; echo "${xpack_tests_platforms_array[*]:-}")"
-
-  # Edit the json and add more properties one by one.
-  export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-    -e "this.packageTestsConfig=${xpack_npm_package_tests_config}" \
-  )
-
-  # ---------------------------------------------------------------------------
-
-  # Top xpack.
-  xpack_platforms=""
-  xpack_npm_package_is_xpack="false"
-  xpack_npm_package_is_xpack_binary="false"
-
-  xpack_npm_package_xpack="$(json -f "${project_folder_path}/package.json" -o json-0 xpack)"
-  if [ -z "${xpack_npm_package_xpack}" ]
-  then
-    xpack_npm_package_xpack="{}"
+    xpack_tests_config="$(json -f "${tests_folder_path}/package.json" -o json-0 testsConfig)"
   else
-    xpack_npm_package_is_xpack="true"
-
-    xpack_npm_package_xpack_binaries="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries)"
-    if [ ! -z "${xpack_npm_package_xpack_binaries}" ]
-    then
-      xpack_npm_package_is_xpack_binary="true"
-
-      # set -x
-      xpack_platforms_array=()
-      # The order is relevant, it is kept when generating tabs and lists.
-      for platform in win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-arm64
-      do
-        platform_object="$(json -f "${project_folder_path}/package.json" -o json-0 xpack.binaries.platforms.${platform})"
-        if [ ! -z "${platform_object}" ]
-        then
-          skip_value="$(echo "${platform_object}" | json skip)"
-          if [ "${skip_value}" == "true" ]
-          then
-            continue
-          fi
-          xpack_platforms_array+=("${platform}")
-        fi
-      done
-      # Convert array to comma-separated string
-      export xpack_platforms="$(IFS=','; echo "${xpack_platforms_array[*]}")"
-
-    fi
+    echo
+    echo "No tests configuration file found."
+    xpack_tests_config="{}"
   fi
 
-  # For top webs, to display the full list of platforms.
-  if [ "${xpack_is_organization_web}" == "true" ] && [ -z "${xpack_platforms}" ]
+  if [ -z "${xpack_tests_config:-}" ]
   then
-    xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64"
+    xpack_tests_config="{}"
   fi
 
-  export xpack_npm_package_xpack
-  export xpack_npm_package_is_xpack
-  export xpack_npm_package_is_xpack_binary
-  export xpack_platforms
-
-  xpack_is_npm_published="false"
-  if [ "${xpack_npm_package_is_xpack}" == "true" ] ||
-     [ "${xpack_is_typescript}" == "true" ] ||
-     [ "${xpack_is_javascript}" == "true" ]
-  then
-    if [ "${xpack_release_semver}" != "0.0.0" ]
-    then
-      xpack_is_npm_published="true"
-    fi
-  fi
-  export xpack_is_npm_published
-
-  # Edit the json and add more properties one by one.
+  # Edit the json and add an empty testsConfig object.
   export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-  -e "this.isXpackBinary=\"${xpack_npm_package_is_xpack_binary}\"" \
-  -e "this.isXpack=\"${xpack_npm_package_is_xpack}\"" \
-  -e "this.isNpmPublished=\"${xpack_is_npm_published}\"" \
-  -e "this.platforms=\"${xpack_platforms}\"" \
+    -e "this.testsConfig={}" \
   )
 
-  # Note the ^ in the regex.
-  if [ "${xpack_npm_package_xpack}" != "{}" ] && [[ ! "${xpack_release_semver}" =~ ^0[.]0[.0].*$ ]]
+  # export xpack_has_skip_micro_os_plus_trace="$(echo "${xpack_tests_config}" | json skipMICRO_OS_PLUS_TRACE)"
+
+  tests_array_properties=(
+    platforms
+    tests 
+  )
+
+  for _prop in "${tests_array_properties[@]}"
+  do
+    local _array_property_value="$(echo "${xpack_tests_config}" | json "${_prop}" -o json-0)"
+    serialise_array_property_to "xpack_context" "testsConfig.${_prop}" \
+      "${_array_property_value:-""}" "xpack_"
+  done
+
+  export xpack_tests_config
+}
+
+# =============================================================================
+# Utility functions.
+
+# $1: variable name
+# $2: json property name
+# $3: value
+# $4: optional prefix for environment variable to be exported.
+function serialise_boolean_property_to()
+{
+  local _variable_name="$1"
+  local _json_property_name="$2"
+  local _current="${!_variable_name}"
+  local _new_value
+
+  if [ "$3" == "true" ]
   then
-    if [ -f "${project_folder_path}/build-assets/scripts/VERSION" ]
+    _new_value="$(echo "${_current}" | json -o json-0  -e "this.${_json_property_name}=true")"
+  else
+    _new_value="$(echo "${_current}" | json -o json-0 -e "this.${_json_property_name}=false")"
+  fi
+  export "${_variable_name}=${_new_value}"
+
+  if [ -n "${4:-}" ]
+  then
+    local _variable_snake_name="$(echo "${_json_property_name}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    if [ "$3" == "true" ]
     then
-      # Prefer the VERSION content, if available.
-      xpack_xpack_version="$(cat "${project_folder_path}/build-assets/scripts/VERSION" | sed -e '2,$d')"
+      export "${4}${_variable_snake_name}=true"
     else
-      # Use the package.json one, but remove the `pre` used during development.
-      xpack_xpack_version="${xpack_release_version}"
+      export "${4}${_variable_snake_name}=false"
     fi
+  fi
+}
 
-    xpack_xpack_semver="$(echo "${xpack_xpack_version}" | sed -e 's|[-].*||')"
-    xpack_xpack_subversion="$(echo "${xpack_xpack_version}" | sed -e 's|.*[-]||')"
+# $1: variable name
+# $2: json property name
+# $3: value
+function serialise_true_boolean_property_to()
+{
+  if [ "$3" == "true" ]
+  then
+    local _variable_name="$1"
+    local _current="${!_variable_name}"
+    local _json_property_name="$2"
+    local _new_value
+    _new_value="$(echo "${_current}" | json -o json-0 -e "this.${_json_property_name}=true")"
+    export "${_variable_name}=${_new_value}"
+  fi
+}
 
-    export xpack_xpack_version
-    export xpack_xpack_semver
-    export xpack_xpack_subversion
+# $1: variable name
+# $2: json property name
+# $3: value
+# $4: optional prefix for environment variable to be exported.
+function serialise_string_property_to()
+{
+  local _variable_name="$1"
+  local _json_property_name="$2"
+  local _string_value="$3"
 
-    if [ "${xpack_has_two_numbers_version:-}" == "true" ] && [[ "${xpack_release_semver}" =~ .*[.]0*$ ]]
-    then
-      # Remove the patch number, if zero.
-      xpack_upstream_version="$(echo ${xpack_release_semver} | sed -e 's|[.]0*$||')"
-    else
-      xpack_upstream_version="${xpack_release_semver}"
-    fi
-    export xpack_upstream_version
+  local _current="${!_variable_name}"
+  local _new_value="$(echo "${_current}" | json -o json-0 -e "this.${_json_property_name}=\"${_string_value}\"")"
+  export "${_variable_name}=${_new_value}"
 
-    # Edit the json and add more properties one by one.
-    export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-    -e "this.xpackVersion=\"${xpack_xpack_version}\"" \
-    -e "this.xpackSemver=\"${xpack_xpack_semver}\"" \
-    -e "this.xpackSubversion=\"${xpack_xpack_subversion}\"" \
-    -e "this.upstreamVersion=\"${xpack_upstream_version}\"" \
-    )
-
+  if [ -n "${4:-}" ]
+  then
+    local _variable_snake_name="$(echo "${_json_property_name}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    export "${4}${_variable_snake_name}=$(echo "${_string_value}")"
   fi
 
-  # ---------------------------------------------------------------------------
+}
 
-  echo
-  echo -n '"xpack_context": '
-  echo "${xpack_context}" | json
+# $1: variable name
+# $2: json property name
+# $3: value
+# $4: optional prefix for environment variable to be exported.
+function serialise_non_empty_string_property_to()
+{
+  local _variable_name="$1"
+  local _json_property_name="$2"
+  local _string_value="$3"
 
-  echo
-  echo "environment variables: "
-  echo
-  env | egrep '^xpack_' | sort
+  if [ ! -z "${_string_value}" ]
+  then
+    local _current="${!_variable_name}"
+    local _new_value="$(echo "${_current}" | json -o json-0 -e "this.${_json_property_name}=\"${_string_value}\"")"
+    export "${_variable_name}=${_new_value}"
+  fi
 
-  echo
+  if [ -n "${4:-}" ]
+  then
+    local _variable_snake_name="$(echo "${_json_property_name}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    export "${4}${_variable_snake_name}=$(echo "${_string_value}")"
+  fi
+}
+
+# $1: variable name
+# $2: json property name
+# $3: value
+# $4: optional prefix for environment variable to be exported.
+function serialise_array_property_to()
+{
+  local _variable_name="$1"
+  local _json_property_name="$2"
+  local _array_value="$3"
+
+  local _array_value="$3"
+  if [ ! -z "${_array_value}" ]
+  then
+    local _current="${!_variable_name}"
+    local _new_value
+    _new_value="$(echo "${_current}" | json -o json-0 -e "this.${_json_property_name}=${_array_value}")"
+    export "${_variable_name}=${_new_value}"
+  fi
+
+  if [ -n "${4:-}" ]
+  then
+    local _variable_snake_name="$(echo "${_json_property_name}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    local _string_value="$(echo "${_array_value}" | sed -e 's|^\[||' -e 's|\]$||' -e 's|"||g')"
+    export "${4}${_variable_snake_name}=$(echo "${_string_value:-"[]"}")"
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -873,14 +1249,14 @@ function compute_context()
 # xargs stops only for exit code 255.
 function trap_handler()
 {
-  local message="${1}"
+  local _message="${1}"
   shift
-  local line_number="${1}"
+  local _line_number="${1}"
   shift
-  local exit_code="${1}"
+  local _exit_code="${1}"
   shift
 
-  echo "\007 FAIL ${message} line: ${line_number} exit: ${exit_code}"
+  echo "\007 FAIL ${_message} line: ${_line_number} exit: ${_exit_code}"
 
   if [ $# -ge 1 ]
   then
@@ -892,57 +1268,58 @@ function trap_handler()
 
 function substitute()
 {
-  local from_relative_file_path="$1" # liquid source
-  local to_relative_file_path="$2" # destination
+  local _from_relative_file_path="$1" # liquid source
+  local _to_relative_file_path="$2" # destination
   # $3 - destination absolute folder path
 
-  local to_absolute_file_path="${3}/${to_relative_file_path}"
-  mkdir -pv "$(dirname ${to_absolute_file_path})"
+  local _to_absolute_file_path="${3}/${_to_relative_file_path}"
+  mkdir -pv "$(dirname ${_to_absolute_file_path})"
 
-  echo "liquidjs -> ${to_relative_file_path}"
+  echo "liquidjs -> ${_to_relative_file_path}"
   # pwd
 
   if [ "${do_dry_run}" == "true" ]
   then
-    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
   else
-    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${to_absolute_file_path}.new" --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output "${_to_absolute_file_path}.new" --strict-filters --strict-variables --lenient-if
 
-    rm -f "${to_absolute_file_path}"
-    mv "${to_absolute_file_path}.new" "${to_absolute_file_path}"
+    rm -f "${_to_absolute_file_path}"
+    mv "${_to_absolute_file_path}.new" "${_to_absolute_file_path}"
   fi
 }
 
 function substitute_and_merge()
 {
-  local from_relative_file_path="$1" # liquid source
-  local to_relative_file_path="$2" # destination
+  local _from_relative_file_path="$1" # liquid source
+  local _to_relative_file_path="$2" # destination
   # $3 - destination absolute folder path
 
-  local to_absolute_file_path="${3}/${to_relative_file_path}"
-  mkdir -pv "$(dirname ${to_absolute_file_path})"
+  local _to_absolute_file_path="${3}/${_to_relative_file_path}"
+  mkdir -pv "$(dirname ${_to_absolute_file_path})"
 
-  echo "liquidjs | merge -> ${to_relative_file_path}"
+  echo "liquidjs | merge -> ${_to_relative_file_path}"
 
   if [ "${do_dry_run}" == "true" ]
   then
-    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
   else
-    liquidjs --context "${xpack_context}" --template "@${from_relative_file_path}" --output "${tmp_file_path}" --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output "${tmp_file_path}" --strict-filters --strict-variables --lenient-if
 
     # json -f "${tmp_file_path}"
-    echo >> "${to_absolute_file_path}"
+    echo >> "${_to_absolute_file_path}"
 
     # https://trentm.com/json
-    cat "${to_absolute_file_path}" "${tmp_file_path}" | json --deep-merge >"${to_absolute_file_path}.new"
+    cat "${_to_absolute_file_path}" "${tmp_file_path}" | json --deep-merge >"${_to_absolute_file_path}.new"
 
-    rm -f "${to_absolute_file_path}"
-    mv "${to_absolute_file_path}.new" "${to_absolute_file_path}"
+    rm -f "${_to_absolute_file_path}"
+    mv "${_to_absolute_file_path}.new" "${_to_absolute_file_path}"
   fi
 }
 
 # -----------------------------------------------------------------------------
 
+# The paths are set by prepare_paths().
 function process_file() {
 
   if [ -f "${to_absolute_file_path}" ]
@@ -989,7 +1366,6 @@ function process_file() {
       echo ">>>> ${to_relative_file_path} not present >>>>"
     fi
   fi
-
 }
 
 # -----------------------------------------------------------------------------
@@ -998,9 +1374,9 @@ function process_file() {
 function import_releases()
 {
   (
-    local from_folder_path="${1}"
+    local _from_folder_path="${1}"
 
-    cd "${from_folder_path}"
+    cd "${_from_folder_path}"
 
     echo
     echo "----------------------------------------------------------------------------"
@@ -1010,25 +1386,25 @@ function import_releases()
 
     name="$(basename "$(pwd)")"
 
-    export project_folder_path="${from_folder_path}"
-    export website_folder_path="${from_folder_path}/website"
+    export project_folder_path="${_from_folder_path}"
+    export website_folder_path="${_from_folder_path}/website"
 
     export xpack_www_releases="${website_folder_path}/_xpack.github.io/_posts/releases"
 
-    npm_package_name="$(echo "${name}" | sed -e 's|-xpack.git||')"
+    local _npm_package_name="$(echo "${name}" | sed -e 's|-xpack.git||')"
     export do_force="y"
-    if [ ! -d "${xpack_www_releases}/${npm_package_name}" ]
+    if [ ! -d "${xpack_www_releases}/${_npm_package_name}" ]
     then
-      echo "No ${xpack_www_releases}/${npm_package_name}, nothing to do..."
+      echo "No ${xpack_www_releases}/${_npm_package_name}, nothing to do..."
       return 0
     fi
 
     export xpack_website_config_short_name="$(json -f "${project_folder_path}/package.json" topConfig.permalinkName)"
     export xpack_website_config_long_name="xPack $(json -f "${project_folder_path}/package.json" topConfig.descriptiveName)"
-    export xpack_github_repository_url="$(json -f "${project_folder_path}/package.json" repository.url)"
-    export xpack_github_project_organization="$(echo "${xpack_github_repository_url}" | sed -e 's|.*github.com/||' | sed -e 's|/.*||')"
+    export xpack_repository_url="$(json -f "${project_folder_path}/package.json" repository.url)"
+    export xpack_github_project_organization="$(echo "${xpack_repository_url}" | sed -e 's|.*github.com/||' | sed -e 's|/.*||')"
 
-    cd "${xpack_www_releases}/${npm_package_name}"
+    cd "${xpack_www_releases}/${_npm_package_name}"
 
     echo
     echo "Release posts..."
@@ -1061,36 +1437,36 @@ function import_releases()
 
 function download_binaries()
 {
-  local destination_folder_path="${1:-"${HOME}/Downloads/xpack-binaries/${xpack_permalink_name}"}"
+  local _destination_folder_path="${1:-"${HOME}/Downloads/xpack-binaries/${xpack_top_config_permalink_name}"}"
 
-  local version=${XBB_RELEASE_VERSION:-"${xpack_xpack_version}"}
+  local _version=${XBB_RELEASE_VERSION:-"${xpack_xpack_version}"}
 
   (
-    rm -rf "${destination_folder_path}-bak"
-    if [ -d "${destination_folder_path}" ]
+    rm -rf "${_destination_folder_path}-bak"
+    if [ -d "${_destination_folder_path}" ]
     then
-      mv "${destination_folder_path}" "${destination_folder_path}-bak"
+      mv "${_destination_folder_path}" "${_destination_folder_path}-bak"
     fi
 
-    mkdir -pv "${destination_folder_path}"
-    cd "${destination_folder_path}"
+    mkdir -pv "${_destination_folder_path}"
+    cd "${_destination_folder_path}"
 
     # Extract the xpack.properties platforms. There are also in xpack.binaries.
-    local platforms=$(echo "${xpack_platforms}" | sed 's|,| |g')
+    local _platforms=$(echo "${xpack_platforms}" | sed 's|,| |g')
 
     IFS=' '
-    for platform in ${platforms}
+    for _platform in ${_platforms}
     do
 
-      # echo ${platform}
+      # echo ${_platform}
       # https://github.com/xpack-dev-tools/pre-releases/releases/download/test/xpack-ninja-build-1.11.1-2-win32-x64.zip
-      local extension='tar.gz'
-      if [ "${platform}" == "win32-x64" ]
+      local _extension='tar.gz'
+      if [ "${_platform}" == "win32-x64" ]
       then
-        extension='zip'
+        _extension='zip'
       fi
 
-      archive_name="xpack-${xpack_permalink_name}-${version}-${platform}.${extension}"
+      archive_name="xpack-${xpack_top_config_permalink_name}-${_version}-${_platform}.${_extension}"
       archive_url="https://github.com/xpack-dev-tools/pre-releases/releases/download/test/${archive_name}"
 
       run_verbose curl --location --insecure --fail --location --silent \
@@ -1103,7 +1479,7 @@ function download_binaries()
 
     done
 
-    rm -rf "${destination_folder_path}-bak"
+    rm -rf "${_destination_folder_path}-bak"
   )
 }
 

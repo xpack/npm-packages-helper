@@ -2,7 +2,7 @@
 
 {%- assign platforms_array = platforms | split: "," %}
 
-name: 'Build {{packageConfig.descriptiveName}} win32-x64'
+name: 'Build {{topConfig.descriptiveName}} win32-x64'
 
 on:
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
     timeout-minutes: 2880 # 2 days
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
     runs-on: [self-hosted, linux, x64, xbbliw]
 {%- else %}
     runs-on: ubuntu-24.04
@@ -77,7 +77,7 @@ jobs:
           echo "$(which npm): $(npm --version)"
           echo "$(which xpm): $(xpm --version)"
 
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
 
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
@@ -129,7 +129,7 @@ jobs:
           tag: 'test'
           token: {% raw %}${{secrets.PUBLISH_TOKEN}}{% endraw %}
 
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
 
       - name: 'Rename working area'
         # For just in case absolute paths remain unprocessed.
@@ -192,7 +192,7 @@ jobs:
         # Run the test from the short path
         run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
 
-{%- if packageConfig.showTestsResults == 'true' %}
+{%- if topConfig.showTestsResults %}
 
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4

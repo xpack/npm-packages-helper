@@ -151,7 +151,7 @@ skip_pages_array=("BEGIN" ".gitkeep")
 if [ "${is_xpack}" == "true" ]
 then
 
-  if [ "${xpack_is_typescript}" != "true" ]
+  if [ "${xpack_top_config_is_typescript}" != "true" ]
   then
     skip_pages_array+=(\
       "tsconfig-common.json" \
@@ -162,29 +162,29 @@ then
     )
   fi
 
-  if [ "${xpack_skip_ci_tests}" == "true" ] ||
-     [ "${xpack_npm_package_version}" == "0.0.0" ]
+  if [ "${xpack_top_config_skip_ci_tests}" == "true" ] ||
+     [ "${xpack_package_version}" == "0.0.0" ]
   then
     skip_pages_array+=(\
       ".github/workflows/test-ci.yml" \
     )
   fi
 
-  if [ "${xpack_has_trigger_publish}" != "true" ]
+  if [ "${xpack_top_config_has_trigger_publish}" != "true" ]
   then
     skip_pages_array+=(\
       ".github/workflows/trigger-publish-github-pages.yml" \
     )
   fi
 
-  if [ "${xpack_has_trigger_publish_preview}" != "true" ]
+  if [ "${xpack_top_config_has_trigger_publish_preview}" != "true" ]
   then
     skip_pages_array+=(\
       ".github/workflows/trigger-publish-github-pages-preview.yml" \
     )
   fi
 
-  if [ "${xpack_is_web_deploy_only}" == "true" ]
+  if [ "${xpack_top_config_is_web_deploy_only}" == "true" ]
   then
     skip_pages_array+=(\
       "config/api-extractor.json" \
@@ -195,21 +195,21 @@ then
     )
   fi
 
-  if [ "${xpack_npm_package_use_typescript_eslint}" != "true" ]
+  if [ "${xpack_top_config_use_typescript_eslint}" != "true" ]
   then
     skip_pages_array+=(\
       ".prettierignore" \
     )
   fi
 
-  if [ "${xpack_npm_package_use_typescript_eslint}" != "true" ]
+  if [ "${xpack_top_config_use_typescript_eslint}" != "true" ]
   then
     skip_pages_array+=(\
       "eslint.config.js" \
     )
   fi
 
-  if [ "${xpack_npm_package_use_api_extractor}" != "true" ]
+  if [ "${xpack_top_config_use_api_extractor}" != "true" ]
   then
     skip_pages_array+=(\
       "config/api-extractor.json" \
@@ -224,9 +224,9 @@ then
     platforms_with_commas=",linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64,"
   fi
 
-  if [ "${xpack_is_organization_web}" == "true" ] ||
-     [ "${xpack_is_web_deploy_only}" == "true" ] ||
-     [ "${xpack_npm_package_is_xpack}" != "true" ]
+  if [ "${xpack_top_config_is_organisation_web}" == "true" ] ||
+     [ "${xpack_top_config_is_web_deploy_only}" == "true" ] ||
+     [ "${xpack_is_xpack}" != "true" ]
   then
 
     skip_pages_array+=(\
@@ -322,7 +322,7 @@ then
   )
 fi
 
-if [ "${xpack_is_web_deploy_only}" != "true" ]
+if [ "${xpack_top_config_is_web_deploy_only}" != "true" ]
 then
   skip_pages_array+=(\
     ".github/workflows/publish-github-pages-from-remote.yml" \
@@ -335,14 +335,14 @@ else
   )
 fi
 
-if [ "${xpack_npm_package_version}" == "0.0.0" ]
+if [ "${xpack_package_version}" == "0.0.0" ]
 then
   skip_pages_array+=(\
     ".npmignore" \
   )
 fi
 
-if [ "${xpack_has_test_all}" != "true" ]
+if [ "${xpack_top_config_has_test_all}" != "true" ]
 then
   skip_pages_array+=(\
     ".github/workflows/test-all.yml" \
@@ -366,7 +366,7 @@ then
   )
 fi
 
-if [ "${xpack_use_self_hosted_runners}" != "true" ]
+if [ "${xpack_top_config_use_self_hosted_runners}" != "true" ]
 then
   skip_pages_array+=(\
     ".github/workflows/deep-clean.yml" \

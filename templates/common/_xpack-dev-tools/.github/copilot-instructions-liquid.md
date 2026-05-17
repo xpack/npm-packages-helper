@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is the **{{packageConfig.descriptiveName}}** project, part of the xPack Development Tools.
+This is the **{{topConfig.descriptiveName}}** project, part of the xPack Development Tools.
 
 ## Language and Tone
 
@@ -16,12 +16,12 @@ This is the **{{packageConfig.descriptiveName}}** project, part of the xPack Dev
 - Maintain consistency in terminology throughout the codebase
 - Prefer "folder" to "directory"
 
-{%- if packageConfig.isWebDeployOnly != "true" %}
+{%- unless topConfig.isWebDeployOnly %}
 
 ## Folder Structure
 
-{% if isXpackBinary == "true" -%}
+{% if isXpackBinary -%}
 - `/build-assets`: Contains the build scripts, patches, etc
 {%- endif %}
 - `/website`: Contains the project Docusaurus website
-{%- endif %}
+{%- endunless %}

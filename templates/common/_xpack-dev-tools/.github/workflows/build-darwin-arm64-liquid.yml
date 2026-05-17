@@ -2,7 +2,7 @@
 
 {%- assign platforms_array = platforms | split: "," %}
 
-name: 'Build {{packageConfig.descriptiveName}} darwin-arm64'
+name: 'Build {{topConfig.descriptiveName}} darwin-arm64'
 
 on:
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
     timeout-minutes: 2880 # 2 days
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
     runs-on: [self-hosted, macos, apple]
 {%- else %}
     runs-on: macos-15
@@ -143,7 +143,7 @@ jobs:
           tag: 'test'
           token: {% raw %}${{secrets.PUBLISH_TOKEN}}{% endraw %}
 
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
 
       - name: 'Rename working area'
         # For just in case absolute paths remain unprocessed.
@@ -164,7 +164,7 @@ jobs:
           df -gH /
           ls -lA /Library/Developer/CommandLineTools/SDKs || true
           ls -lA /Applications
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
           sudo xcode-select --switch /Applications/Xcode_16.4.app
 {%- endif %}
           xcode-select --print-path
@@ -196,7 +196,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
         run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
 
-{%- if packageConfig.showTestsResults == 'true' %}
+{%- if topConfig.showTestsResults %}
 
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4

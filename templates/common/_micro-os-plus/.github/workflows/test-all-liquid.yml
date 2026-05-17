@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
   ci-test:
-    name: 'All {{packageConfig.descriptiveName}} tests'
+    name: 'All {{topConfig.descriptiveName}} tests'
 
     runs-on:  {% raw %}${{ matrix.os }}{% endraw %}
 

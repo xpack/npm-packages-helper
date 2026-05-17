@@ -69,15 +69,13 @@ npm link @xpack/npm-packages-helper
 npm run generate-top-commons-init
 ```
 
+The file `config/top-templates.json`:
+
 ```json
-  ...
-  "topConfig": {
+{
     "descriptiveName": "µTest++ Testing Framework",
     "permalinkName": "micro-test-plus"
-  },
-  "engines": {
-    "node": ">=20.0"
-  }
+}
 ```
 
 
@@ -152,7 +150,6 @@ Update license MIT, Copyright (c) 2025-2026 Liviu Ionescu. All rights reserved.
   "dependencies": {},
   "devDependencies": {},
   "bundleDependencies": [],
-  "topConfig": {},
   "engines": {
     "node": ">=20.0"
   }
@@ -165,11 +162,15 @@ Not for web deploy only.
 ```json
   "homepage": "https://xpack.github.io/XYZ-preview/",
   "homepagePreview": "https://xpack.github.io/XYZ-cli-ts/",
-  ...
-  "topConfig": {
-    "hasTriggerPublish": "true",
-    "isWebPreview": "true"
-  }
+```
+
+The file `config/top-templates.json`:
+
+```json
+{
+  "hasTriggerPublish": "true",
+  "isWebPreview": "true"
+}
 ```
 
 The preview sites have a simplified configuration:
@@ -186,9 +187,9 @@ The preview sites have a simplified configuration:
 For binary xPacks, define the long project name:
 
 ```json
-  "topConfig": {
-    "descriptiveName": "GNU AArch64 Embedded GCC"
-  },
+{
+  "descriptiveName": "GNU AArch64 Embedded GCC"
+}
 ```
 
 ### For binary packages
@@ -211,13 +212,16 @@ Add the following:
     "json": "^11.0.0",
     "liquidjs": "^10.19.1"
   },
-  "topConfig": {
-    "descriptiveName": "XYZ"
-  },
 ```
 
 and get the long name from `build-assets/package.json`
 the value of `xpack.properties.appName`.
+
+```json
+{
+  "descriptiveName": "XYZ"
+}
+```
 
 Run the `npm-link-helpers` and `generate-top-commons` actions.
 
@@ -242,13 +246,15 @@ For the top web project, add to top `package.json`:
 ```json
   "version": "0.0.0",
   "homepagePreview": ".../web-preview/",
-  ...
-  "topConfig": {
-    "descriptiveName": "The µOS++ Framework",
-    "isOrganizationWeb": "true",
-    "hasTriggerPublishPreview": "true",
-    "hasEmptyMaster": "true"
-  }
+```
+
+```json
+{
+  "descriptiveName": "The µOS++ Framework",
+  "isOrganisationWeb": "true",
+  "hasTriggerPublishPreview": "true",
+  "hasEmptyMaster": "true"
+}
 ```
 
 ### Web deployment only
@@ -261,10 +267,10 @@ For Web deployment only projects (`xpm`, `xcdl`)
 - add isWebDeployOnly
 
 ```json
-  "topConfig": {
-    "descriptiveName": "xxx website",
-    "isWebDeployOnly": "true"
-  }
+{
+  "descriptiveName": "xxx website",
+  "isWebDeployOnly": "true"
+}
 ```
 
 - run generate-top-commons-init
@@ -278,14 +284,16 @@ In the main project:
 - edit Environment to it
 - add:
 
-```
+```json
   "homepage": "https://xpack.github.io/xpm/",
   "homepagePreview": "https://xpack.github.io/xpm-js/",
+```
 
-  "topConfig": {
-    "hasTriggerPublish": "true",
-    "isWebPreview": "true"
-  }
+```json
+{
+  "hasTriggerPublish": "true",
+  "isWebPreview": "true"
+}
 ```
 
 ### Web preview only
@@ -293,9 +301,9 @@ In the main project:
 For Web preview only projects (`web-preview`), add:
 
 ```json
-  "topConfig": {
-    "isWebPreview": "true"
-  }
+{
+  "isWebPreview": "true"
+}
 ```
 
 ### Top scripts
@@ -372,13 +380,13 @@ The top `xpack.github.io` project:
   "packageHomepagePreview": "https://xpack.github.io/web-preview/",
   "baseUrlPreview": "/web-preview/",
   "releaseDate": "2025-01-06 21:19:55 +0200",
-  "packageConfig": {
-    "isOrganizationWeb": "true",
+  "topConfig": {
+    "isOrganisationWeb": "true",
     "skipCiTests": "true",
     "hasTriggerPublishPreview": "true"
   },
   "packageBuildConfig": {},
-  "packageWebsiteConfig": {
+  "websiteConfig": {
     "descriptiveName": "xPack Project",
     "title": "The xPack Reproducible Build Framework",
     "tagline": "Tools to manage, configure and build complex, package based, multi-target projects, in a reproducible way",
@@ -410,13 +418,13 @@ When no longer needed:
 
 - `packageConfig` (see below)
 - `packageBuildConfig` (avoid, to be migrated to websiteConfig)
-- `packageWebsiteConfig` (see `docusaurus-template-liquid`)
+- `websiteConfig` (see `docusaurus-template-liquid`)
 
 #### In `packageConfig` (from `topConfig`)
 
 Booleans (`true`/`false`):
 
-- `isOrganizationWeb`
+- `isOrganisationWeb`
 - `isWebDeployOnly`
 - `skipCiTests`
 - `showTestsResults`
@@ -439,7 +447,6 @@ Booleans (`true`/`false`):
 - `hasBranchXpackDevelopment`
 - `hasBranchWebsite`
 - `hasBranchWebpreview`
-- `hasWebsiteFolder`
 - `isTypeScript`
 - `isJavaScript`
 
@@ -498,7 +505,6 @@ Miscellaneous
     "doxygen",
     "cli"
   ],
-  "hasWebsiteFolder": "true",
   "isTypeScript": "true",
   "isJavaScript": "false",
   "isNpmBinary": "true",
@@ -507,13 +513,13 @@ Miscellaneous
   "packageDependenciesTypescriptVersion": "5.8.3",
   "packageHomepage": "https://xpack.github.io/doxygen2docusaurus-cli-ts/",
   "packageHomepagePreview": "https://xpack.github.io/doxygen2docusaurus-cli-ts/",
-  "packageUsePrettier": "true",
-  "packageUseTypeScriptEslint": "true",
-  "packageUseApiExtractor": "true",
+  "usePrettier": "true",
+  "useTypeScriptEslint": "true",
+  "useApiExtractor": "true",
   "package": {
     ...
   },
-  "packageConfig": {
+  "topConfig": {
     "descriptiveName": "doxygen2docusaurus",
     "permalinkName": "doxygen2docusaurus",
     "skipCiTests": "true",
@@ -525,7 +531,7 @@ Miscellaneous
   "baseUrlPreview": "/doxygen2docusaurus-cli-ts/",
   "showTestsResults": "",
   "packageBuildConfig": {},
-  "packageWebsiteConfig": {
+  "websiteConfig": {
     "title": "doxygen2docusaurus - Doxygen Documentation Converter",
     "tagline": "A Node.js CLI application to convert Doxygen XML files into Docusaurus documentation",
     "hasCustomHomepageFeatures": "true",
@@ -580,7 +586,7 @@ doxygen2docusaurus-cli-ts
 
 xpack.github.io
     "descriptiveName": "xPack Project",
-    "isOrganizationWeb": "true",
+    "isOrganisationWeb": "true",
     "hasTriggerPublishPreview": "true",
     "hasEmptyMaster": "true"
 
@@ -622,7 +628,7 @@ xpack-build-box
 xpack-dev-tools.github.io
     "descriptiveName": "Binary Development Tools",
     "permalinkName": "xpack-dev-tools.github.io",
-    "isOrganizationWeb": "true",
+    "isOrganisationWeb": "true",
     "hasTriggerPublishPreview": "true",
     "hasEmptyMaster": "true"
 

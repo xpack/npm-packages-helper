@@ -21,7 +21,7 @@
 
 # -----------------------------------------------------------------------------
 
-name: 'Test {{packageConfig.descriptiveName}} on arm64 Docker platforms'
+name: 'Test {{topConfig.descriptiveName}} on arm64 Docker platforms'
 
 on:
   workflow_dispatch:

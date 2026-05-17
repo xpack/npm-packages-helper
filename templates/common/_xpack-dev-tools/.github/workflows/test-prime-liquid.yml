@@ -3,7 +3,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Test {{packageConfig.descriptiveName}} on supported platforms'
+name: 'Test {{topConfig.descriptiveName}} on supported platforms'
 
 on:
   workflow_dispatch:
@@ -55,7 +55,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
         run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -95,7 +95,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
         run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -129,7 +129,7 @@ jobs:
       - name: 'Remove Homebrew'
         uses: xpack/remove-homebrew-action@v1
 
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
           chmod -Rf a+w * || true
@@ -153,7 +153,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
         run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -187,7 +187,7 @@ jobs:
       - name: 'Remove Homebrew'
         uses: xpack/remove-homebrew-action@v1
 
-{%- if packageConfig.useSelfHostedRunners == "true" %}
+{%- if topConfig.useSelfHostedRunners %}
 
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
@@ -212,7 +212,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
         run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -275,7 +275,7 @@ jobs:
         # Run the test from the short path
         run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -285,9 +285,9 @@ jobs:
 {%- endif %}
 {% endcase %}
 {% endfor %}
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
   generate-tests-report:
-    name: 'Generate tests report for {{packageConfig.descriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
+    name: 'Generate tests report for {{topConfig.descriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
     runs-on: ubuntu-24.04
     needs: [{{platforms_array | join: "-test, " | append: "-test"}}]
 
@@ -303,7 +303,7 @@ jobs:
           ls -lR {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts
           touch {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "---" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
-          echo "title: {{packageConfig.descriptiveName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
+          echo "title: {{topConfig.descriptiveName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "date: $(date "+%Y-%m-%d %H:%M:%S %z")" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md

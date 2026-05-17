@@ -34,7 +34,7 @@
     "actions": {
       "deep-clean": [
         "del-cli build xpacks package-lock.json",
-        "del-cli --force ${HOME}/Work/xpack-dev-tools-build/{{packageConfig.permalinkName}}-[0-9]*-*"
+        "del-cli --force ${HOME}/Work/xpack-dev-tools-build/{{topConfig.permalinkName}}-[0-9]*-*"
       ],
       "install": [
         "npm install",
@@ -42,7 +42,7 @@
       ],
       "link-deps": [
         "xpm link @xpack-dev-tools/xbb-helper"
-      ]{% if packageConfig.isOrganizationWeb != "true" %},
+      ]{% unless topConfig.isOrganisationWeb %},
       "check-space": "{% raw %}{% if os.platform == 'darwin' %}df -gH /{% else %}df -BG -H /{% endif %}{% endraw %}",
       "clear-all-projects-builds": "del-cli --force ~/Work/xpack-dev-tools/*/build-assets/build",
 {% for platform in platforms_array %}
@@ -72,7 +72,7 @@
       "generate-website-blog-post": "npm --prefix ../website run generate-website-blog-post",
       "update-package-binaries": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/update-package-binaries.sh",
       "trigger-workflow-test-xpm": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-test-xpm.sh",
-{% if packageConfig.useSelfHostedRunners == "true" %}
+{% if topConfig.useSelfHostedRunners %}
       "trigger-workflow-deep-clean": "bash xpacks/@xpack-dev-tools/xbb-helper/github-actions/trigger-workflow-deep-clean.sh",
 {% endif %}
       "test-native": "{% raw %}bash {{properties.dbg}} scripts/test.sh{% endraw %}",
@@ -90,8 +90,8 @@
       "build-native-win-develop": "{% raw %}bash {{properties.dbg}} scripts/build.sh --development --windows{% endraw %}"
 {% endcase %}
 {% endfor %}
-{% endif %}
-    }{% if packageConfig.isOrganizationWeb != "true" %},
+{% endunless %}
+    }{% unless topConfig.isOrganisationWeb %},
     "buildConfigurations": {
       "common-dependencies": {
         "hidden": true,
@@ -109,7 +109,7 @@
         "actions": {
           "deep-clean": [
             "{% raw %}del-cli {{properties.buildFolderRelativePathPosix}}{% endraw %}",
-            "del-cli --force ${HOME}/Work/xpack-dev-tools-build/{{packageConfig.permalinkName}}-[0-9]*-*/{% raw %}{{configuration.name}}{% endraw %}"
+            "del-cli --force ${HOME}/Work/xpack-dev-tools-build/{{topConfig.permalinkName}}-[0-9]*-*/{% raw %}{{configuration.name}}{% endraw %}"
           ],
           "install": "{% raw %}xpm install --config {{configuration.name}}{% endraw %}"
         }
@@ -126,7 +126,7 @@
       "common-docker": {
         "hidden": true,
         "properties": {
-          "containerName": "{{packageConfig.permalinkName}}-{% raw %}{{package.version}}-{{configuration.name}}{% endraw %}",
+          "containerName": "{{topConfig.permalinkName}}-{% raw %}{{package.version}}-{{configuration.name}}{% endraw %}",
           "force32": ""
         },
         "actions": {
@@ -240,6 +240,6 @@
       }
 {% endcase %}
 {% endfor %}
-    }{% endif %}
+    }{% endunless %}
   }
 }

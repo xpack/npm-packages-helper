@@ -59,9 +59,9 @@ jobs:
     strategy:
       matrix:
         # https://github.com/actions/setup-node
-        node-version: [ {{ packageConfig.githubActionsNodeVersions | join: ', ' }} ]
+        node-version: [ {{ topConfig.githubActionsNodeVersions | join: ', ' }} ]
         # https://github.com/actions/runner-images
-        os: [ '{{ packageConfig.githubActionsOses | join: '\', \'' }}' ]
+        os: [ '{{ topConfig.githubActionsOses | join: '\', \'' }}' ]
 
     runs-on: {% raw %}${{matrix.os}}{% endraw %}
 

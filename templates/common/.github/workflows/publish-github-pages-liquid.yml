@@ -31,7 +31,7 @@ on:
   push:
     # ... on the `website` branch ...
     branches:
-      - '{% if packageConfig.isWebPreview == "true" %}{{branchWebpreview}}{% else %}{{branchWebsite}}{% endif %}'
+      - '{% if topConfig.isWebPreview %}{{branchWebpreview}}{% else %}{{branchWebsite}}{% endif %}'
     # ... skip tags only ...
     tags-ignore:
       - '**'
@@ -48,7 +48,7 @@ on:
       - 'README.md'
       - '.github/workflows/publish-github-pages.yml'
       - 'package.json'
-{%- if hasFolderBuildAssetsPackage == "true" %}
+{%- if hasFolderBuildAssetsPackage %}
       - 'build-assets/package.json'
 {%- endif %}
 
@@ -95,7 +95,7 @@ jobs:
         run: npm --prefix website ci
 
       - name: Build the Docusaurus site
-{%- if packageConfig.isWebPreview == "true" %}
+{%- if topConfig.isWebPreview %}
         env:
           DOCUSAURUS_IS_PREVIEW: 'true'
 {%- endif %}

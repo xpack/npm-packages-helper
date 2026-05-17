@@ -26,7 +26,7 @@ xcdl-cli-ts
 
 xpack.github.io
     "descriptiveName": "xPack Project",
-    "isOrganizationWeb": "true",
+    "isOrganisationWeb": "true",
     "hasTriggerPublishPreview": "true",
     "hasEmptyMaster": "true"
 
@@ -60,7 +60,7 @@ xpack-build-box
 xpack-dev-tools.github.io
     "descriptiveName": "Binary Development Tools",
     "permalinkName": "xpack-dev-tools.github.io",
-    "isOrganizationWeb": "true",
+    "isOrganisationWeb": "true",
     "hasTriggerPublishPreview": "true",
     "hasEmptyMaster": "true"
 

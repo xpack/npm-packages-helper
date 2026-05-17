@@ -3,7 +3,7 @@
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Test {{packageConfig.descriptiveName}} via xpm'
+name: 'Test {{topConfig.descriptiveName}} via xpm'
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
 {% case platform %}
 {% when "linux-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: ubuntu-24.04
 
     steps:
@@ -58,7 +58,7 @@ jobs:
           entrypoint: /bin/bash
           args: /github/workspace/build-assets/scripts/test.sh --image debian --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -68,7 +68,7 @@ jobs:
 {% endif %}
 {% when "linux-arm64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # runs-on: [self-hosted, linux, arm64, xbbla]
     runs-on: ubuntu-24.04-arm
 
@@ -107,7 +107,7 @@ jobs:
           entrypoint: /bin/bash
           args: /github/workspace/build-assets/scripts/test.sh --image debian --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -117,7 +117,7 @@ jobs:
 {% endif %}
 {% when "darwin-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: macos-15-intel
 
     steps:
@@ -173,7 +173,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
         run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -183,7 +183,7 @@ jobs:
 {% endif %}
 {% when "darwin-arm64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: macos-15
 
     steps:
@@ -239,7 +239,7 @@ jobs:
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
         run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -249,7 +249,7 @@ jobs:
 {% endif %}
 {% when "win32-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: windows-2025
     defaults:
       run:
@@ -302,7 +302,7 @@ jobs:
         # Run the test from the short path
         run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
       - name: Upload platform tests report
         uses: actions/upload-artifact@v4
         with:
@@ -312,9 +312,9 @@ jobs:
 {% endif %}
 {% endcase %}
 {% endfor %}
-{% if packageConfig.showTestsResults == 'true' %}
+{% if topConfig.showTestsResults %}
   generate-tests-report:
-    name: 'Generate tests report for {{packageConfig.descriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
+    name: 'Generate tests report for {{topConfig.descriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
     runs-on: ubuntu-24.04
     needs: [{{platforms_array | join: "-test, " | append: "-test"}}]
 
@@ -331,7 +331,7 @@ jobs:
           touch {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "---" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
-          echo "title: {{packageConfig.descriptiveName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
+          echo "title: {{topConfig.descriptiveName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "description: The report of running the tests on all supported platforms." >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "date: $(date "+%Y-%m-%d %H:%M:%S %z")" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md

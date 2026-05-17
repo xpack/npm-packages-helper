@@ -71,7 +71,7 @@ jobs:
 
       - name: Build the Docusaurus site
         env:
-          DOCUSAURUS_BASEURL: '{{baseUrl}}'{% if packageConfig.isWebPreview == "true" %}
+          DOCUSAURUS_BASEURL: '{{baseUrl}}'{% if topConfig.isWebPreview %}
           DOCUSAURUS_IS_PREVIEW: 'true'{% endif %}
         run: npm --prefix website run build
 
