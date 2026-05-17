@@ -515,7 +515,8 @@ function process_top_config()
     showTestsResults 
     hasTriggerPublish 
     hasTriggerPublishPreview 
-    hasEmptyMaster 
+    hasEmptyMaster
+    hasObjectLibrary
     preferShortName 
     hasTestAll 
     hasNoGithubReleases 
