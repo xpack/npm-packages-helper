@@ -256,7 +256,7 @@ function inspect_environment()
   then
     serialise_string_property_to "xpack_context" "branchDevelopment" "webpreview" "xpack_"
   else
-    echo "Branch development?"
+    echo "No branch development?"
     serialise_string_property_to "xpack_context" "branchDevelopment" "none" "xpack_"
     # exit 1
   fi
@@ -383,7 +383,7 @@ function process_top_package_json()
   serialise_string_property_to "xpack_context" "githubProjectName" \
     "$(echo "${xpack_github_full_name}" | sed -e 's|/$||' -e 's|.git$||' -e 's|.*/||')" "xpack_"
 
-  serialise_boolean_property_to "xpack_context" "isNpmBinary" \
+  serialise_boolean_property_to "xpack_context" "isNpmExecutable" \
     "$([ ! -z "$(echo "${xpack_package_json}" | json bin)" ] && echo true || echo false)" "xpack_"
 
   serialise_string_property_to "xpack_context" "packageEnginesNodeVersion" \
@@ -462,12 +462,13 @@ function process_top_package_json()
     export xpack_top_config_use_api_extractor
 
     export xpack_context=$(echo "${xpack_context}" | json -o json-0 \
-      -e "this.isTypeScript=\"${xpack_top_config_is_typescript}\"" \
-      -e "this.isJavaScript=\"${xpack_top_config_is_javascript}\"" \
-      -e "this.packageUsePrettier=\"${xpack_top_config_use_prettier}\"" \
-      -e "this.packageUseStandard=\"${xpack_top_config_use_standard}\"" \
-      -e "this.packageUseTypeScriptEslint=\"${xpack_top_config_use_typescript_eslint}\"" \
-      -e "this.packageUseApiExtractor=\"${xpack_top_config_use_api_extractor}\"" \
+      -e "this.topConfig={}" \
+      -e "this.topConfig.isTypescript=${xpack_top_config_is_typescript}" \
+      -e "this.topConfig.isJavascript=${xpack_top_config_is_javascript}" \
+      -e "this.topConfig.usePrettier=${xpack_top_config_use_prettier}" \
+      -e "this.topConfig.useStandard=${xpack_top_config_use_standard}" \
+      -e "this.topConfig.useTypescriptEslint=${xpack_top_config_use_typescript_eslint}" \
+      -e "this.topConfig.useApiExtractor=${xpack_top_config_use_api_extractor}" \
     )
 
   fi
@@ -499,8 +500,10 @@ function process_top_config()
     descriptiveName 
     permalinkName
     preferredName
+    programName
   )
 
+  local _prop
   for _prop in "${top_config_string_properties[@]}"
   do
     _string_property_value="$(echo "${xpack_top_config}" | json "${_prop}")"
@@ -508,27 +511,46 @@ function process_top_config()
       "${_string_property_value:-""}" "xpack_"
   done
 
+  top_config_array_properties=(
+    githubActionsNodeVersions
+    githubActionsOses 
+    githubActionsXpmVersions
+    upstreamDescriptiveName
+  )
+
+  for _prop in "${top_config_array_properties[@]}"
+  do
+    _array_property_value="$(echo "${xpack_top_config}" | json "${_prop}" -o json-0)"
+    serialise_array_property_to "xpack_context" "topConfig.${_prop}" \
+      "${_array_property_value:-""}" "xpack_"
+  done
+
   top_config_boolean_properties=(
-    isOrganisationWeb 
-    isWebDeployOnly 
-    skipCiTests 
-    showTestsResults 
+    hasCli 
+    hasEmptyMaster
+    hasNoGithubReleases 
+    hasObjectLibrary
+    hasTestAll 
     hasTriggerPublish 
     hasTriggerPublishPreview 
-    hasEmptyMaster
-    hasObjectLibrary
-    preferShortName 
-    hasTestAll 
-    hasNoGithubReleases 
-    hasCli 
-    useSelfHostedRunners
-    isTypescript
+    hasWebsite
     isJavascript
-    usePrettier
-    useStandard
-    useTypescriptEslint
+    isOrganisationWeb 
+    isTypescript
+    isWebDeployOnly
+    isWebPreview
+    preferShortName 
+    showTestsResults 
+    skipCiTests 
+    testCoverage
     useApiExtractor
     useDoxygen
+    useEslint
+    usePrettier
+    useSelfHostedRunners
+    useStandard
+    useTap
+    useTypescriptEslint
   )
 
   for _prop in "${top_config_boolean_properties[@]}"
@@ -546,7 +568,7 @@ function process_top_config()
   if [ ! -z "${xpack_top_config_descriptive_name}" ]
   then
     if [ "${xpack_top_config_descriptive_name:0:6}" != "xPack " ] &&
-        [ "${xpack_top_config_github_project_organization:0:6}" == "xpack-" ]
+        [ "${xpack_github_project_organization:0:6}" == "xpack-" ]
     then
       _xpack_long_xpack_name="xPack ${xpack_top_config_descriptive_name}"
     else
@@ -558,7 +580,6 @@ function process_top_config()
   fi
   serialise_string_property_to "xpack_context" "longXpackName" \
       "${_xpack_long_xpack_name}" "xpack_"
-  
 
   # Located here becaue they depend on isOrganisationWeb.
   local _xpack_base_url="/$(basename "${xpack_package_homepage}")/"
@@ -704,6 +725,7 @@ function write_top_template_config()
   # Start with an empty json and add properties to it.
   local _output_json="{}"
 
+  local _prop
   for _prop in "${top_config_string_properties[@]}"
   do
     local _variable_snake_name="xpack_top_config_$(echo "${_prop}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
@@ -713,16 +735,39 @@ function write_top_template_config()
       "${_string_property_value:-""}"
   done
 
+  for _prop in "${top_config_array_properties[@]}"
+  do
+    local _array_property_value="$(echo "${xpack_context}" | json "topConfig.${_prop}" -o json-0)"
+
+    serialise_array_property_to "_output_json" "${_prop}" \
+      "${_array_property_value:-""}"
+  done
+
   for _prop in "${top_config_boolean_properties[@]}"
   do
     local _variable_snake_name="xpack_top_config_$(echo "${_prop}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
     local _boolean_property_value="${!_variable_snake_name}"
 
-    serialise_true_boolean_property_to "_output_json" "${_prop}" \
+    if [ "${_prop}" == "useSelfHostedRunners" ]
+    then
+      serialise_boolean_property_to "_output_json" "${_prop}" \
       "${_boolean_property_value:-"false"}"
+    else
+      serialise_true_boolean_property_to "_output_json" "${_prop}" \
+        "${_boolean_property_value:-"false"}"
+    fi
   done
 
+  mkdir -p "${project_folder_path}/config"
   echo "${_output_json}" | json > "${project_folder_path}/config/top-templates.json"
+
+  local _output_count="$(echo "${_output_json}" | json -o json-0 -e "this._count=Object.keys(this).length" | json _count)"
+  local _config_count="$(echo "${xpack_top_config}" | json -o json-0 -e "this._count=Object.keys(this).length" | json _count)"
+  if [ "${_output_count}" != "$((${_config_count} + 1))" ]
+  then
+    echo "top-templates.json has ${_output_count} properties, but topConfig has ${_config_count} properties, plus preferredName"
+    exit 1
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -764,7 +809,7 @@ function process_xpack()
         fi
       done
       # Convert array to comma-separated string
-      local _xpack_platforms="$(IFS=','; echo "${_xpack_platforms_array[*]}")"
+      _xpack_platforms="$(IFS=','; echo "${_xpack_platforms_array[*]}")"
 
     else
       serialise_boolean_property_to "xpack_context" "isXpackBinary" "false" "xpack_"
@@ -772,7 +817,7 @@ function process_xpack()
   fi
 
   # For top webs, to display the full list of platforms.
-  if [ "${xpack_top_config_is_organisation_web}" == "true" ] && [ -z "${xpack_platforms}" ]
+  if [ "${xpack_top_config_is_organisation_web}" == "true" ] && [ -z "${_xpack_platforms}" ]
   then
     _xpack_platforms="win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64"
   fi
@@ -819,7 +864,7 @@ function process_xpack()
     else
       _xpack_upstream_version="${xpack_release_semver}"
     fi
-    serialise_string_property_to "xpack_context" "xpackUpstreamVersion" "${_xpack_upstream_version}" "xpack_"
+    serialise_string_property_to "xpack_context" "upstreamVersion" "${_xpack_upstream_version}" "xpack_"
   fi
 }
 
@@ -857,10 +902,19 @@ function process_website_config()
     )
 
     website_string_properties=(
+      armMajorMinorRelease
+      armReleaseDate
       armSubRelease
+      bashReleaseDate
       binutilsVersionMajor
       binutilsVersionMinor
+      bisonReleaseDate
       branding
+      busyboxReleaseDate
+      busyboxTag
+      clangReleaseDate
+      cmakeReleaseDate
+      coreutilsReleaseDate
       customAboutTitle
       customDeveloperTitle
       customGettingStartedTitle
@@ -868,17 +922,35 @@ function process_website_config()
       customInstallTitle
       customMaintainerTitle
       customUserTitle
+      flexReleaseDate
       gdbVersionMajor
+      gdbVersionMinor
+      llvmMingwTag
+      m4ReleaseDate
+      makeReleaseDate
+      mesonReleaseDate
       metadataKeywords
+      mingwVersion
       newlibVersion
+      ninjaReleaseDate
+      openocdCommitDate
+      openocdCommitId
+      patchelfReleaseDate
+      pkgconfigReleaseDate
       platforms
       programName
+      pythonVersion
+      qemuReleaseDate
+      sedReleaseDate
       tagline
+      texinfoReleaseDate
       title
-      triplet   
-      userGuideDescription 
+      triplet
+      userGuideDescription
+      wineReleaseDate
     )
 
+    local _prop
     for _prop in "${website_string_properties[@]}"
     do
       local _string_property_value="$(echo "${xpack_website_config}" | json "${_prop}")"
@@ -889,31 +961,21 @@ function process_website_config()
     website_boolean_properties=(
       has100coverage
       hasCustomAbout
-      hasCustomAbout 
       hasCustomConfigDoxyfile
       hasCustomDeveloper
-      hasCustomDeveloper 
       hasCustomDocsNavbarItem
       hasCustomGettingStarted
-      hasCustomGettingStarted 
       hasCustomGettingStartedSidebar
-      hasCustomGettingStartedSidebar 
       hasCustomHomepageFeatures
-      hasCustomHomepageFeatures 
       hasCustomInstall
-      hasCustomInstall 
       hasCustomMaintainer
-      hasCustomMaintainer 
       hasCustomSidebar
-      hasCustomSidebar 
       hasCustomUser
-      hasCustomUser 
       hasCustomUserSidebar
-      hasCustomUserSidebar 
       hasDoxygenDocusaurusApi
       hasDoxygenReference
       hasHomepageTools
-      hasMetadataMinimum 
+      hasMetadataMinimum
       hasPolicies
       hasToolsSidebar
       hasTopHomepageFeatures
@@ -924,6 +986,7 @@ function process_website_config()
       isGccToolchain
       isInstallGlobally
       isOrganisationWeb
+      isSecondaryTool
       isXpmDependency
       shareOnTwitter
       showDeprecatedGnuMcuAnalytics
@@ -1050,14 +1113,24 @@ function write_website_template_config()
   # Start with an empty json and add properties to it.
   local _output_json="{}"
 
+  local _prop
   for _prop in "${website_string_properties[@]}"
   do
     local _variable_snake_name="xpack_website_config_$(echo "${_prop}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
     local _string_property_value="${!_variable_snake_name}"
 
-    serialise_non_empty_string_property_to "_output_json" "${_prop}" \
-      "${_string_property_value:-""}"
+    if [ "${_prop}" == 'branding' ]
+    then
+      serialise_string_property_to "_output_json" "${_prop}" \
+        "${_string_property_value:-""}"
+    else
+      serialise_non_empty_string_property_to "_output_json" "${_prop}" \
+        "${_string_property_value:-""}"
+    fi
   done
+
+  serialise_non_empty_string_property_to "_output_json" "\$link" \
+        "$(echo "${xpack_website_config}" | json "\$link")"
 
   for _prop in "${website_boolean_properties[@]}"
   do
@@ -1068,7 +1141,16 @@ function write_website_template_config()
       "${_boolean_property_value:-"false"}"
   done
 
+  mkdir -p "${website_folder_path}/config"
   echo "${_output_json}" | json > "${website_folder_path}/config/website-templates.json"
+
+  local _output_count="$(echo "${_output_json}" | json -o json-0 -e "this._count=Object.keys(this).length" | json _count)"
+  local _config_count="$(echo "${xpack_website_config}" | json -o json-0 -e "this._count=Object.keys(this).length" | json _count)"
+  if [ "${_output_count}" != "${_config_count}" ]
+  then
+    echo "website-templates.json has ${_output_count} properties, but websiteConfig has ${_config_count} properties"
+    exit 1
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -1112,6 +1194,7 @@ function process_tests_config()
     tests 
   )
 
+  local _prop
   for _prop in "${tests_array_properties[@]}"
   do
     local _array_property_value="$(echo "${xpack_tests_config}" | json "${_prop}" -o json-0)"
@@ -1228,7 +1311,6 @@ function serialise_array_property_to()
   local _json_property_name="$2"
   local _array_value="$3"
 
-  local _array_value="$3"
   if [ ! -z "${_array_value}" ]
   then
     local _current="${!_variable_name}"
@@ -1307,6 +1389,8 @@ function substitute_and_merge()
   else
     liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output "${tmp_file_path}" --strict-filters --strict-variables --lenient-if
 
+    # echo "${tmp_file_path}"
+    # cat "${tmp_file_path}"
     # json -f "${tmp_file_path}"
     echo >> "${_to_absolute_file_path}"
 

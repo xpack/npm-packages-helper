@@ -155,6 +155,8 @@ fi
 echo
 echo "'${script_name} ${argv}' done"
 
+rm -rf "${tmp_file_path}"
+
 # Completed successfully.
 exit 0
 

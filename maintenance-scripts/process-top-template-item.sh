@@ -373,6 +373,29 @@ then
   )
 fi
 
+if [ "${xpack_top_config_is_typescript}" != "true" ]
+then
+  skip_pages_array+=(\
+    "config/tsconfig-common.json" \
+    "config/tsconfig-original.json" \
+  )
+fi
+
+if [ "${xpack_top_config_use_eslint}" != "true" ]
+then
+  skip_pages_array+=(\
+    "config/eslint.config.js" \
+  )
+fi
+
+if [ "${xpack_top_config_use_prettier}" != "true" ]
+then
+  skip_pages_array+=(\
+    "config/.prettierrc.json" \
+    "config/.prettierignore" \
+  )
+fi
+
 # -----------------------------------------------------------------------------
 
 skip_pages_array+=("END")
