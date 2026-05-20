@@ -40,7 +40,6 @@ on:
       - '**.md'
       - '.gitignore'
       - '.npmignore'
-      - '.clang-format'
       - '.vscode/**'
       - '.github/FUNDING.yml'
       - '.github/workflows/publish-github-pages*.yml'

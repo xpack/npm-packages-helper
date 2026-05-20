@@ -54,7 +54,7 @@ jobs:
 
       - name: 'Publish release'
         # https://github.com/ncipollo/release-action
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           allowUpdates: false
           bodyFile: '.github/workflows/body-github-release.md'

@@ -12,3 +12,12 @@ templates
 # Ignore Liquid template files.
 **/*-liquid.*
 **/*.liquid
+
+**/CODE-REVIEW.md
+**/code-review.md
+
+{%- if packageName == 'xpm-lib' %}
+
+# Paths are relative to the current folder, which is config.
+../tests/fixtures/package-bad-json/package.json
+{% endif %}

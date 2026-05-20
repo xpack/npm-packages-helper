@@ -3,13 +3,15 @@
   "version": "{{packageVersion}}",
   "description": "{{packageDescription}}",
 
-{%- if isTypeScript %}
+{%- if topConfig.isTypescript %}
   "type": "module",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
+{%- if isNpmExecutable %}
   "bin": {
-    "{{packageName}}": "./bin/{{packageName}}.js"
+    "{{topConfig.programName}}": "./bin/{{topConfig.programName}}.js"
   },
+{%- endif %}
 {%- endif %}
 
   "scripts": {
@@ -18,11 +20,11 @@
 {%- if topConfig.isWebDeployOnly != true and packageVersion != '0.0.0' %}
     "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile",
 
-  {%- if useApiExtractor %}
+  {%- if topConfig.useApiExtractor %}
     "api-extractor": "api-extractor run --local --verbose",
   {%- endif %}
 
-  {%- if isTypeScript %}
+  {%- if topConfig.isTypescript %}
     "compile-watch": "tsc --build --verbose --watch src",
     "compile": "tsc --project tsconfig.json",
     "fix-compile": "npm run prettier && npm run fix && npm run compile",
@@ -32,10 +34,10 @@
     "prettier": "prettier src tests --write --config config/.prettierrc.json --ignore-path config/.prettierignore",
   {%- endif %}
 
-  {%- if isJavaScript %}
+  {%- if topConfig.isJavascript %}
       "fix": "standard --fix src tests",
       "dev-cycle": "npm run fix && npm run test",
-  {%- elsif isTypeScript %}
+  {%- elsif topConfig.isTypescript %}
     {%- if topConfig.useEslint %}
         "fix": "eslint --config config/eslint.config.js --fix src",
     {%- else %}
@@ -57,9 +59,9 @@
     "postversion": "git push origin --all && git push origin --tags",
     "git-log": "git log --pretty='%cd * %h %s' --date=short",
 
-  {%- if isJavaScript %}
+  {%- if topConfig.isJavascript %}
       "lint": "standard src",
-  {%- elsif isTypeScript %}
+  {%- elsif topConfig.isTypescript %}
     {%- if topConfig.useEslint %}
         "lint": "eslint --config config/eslint.config.js src",
     {%- else %}
@@ -67,9 +69,9 @@
     {%- endif %}
   {%- endif %}
 
-  {%- if isJavaScript %}
+  {%- if topConfig.isJavascript %}
       "prepare": "npm run lint",
-  {%- elsif isTypeScript %}
+  {%- elsif topConfig.isTypescript %}
       "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile",
   {%- endif %}
 
@@ -115,32 +117,52 @@
 
 {%- if topConfig.isWebPreview %}
   "homepage": "https://{{githubProjectOrganization}}.github.io/{{packageName}}/",
+{%- if  packageName != githubProjectName %}
   "homepagePreview": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
+{%- endif %}
 {%- elsif topConfig.hasWebsite %}
+{%- assign computedGithubProjectName = githubProjectOrganization | append: '.github.io' %}
+{%- if githubProjectName == computedGithubProjectName %}
+  "homepage": "https://{{githubProjectOrganization}}.github.io/",
+{%- else %}
   "homepage": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
+{%- endif %}
 {%- else %}
   "homepage": "https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/",
 {%- endif %}
 
- "$dependenciesUrls": {
-    "@tsconfig/node20": "https://www.npmjs.com/package/@tsconfig/node20"
+ "$dependenciesUrls": { {% if topConfig.isTypescript %}
+    "@tsconfig/node20": "https://www.npmjs.com/package/@tsconfig/node20",
+    "@types/node": "https://www.npmjs.com/package/@types/node",{%- unless topConfig.skipCiTests %}
+    "@types/tap": "https://www.npmjs.com/package/@types/tap",{% endunless %}{% endif %}
+    "del-cli": "https://www.npmjs.com/package/del-cli",
+    "json": "https://www.npmjs.com/package/json",
+    "liquidjs": "https://www.npmjs.com/package/liquidjs"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
+    "tap": "https://www.npmjs.com/package/tap"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
+    "ts-node": "https://www.npmjs.com/package/ts-node"{%- if topConfig.useEslint %},
+    "eslint": "https://www.npmjs.com/package/eslint",
+    "@eslint/js": "https://www.npmjs.com/package/@eslint/js",
+    "eslint-config-prettier": "https://www.npmjs.com/package/eslint-config-prettier",
+    "typescript-eslint": "https://www.npmjs.com/package/typescript-eslint"{% endif %},
+    "prettier": "https://www.npmjs.com/package/prettier",
+    "typescript": "https://www.npmjs.com/package/typescript"{%- endif %}
   },
   "dependencies": {},
-  "devDependencies": { {% if isTypeScript %}
+  "devDependencies": { {% if topConfig.isTypescript %}
     "@tsconfig/node20": "^20.1.9",
-    "@types/node": "^25.0.9",{%- if topConfig.skipCiTests != true %}
-    "@types/tap": "^15.0.12",{% endif %}{% endif %}
+    "@types/node": "^25.9.0",{%- unless topConfig.skipCiTests %}
+    "@types/tap": "^15.0.12",{% endunless %}{% endif %}
     "del-cli": "^7.0.0",
     "json": "^11.0.0",
-    "liquidjs": "^10.24.0"{%- if isJavaScript or isTypeScript %}{%- if topConfig.skipCiTests != true %}
-    "tap": "^21.5.1"{% endif %}{% endif %}{%- if isTypeScript %},
+    "liquidjs": "^10.27.0"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
+    "tap": "^21.7.4"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
     "ts-node": "^10.9.2"{%- if topConfig.useEslint %},
-    "eslint": "^9.31.0",
-    "@eslint/js": "^9.31.0",
+    "eslint": "^9.39.4",
+    "@eslint/js": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
-    "typescript-eslint": "^8.59.2"{% endif %},
-    "prettier": "^3.8.1",
-    "typescript": "^5.8.3"{%- endif %}
+    "typescript-eslint": "^8.59.4"{% endif %},
+    "prettier": "^3.8.3",
+    "typescript": "^5.9.3"{%- endif %}
   },
 
   "engines": {
