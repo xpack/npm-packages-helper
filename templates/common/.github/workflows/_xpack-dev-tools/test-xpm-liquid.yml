@@ -1,19 +1,19 @@
 
-{% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
+{% render ".github/workflows/_xpack-dev-tools/copyright-liquid.yml" %}
 
 {% assign platforms_array = platforms | split: "," %}
 
-name: 'Test {{topConfig.descriptiveName}} on supported platforms'
+name: 'Test {{topConfig.descriptiveName}} via xpm'
 
 on:
   workflow_dispatch:
     inputs:
-      base_url:
-        description: 'The folder part of the URL where binaries are stored'
+      package-version:
+        description: 'The semver of the npm release'
         required: false
-        default: 'release'
+        default: 'test'
       version:
-        description: 'The semver of the release'
+        description: 'The GitHub release version'
         required: false
         default: 'current'
       helper-git-ref:
@@ -26,7 +26,7 @@ jobs:
 {% case platform %}
 {% when "linux-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: ubuntu-24.04
 
     steps:
@@ -52,8 +52,11 @@ jobs:
           ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
           fetch-depth: 3
 
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
-        run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
+      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm docker test'
+        uses: docker://node:lts-slim
+        with:
+          entrypoint: /bin/bash
+          args: /github/workspace/build-assets/scripts/test.sh --image debian --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
 {% if topConfig.showTestsResults %}
       - name: Upload platform tests report
@@ -65,7 +68,7 @@ jobs:
 {% endif %}
 {% when "linux-arm64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # runs-on: [self-hosted, linux, arm64, xbbla]
     runs-on: ubuntu-24.04-arm
 
@@ -79,6 +82,12 @@ jobs:
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
 
+      - name: 'Clean working area' # Mandatory for self-hosted runners.
+        run: |
+          chmod -Rf a+w * || true
+          rm -rf * .git*
+
+      # https://github.com/actions/checkout
       - name: 'Checkout project'
         uses: actions/checkout@v5
         with:
@@ -92,8 +101,11 @@ jobs:
           ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
           fetch-depth: 3
 
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
-        run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
+      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm docker test'
+        uses: docker://node:lts-slim # Currently based on debian:12-slim
+        with:
+          entrypoint: /bin/bash
+          args: /github/workspace/build-assets/scripts/test.sh --image debian --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
 {% if topConfig.showTestsResults %}
       - name: Upload platform tests report
@@ -105,8 +117,7 @@ jobs:
 {% endif %}
 {% when "darwin-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: macos-15-intel
 
     steps:
@@ -129,12 +140,21 @@ jobs:
       - name: 'Remove Homebrew'
         uses: xpack/remove-homebrew-action@v1
 
-{%- if topConfig.useSelfHostedRunners %}
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          check-latest: true
+
+      - name: 'Verify Node.js and npm'
+        run: |
+          echo "$(which node): $(node --version)"
+          echo "$(which npm): $(npm --version)"
+
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
           chmod -Rf a+w * || true
           rm -rf * .git*
-{%- endif %}
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
@@ -150,8 +170,8 @@ jobs:
           ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
           fetch-depth: 3
 
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
-        run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
+      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
+        run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
 {% if topConfig.showTestsResults %}
       - name: Upload platform tests report
@@ -163,8 +183,7 @@ jobs:
 {% endif %}
 {% when "darwin-arm64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: macos-15
 
     steps:
@@ -187,13 +206,21 @@ jobs:
       - name: 'Remove Homebrew'
         uses: xpack/remove-homebrew-action@v1
 
-{%- if topConfig.useSelfHostedRunners %}
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          check-latest: true
+
+      - name: 'Verify Node.js and npm'
+        run: |
+          echo "$(which node): $(node --version)"
+          echo "$(which npm): $(npm --version)"
 
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
           chmod -Rf a+w * || true
           rm -rf * .git*
-{%- endif %}
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
@@ -209,8 +236,8 @@ jobs:
           ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
           fetch-depth: 3
 
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
-        run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
+      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
+        run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
 {% if topConfig.showTestsResults %}
       - name: Upload platform tests report
@@ -222,7 +249,7 @@ jobs:
 {% endif %}
 {% when "win32-x64" %}
   {{platform}}-test:
-    name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
+    name: '{{platform}} {{topConfig.upstreamDescriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %} test'
     runs-on: windows-2025
     defaults:
       run:
@@ -270,10 +297,10 @@ jobs:
           )
         shell: cmd
 
-      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
+      - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} xpm test'
         working-directory: D:\t
         # Run the test from the short path
-        run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url {% raw %}${{github.event.inputs.base_url}}{% endraw %}
+        run: bash build-assets/scripts/test.sh --package-version {% raw %}${{github.event.inputs.package-version}}{% endraw %} --version {% raw %}${{github.event.inputs.version}}{% endraw %} --xpm
 
 {% if topConfig.showTestsResults %}
       - name: Upload platform tests report
@@ -282,7 +309,7 @@ jobs:
           name: tests-report-{{platform}}
           path: {% raw %}${{github.workspace}}{% endraw %}/build-assets/build/{{platform}}/artefacts/tests-report-*.md
           overwrite: true
-{%- endif %}
+{% endif %}
 {% endcase %}
 {% endfor %}
 {% if topConfig.showTestsResults %}
@@ -303,7 +330,9 @@ jobs:
           ls -lR {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts
           touch {% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "---" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
+          echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "title: {{topConfig.descriptiveName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test results" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
+          echo "description: The report of running the tests on all supported platforms." >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo "date: $(date "+%Y-%m-%d %H:%M:%S %z")" >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md
           echo >>{% raw %}${{github.workspace}}{% endraw %}/build-assets/artefacts/tests-report.md

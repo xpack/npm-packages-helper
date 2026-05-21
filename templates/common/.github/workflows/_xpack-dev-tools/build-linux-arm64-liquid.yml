@@ -1,8 +1,8 @@
-{% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
+{% render ".github/workflows/_xpack-dev-tools/copyright-liquid.yml" %}
 
 {%- assign platforms_array = platforms | split: "," %}
 
-name: 'Build {{topConfig.descriptiveName}} darwin-arm64'
+name: 'Build {{topConfig.descriptiveName}} linux-arm64'
 
 on:
   workflow_dispatch:
@@ -42,46 +42,29 @@ on:
 
 jobs:
 {%- for platform in platforms_array %}
-{%- if platform == "darwin-arm64" %}
+{%- if platform == "linux-arm64" %}
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
     timeout-minutes: 2880 # 2 days
 {%- if topConfig.useSelfHostedRunners %}
-    runs-on: [self-hosted, macos, apple]
+    runs-on: [self-hosted, linux, arm64, xbbla]
 {%- else %}
-    runs-on: macos-15
+    runs-on: ubuntu-24.04-arm
 {%- endif %}
-    env:
-      XBB_ENVIRONMENT_MACOSX_DEPLOYMENT_TARGET: '11.0'
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: 'Show environment'
         run: |
           uname -a
-          sw_vers
-          df -gH /
-          ls -lA /Library/Developer/CommandLineTools/SDKs || true
-          ls -lA /Applications
-          xcode-select --print-path
-          xcodebuild -version || true
-          pkgutil --pkg-info=com.apple.pkg.CLTools_Executables || true
-          ls -l /Library/Developer/CommandLineTools/usr/include || true
-          echo "pwd: $(pwd)"
+          lsb_release -sd
+          df -BG -H /
           echo "whoami: $(whoami)"
+          echo "pwd: $(pwd)"
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
-
-      - name: 'Remove Homebrew'
-        uses: xpack/remove-homebrew-action@v1
-
-      - name: 'Install Python packages'
-        run: |
-          pip3 install distlib
-
-      - name: 'Setup Node.js'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          check-latest: true
 
       - name: 'Install xpm'
         timeout-minutes: 1440
@@ -94,10 +77,13 @@ jobs:
           echo "$(which npm): $(npm --version)"
           echo "$(which xpm): $(xpm --version)"
 
+{%- if topConfig.useSelfHostedRunners %}
+
       - name: 'Clean working area' # Mandatory for self-hosted runners.
         run: |
           chmod -Rf a+w * || true
           rm -rf * .git*
+{%- endif %}
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
@@ -109,8 +95,8 @@ jobs:
         timeout-minutes: 1440
         run: |
           xpm install --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
-          xpm install --config {{platform}} --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
-          xpm run build --config {{platform}} -C build-assets
+          xpm run docker-prepare --config {{platform}} --loglevel {% raw %}${{github.event.inputs.xpm_install_loglevel}}{% endraw %} {% raw %}${{github.event.inputs.xpm_install_options}}{% endraw %} -C build-assets
+          xpm run docker-build --config {{platform}} -C build-assets
 
       - name: 'Show results'
         run: |
@@ -126,7 +112,7 @@ jobs:
 
       - name: 'Publish pre-release'
         # https://github.com/ncipollo/release-action
-        uses: ncipollo/release-action@v1.21.0
+        uses: ncipollo/release-action@v1.13.0 # v1.13 for 18.04
         with:
           allowUpdates: true
           artifacts: 'build-assets/build/{{platform}}/deploy/*'
@@ -148,37 +134,24 @@ jobs:
 
       - name: 'Rename working area'
         # For just in case absolute paths remain unprocessed.
-        run: mv -v build-assets/build build-assets/build-$(date -u +%Y%m%d-%H%M%S)
+        run: echo mv -v build-assets/build build-assets/build-$(date -u +%Y%m%d-%H%M%S)
 {%- endif %}
 
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-    runs-on: macos-15
+    runs-on: ubuntu-24.04-arm
     needs: [{{platform}}-build]
 
     steps:
       - name: 'Show environment'
         run: |
           uname -a
-          sw_vers
-          df -gH /
-          ls -lA /Library/Developer/CommandLineTools/SDKs || true
-          ls -lA /Applications
-{%- if topConfig.useSelfHostedRunners %}
-          sudo xcode-select --switch /Applications/Xcode_16.4.app
-{%- endif %}
-          xcode-select --print-path
-          xcodebuild -version || true
-          pkgutil --pkg-info=com.apple.pkg.CLTools_Executables || true
-          clang++ -v
+          lsb_release -sd
+          df -BG -H /
           echo "whoami: $(whoami)"
           echo "pwd: $(pwd)"
           ls -lLA
           env | sort | grep -E '^[^ \t]+='
-
-      - name: 'Remove Homebrew'
-        uses: xpack/remove-homebrew-action@v1
 
       # https://github.com/actions/checkout
       - name: 'Checkout project'
@@ -195,7 +168,7 @@ jobs:
           fetch-depth: 3
 
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
-        run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
+        run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
 
 {%- if topConfig.showTestsResults %}
 

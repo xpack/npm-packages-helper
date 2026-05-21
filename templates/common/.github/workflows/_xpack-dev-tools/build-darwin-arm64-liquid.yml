@@ -1,8 +1,8 @@
-{% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
+{% render ".github/workflows/_xpack-dev-tools/copyright-liquid.yml" %}
 
 {%- assign platforms_array = platforms | split: "," %}
 
-name: 'Build {{topConfig.descriptiveName}} darwin-x64'
+name: 'Build {{topConfig.descriptiveName}} darwin-arm64'
 
 on:
   workflow_dispatch:
@@ -42,14 +42,14 @@ on:
 
 jobs:
 {%- for platform in platforms_array %}
-{%- if platform == "darwin-x64" %}
+{%- if platform == "darwin-arm64" %}
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
     timeout-minutes: 2880 # 2 days
 {%- if topConfig.useSelfHostedRunners %}
-    runs-on: [self-hosted, macos, intel]
+    runs-on: [self-hosted, macos, apple]
 {%- else %}
-    runs-on: macos-15-intel
+    runs-on: macos-15
 {%- endif %}
     env:
       XBB_ENVIRONMENT_MACOSX_DEPLOYMENT_TARGET: '11.0'
@@ -154,7 +154,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-    runs-on: macos-15-intel
+    runs-on: macos-15
     needs: [{{platform}}-build]
 
     steps:

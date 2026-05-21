@@ -1,8 +1,8 @@
-{% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
+{% render ".github/workflows/_xpack-dev-tools/copyright-liquid.yml" %}
 
 {%- assign platforms_array = platforms | split: "," %}
 
-name: 'Build {{topConfig.descriptiveName}} linux-arm64'
+name: 'Build {{topConfig.descriptiveName}} win32-x64'
 
 on:
   workflow_dispatch:
@@ -42,14 +42,14 @@ on:
 
 jobs:
 {%- for platform in platforms_array %}
-{%- if platform == "linux-arm64" %}
+{%- if platform == "win32-x64" %}
   {{platform}}-build:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} build'
     timeout-minutes: 2880 # 2 days
 {%- if topConfig.useSelfHostedRunners %}
-    runs-on: [self-hosted, linux, arm64, xbbla]
+    runs-on: [self-hosted, linux, x64, xbbliw]
 {%- else %}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
 {%- endif %}
     defaults:
       run:
@@ -139,14 +139,18 @@ jobs:
 
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    runs-on: ubuntu-24.04-arm
+    runs-on: windows-2025
     needs: [{{platform}}-build]
+    defaults:
+      run:
+        # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
+        shell: bash # for --
 
     steps:
       - name: 'Show environment'
         run: |
           uname -a
-          lsb_release -sd
+          systeminfo # lsb_release -sd
           df -BG -H /
           echo "whoami: $(whoami)"
           echo "pwd: $(pwd)"
@@ -167,8 +171,27 @@ jobs:
           ref: {% raw %}${{github.event.inputs.helper-git-ref}}{% endraw %}
           fetch-depth: 3
 
+      - name: 'Move workspace to short path for MinGW compatibility'
+        run: |
+          echo Creating D:\t short name folder...
+          mkdir D:\t
+
+          echo Moving workspace to D:\t...
+          robocopy "%GITHUB_WORKSPACE%" "D:\t" /E /MOVE /NFL /NDL /NJH /NJS /NC /NS
+
+          if %ERRORLEVEL% LEQ 3 (
+            echo ✓ Workspace successfully moved to D:\t
+            dir D:\t
+          ) else (
+            echo ✗ Failed to move workspace, robocopy exit code: %ERRORLEVEL%
+            exit /b 1
+          )
+        shell: cmd
+
       - name: 'Run {% raw %}${{github.event.inputs.version}}{% endraw %} native test'
-        run: bash build-assets/scripts/test.sh --image github-actions-ubuntu-latest --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
+        working-directory: D:\t
+        # Run the test from the short path
+        run: bash build-assets/scripts/test.sh --version {% raw %}${{github.event.inputs.version}}{% endraw %} --base-url pre-release
 
 {%- if topConfig.showTestsResults %}
 
@@ -179,6 +202,5 @@ jobs:
           path: {% raw %}${{github.workspace}}{% endraw %}/build-assets/build/{{platform}}/artefacts/tests-report-*.md
           overwrite: true
 {%- endif %}
-{%- break %}
 {%- endif %}
 {%- endfor %}

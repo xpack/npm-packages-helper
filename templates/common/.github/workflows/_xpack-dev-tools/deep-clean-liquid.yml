@@ -1,4 +1,4 @@
-{% render "_xpack-dev-tools/.github/workflows/copyright-liquid.yml" %}
+{% render ".github/workflows/_xpack-dev-tools/copyright-liquid.yml" %}
 
 {% assign platforms_array = platforms | split: "," %}
 
