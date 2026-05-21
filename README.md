@@ -38,17 +38,13 @@ npm link @xpack/npm-packages-helper
 npm run generate-top-commons-init
 ```
 
-Add top config before engines:
+The file `config/top-templates.json`:
 
 ```json
-  ...
-  "topConfig": {
-    "descriptiveName": "CLI application to convert Doxygen XMLs into Docusaurus docs",
-    "permalinkName": "doxygen2docusaurus-ts"
-  },
-  "engines": {
-    "node": ">=20.0"
-  }
+{
+  "descriptiveName": "CLI application to convert Doxygen XMLs into Docusaurus docs",
+  "permalinkName": "doxygen2docusaurus-ts"
+}
 ```
 
 ## Add to micro-os-plus projects
@@ -73,12 +69,10 @@ The file `config/top-templates.json`:
 
 ```json
 {
-    "descriptiveName": "µTest++ Testing Framework",
-    "permalinkName": "micro-test-plus"
+  "descriptiveName": "µTest++ Testing Framework",
+  "permalinkName": "micro-test-plus"
 }
 ```
-
-
 
 ## Getting started
 
@@ -127,9 +121,6 @@ Update license MIT, Copyright (c) 2025-2026 Liviu Ionescu. All rights reserved.
   "version": "0.0.0",
   "description": "Preview for the new xpm web; to be renamed as xpm",
   "main": "",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xpack/XYZ.git"
@@ -150,6 +141,9 @@ Update license MIT, Copyright (c) 2025-2026 Liviu Ionescu. All rights reserved.
   "dependencies": {},
   "devDependencies": {},
   "bundleDependencies": [],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "engines": {
     "node": ">=20.0"
   }
@@ -176,12 +170,9 @@ The file `config/top-templates.json`:
 The preview sites have a simplified configuration:
 
 ```json
-  "topConfig": {
-    "isWebDeployOnly": "true"
-  },
-  "engines": {
-    "node": ">=20.0"
-  }
+{
+  "isWebDeployOnly": "true"
+}
 ```
 
 For binary xPacks, define the long project name:
@@ -197,6 +188,11 @@ For binary xPacks, define the long project name:
 Add the following:
 
 ```json
+  "devDependencies": {
+    "del-cli": "^6.0.0",
+    "json": "^11.0.0",
+    "liquidjs": "^10.19.1"
+  },
   "scripts": {
     "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack-dev-tools",
     "npm-install": "npm install",
@@ -207,11 +203,9 @@ Add the following:
     "deep-clean": "del-cli node_modules package-lock.json",
     "postversion": "git push origin --all && git push origin --tags"
   },
-  "devDependencies": {
-    "del-cli": "^6.0.0",
-    "json": "^11.0.0",
-    "liquidjs": "^10.19.1"
-  },
+  "engines": {
+    "node": ">=20.0"
+  }
 ```
 
 and get the long name from `build-assets/package.json`
@@ -353,55 +347,84 @@ npm run generate-website-commons
 
 The top `xpack.github.io` project:
 
-```sh
+```json
 "xpack_context": {
+  "hasFolderWebsitePackage": true,
+  "hasFolderBuildAssetsPackage": false,
+  "hasFolderTestsPackage": false,
+  "hasBranchMaster": true,
+  "hasBranchDevelopment": false,
+  "hasBranchXpack": false,
+  "hasBranchXpackDevelopment": false,
+  "hasBranchWebsite": true,
+  "hasBranchWebpreview": true,
+  "branchDevelopment": "webpreview",
+  "branchWebsite": "website",
+  "branchWebpreview": "webpreview",
+  "branchMain": "website",
+  "releaseDate": "2026-05-21 12:55:07 +0300",
   "packageScopedName": "xpack.github.io",
   "packageScope": "",
   "packageName": "xpack.github.io",
   "packageVersion": "0.0.0",
-  "releaseVersion": "0.0.0",
+  "packageType": "",
   "packageDescription": "The website for the xPack project",
+  "releaseVersion": "0.0.0",
+  "releaseSemver": "0.0.0",
+  "releaseSubversion": "",
+  "releaseNpmSubversion": "",
+  "repositoryUrl": "https://github.com/xpack/xpack.github.io.git",
   "githubProjectOrganization": "xpack",
   "githubProjectName": "xpack.github.io",
-  "isTypeScript": "false",
-  "isJavaScript": "false",
-  "skipCiTests": "true",
-  "hasBranchMaster": "true",
-  "hasBranchDevelopment": "true",
-  "hasBranchWebsite": "false",
-  "hasBranchWebpreview": "false",
-  "branchWebsite": "master",
-  "branchWebpreview": "development",
-  "packageEnginesNodeVersion": "18.0.0",
-  "packageEnginesNodeVersionMajor": "18",
+  "isNpmExecutable": false,
+  "packageEnginesNodeVersion": "20.0",
+  "packageEnginesNodeVersionMajor": "20",
   "packageDependenciesTypescriptVersion": "",
   "packageHomepage": "https://xpack.github.io/",
-  "baseUrl": "/",
   "packageHomepagePreview": "https://xpack.github.io/web-preview/",
-  "baseUrlPreview": "/web-preview/",
-  "releaseDate": "2025-01-06 21:19:55 +0200",
+  "packageKeywords": [
+    "www",
+    "website",
+    "xpack"
+  ],
   "topConfig": {
-    "isOrganisationWeb": "true",
-    "skipCiTests": "true",
-    "hasTriggerPublishPreview": "true"
-  },
-  "packageBuildConfig": {},
-  "websiteConfig": {
     "descriptiveName": "xPack Project",
-    "title": "The xPack Reproducible Build Framework",
-    "tagline": "Tools to manage, configure and build complex, package based, multi-target projects, in a reproducible way",
-    "metadataDescription": "The xPack Framework",
-    "metadataKeywords": "xpack, project, manage, build, test, dependencies, xpm, npm, reproducibility",
-    "nodeVersion": "18.20.4",
-    "hasCustomSidebar": "true",
-    "hasCustomDocsNavbarItem": "true",
-    "hasCustomDeveloper": "true",
-    "hasCustomGettingStarted": "true",
-    "hasCustomMaintainer": "true",
-    "hasCustomAbout": "true",
-    "skipInstallCommand": "true",
-    "hasCustomHomepageFeatures": "true"
-  }
+    "permalinkName": "",
+    "preferredName": "xPack Project",
+    "programName": "",
+    "hasCli": false,
+    "hasEmptyMaster": true,
+    "hasNoGithubReleases": false,
+    "hasObjectLibrary": false,
+    "hasTestAll": false,
+    "hasTriggerPublish": false,
+    "hasTriggerPublishPreview": true,
+    "hasWebsite": true,
+    "isJavascript": false,
+    "isOrganisationWeb": true,
+    "isTypescript": false,
+    "isWebDeployOnly": false,
+    "isWebPreview": false,
+    "preferShortName": false,
+    "showTestsResults": false,
+    "skipCiTests": false,
+    "testCoverage": false,
+    "useApiExtractor": false,
+    "useDoxygen": false,
+    "useEslint": false,
+    "usePrettier": false,
+    "useSelfHostedRunners": false,
+    "useStandard": false,
+    "useTap": false,
+    "useTypescriptEslint": false
+  },
+  "longXpackName": "xPack Project",
+  "baseUrl": "/",
+  "baseUrlPreview": "/web-preview/",
+  "isXpack": false,
+  "isXpackBinary": false,
+  "platforms": "win32-x64,darwin-x64,darwin-arm64,linux-x64,linux-arm64",
+  "isNpmPublished": false
 }
 ```
 
@@ -420,21 +443,50 @@ When no longer needed:
 - `packageBuildConfig` (avoid, to be migrated to websiteConfig)
 - `websiteConfig` (see `docusaurus-template-liquid`)
 
-#### In `packageConfig` (from `topConfig`)
+#### In `topConfig` (from `top-templates.json`)
+
+Strings:
+
+- `descriptiveName`: the multi word name, without _the_; used in page titles
+- `permalinkName`
+- `preferredName`
+- `programName`
+- `upstreamDescriptiveName`
+
+Arrays of strings:
+
+- `githubActionsNodeVersions`
+- `githubActionsOses` 
+- `githubActionsXpmVersions`
 
 Booleans (`true`/`false`):
 
-- `isOrganisationWeb`
-- `isWebDeployOnly`
-- `skipCiTests`
-- `showTestsResults`
-- `hasTriggerPublish`
-- `hasTriggerPublishPreview`
+- `hasCli` 
 - `hasEmptyMaster`
+- `hasNoGithubReleases` 
+- `hasObjectLibrary`
+- `hasTestAll` 
+- `hasTriggerPublish` 
+- `hasTriggerPublishPreview` 
+- `hasWebsite`
+- `isJavascript`
+- `isOrganisationWeb` 
+- `isTypescript`
+- `isWebDeployOnly`
+- `isWebPreview`
+- `preferShortName` 
+- `showTestsResults` 
+- `skipCiTests` 
+- `testCoverage`
+- `useApiExtractor`
+- `useDoxygen`
+- `useEslint`
+- `usePrettier`
+- `useSelfHostedRunners`
+- `useStandard`
+- `useTap`
+- `useTypescriptEslint`
 
-Miscellaneous:
-
-- `descriptiveName`: the multi word name, without _the_; used in page titles
 
 #### From top folder & package.json
 
@@ -447,8 +499,8 @@ Booleans (`true`/`false`):
 - `hasBranchXpackDevelopment`
 - `hasBranchWebsite`
 - `hasBranchWebpreview`
-- `isTypeScript`
-- `isJavaScript`
+- `isTypescript`
+- `isJavascript`
 
 Miscellaneous
 
@@ -505,16 +557,16 @@ Miscellaneous
     "doxygen",
     "cli"
   ],
-  "isTypeScript": "true",
-  "isJavaScript": "false",
-  "isNpmBinary": "true",
+  "isTypescript": "true",
+  "isJavascript": "false",
+  "isNpmExecutable": "true",
   "packageEnginesNodeVersion": "20.0.0",
   "packageEnginesNodeVersionMajor": "20",
   "packageDependenciesTypescriptVersion": "5.8.3",
   "packageHomepage": "https://xpack.github.io/doxygen2docusaurus-cli-ts/",
   "packageHomepagePreview": "https://xpack.github.io/doxygen2docusaurus-cli-ts/",
   "usePrettier": "true",
-  "useTypeScriptEslint": "true",
+  "useTypescriptEslint": "true",
   "useApiExtractor": "true",
   "package": {
     ...
