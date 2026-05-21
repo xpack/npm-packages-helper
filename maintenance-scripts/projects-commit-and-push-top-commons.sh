@@ -65,10 +65,15 @@ function commit_and_push()
 
     name="$(basename "$(pwd)")"
 
-    top_config="$(json -f "package.json" -o json-0 topConfig)"
+    if [ ! -f "config/top-templates.json" ]
+    then
+      echo "${name} has no config/top-templates.json..."
+      return
+    fi
+    top_config="$(json -f "config/top-templates.json" -o json-0)"
     if [ -z "${top_config}" ]
     then
-      echo "${name} has no topConfig..."
+      echo "${name} has no valid config/top-templates.json..."
       return
     fi
 
@@ -103,7 +108,7 @@ function commit_and_push()
 
     # -------------------------------------------------------------------------
 
-    run_verbose git add .github .gitignore README*.md package*.json
+    run_verbose git add .github .gitignore README*.md package*.json .vscode
     if [ -f .npmignore ]
     then
       run_verbose git add .npmignore
@@ -115,6 +120,15 @@ function commit_and_push()
     if [ -d build-assets ]
     then
       run_verbose git add build-assets
+    fi
+
+    if [ -d config ]
+    then
+      run_verbose git add config
+    fi
+    if [ -d scripts ]
+    then
+      run_verbose git add scripts
     fi
 
     run_verbose git commit -m "re-generate top commons" || true

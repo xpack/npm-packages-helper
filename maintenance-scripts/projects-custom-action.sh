@@ -65,6 +65,8 @@ function custom_action()
 
     name="$(basename "$(pwd)")"
 
+    # git fetch origin xpack-development && git merge --no-edit origin/xpack-development  
+
     # if [ -d "build-assets" ]
     # then
     #   run_verbose git add build-assets

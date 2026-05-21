@@ -72,10 +72,15 @@ function generate_top_commons()
 
     name="$(basename "$(pwd)")"
 
-    top_config="$(json -f "package.json" -o json-0 topConfig)"
+    if [ ! -f "config/top-templates.json" ]
+    then
+      echo "${name} has no config/top-templates.json..."
+      return
+    fi
+    top_config="$(json -f "config/top-templates.json" -o json-0)"
     if [ -z "${top_config}" ]
     then
-      echo "${name} has no topConfig..."
+      echo "${name} has no valid config/top-templates.json..."
       return
     fi
 

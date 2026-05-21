@@ -501,6 +501,7 @@ function process_top_config()
     permalinkName
     preferredName
     programName
+    upstreamDescriptiveName
   )
 
   local _prop
@@ -515,7 +516,6 @@ function process_top_config()
     githubActionsNodeVersions
     githubActionsOses 
     githubActionsXpmVersions
-    upstreamDescriptiveName
   )
 
   for _prop in "${top_config_array_properties[@]}"

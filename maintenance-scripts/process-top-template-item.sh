@@ -190,8 +190,11 @@ then
       "config/api-extractor.json" \
       "src/tsconfig.json" \
       "eslint.config.js" \
+      "config/eslint.config.js" \
       "tsconfig-original.json" \
+      "config/tsconfig-original.json" \
       "tsconfig.eslint.json" \
+      "config/tsconfig.eslint.json" \
     )
   fi
 
@@ -388,13 +391,13 @@ then
   )
 fi
 
-if [ "${xpack_top_config_use_prettier}" != "true" ]
-then
-  skip_pages_array+=(\
-    "config/.prettierrc.json" \
-    "config/.prettierignore" \
-  )
-fi
+# if [ "${xpack_top_config_use_prettier}" != "true" ]
+# then
+#   skip_pages_array+=(\
+#     "config/.prettierrc.json" \
+#     "config/.prettierignore" \
+#   )
+# fi
 
 # -----------------------------------------------------------------------------
 
