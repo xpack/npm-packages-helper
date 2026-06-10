@@ -107,7 +107,7 @@ function prepare_paths() {
   export from_relative_file_path="$(echo "${1}" | sed -e 's|^\.\/||')"
 
   # The destination file path.
-  export to_relative_file_path="$(echo "${1}" | sed -e 's|/_xpack/|/|' -e 's|/_xpack-dev-tools/|/|' -e 's|/_micro-os-plus/|/|' -e 's|-merge-liquid||' -e 's|-liquid||' -e 's|^\.\/||')"
+  export to_relative_file_path="$(echo "${1}" | sed -e 's|/_xpack/|/|' -e 's|/_xpack-dev-tools/|/|' -e 's|/_micro-os-plus/|/|' -e 's|-merge-liquid||' -e 's|-liquid||' -e 's|-rawliquid|-liquid|' -e 's|^\.\/||')"
 
   export to_absolute_folder_path="${2}"
   export to_absolute_file_path="${to_absolute_folder_path}/${to_relative_file_path}"
@@ -1274,7 +1274,6 @@ function serialise_string_property_to()
     local _variable_snake_name="$(echo "${_json_property_name}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
     export "${4}${_variable_snake_name}=$(echo "${_string_value}")"
   fi
-
 }
 
 # $1: variable name
@@ -1323,7 +1322,7 @@ function serialise_array_property_to()
   then
     local _variable_snake_name="$(echo "${_json_property_name}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
     local _string_value="$(echo "${_array_value}" | sed -e 's|^\[||' -e 's|\]$||' -e 's|"||g')"
-    export "${4}${_variable_snake_name}=$(echo "${_string_value:-"[]"}")"
+    export "${4}${_variable_snake_name}=$(echo "${_string_value:-""}")"
   fi
 }
 
@@ -1423,7 +1422,14 @@ function process_file() {
 
   mkdir -pv "$(dirname ${to_absolute_file_path})"
 
-  if [[ "$(basename "${from_relative_file_path}")" =~ .*-merge-liquid.* ]]
+  if [[ "$(basename "${from_relative_file_path}")" =~ .*-rawliquid.* ]]
+  then
+    echo "raw -> ${to_relative_file_path}"
+    if [ "${do_dry_run}" != "true" ]
+    then
+      cp "${from_relative_file_path}" "${to_absolute_file_path}"
+    fi
+  elif [[ "$(basename "${from_relative_file_path}")" =~ .*-merge-liquid.* ]]
   then
     substitute_and_merge "${from_relative_file_path}" "${to_relative_file_path}" "${to_absolute_folder_path}"
   elif [[ "$(basename "${from_relative_file_path}")" =~ .*-liquid.* ]]
