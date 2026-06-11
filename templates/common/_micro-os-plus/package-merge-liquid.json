@@ -54,7 +54,8 @@
     },
     "actions": {
       "clang-format": "bash scripts/clang-format.sh",
-      "cmake-format": "bash scripts/cmake-format.sh"
+      "cmake-format": "bash scripts/cmake-format.sh",
+      "xcdl-export": "bash scripts/xcdl-export.sh xcdl-package.jsonc"
     }
   },
 {%- endif %}
