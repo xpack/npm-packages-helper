@@ -19,7 +19,10 @@
   "homepage": "https://{{githubProjectOrganization}}.github.io/{{githubProjectName}}/",
   "$dependenciesUrls": {
     "del-cli": "https://www.npmjs.com/package/del-cli",
+    "glob": "https://www.npmjs.com/package/glob",
     "json": "https://www.npmjs.com/package/json",
+    "json5": "https://www.npmjs.com/package/json5",
+    "jsonc-parser": "https://www.npmjs.com/package/jsonc-parser",
     "liquidjs": "https://www.npmjs.com/package/liquidjs"
   },
   "dependencies": {},
