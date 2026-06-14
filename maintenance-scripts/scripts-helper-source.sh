@@ -1326,6 +1326,31 @@ function serialise_array_property_to()
   fi
 }
 
+# $1: variable name
+# $2: json property name
+# $3: value
+# $4: optional prefix for environment variable to be exported.
+function serialise_object_property_to()
+{
+  local _variable_name="$1"
+  local _json_property_name="$2"
+  local _object_value="$3"
+
+  if [ ! -z "${_object_value}" ]
+  then
+    local _current="${!_variable_name}"
+    local _new_value
+    _new_value="$(echo "${_current}" | json -o json-0 -e "this.${_json_property_name}=${_object_value}")"
+    export "${_variable_name}=${_new_value}"
+  fi
+
+  if [ -n "${4:-}" ]
+  then
+    local _variable_snake_name="$(echo "${_json_property_name}" | sed -e 's|[A-Z]|_&|g' -e 's|[.]|_|g' | tr '[:upper:]' '[:lower:]')"
+    export "${4}${_variable_snake_name}=$(echo "${_object_value:-""}")"
+  fi
+}
+
 # -----------------------------------------------------------------------------
 
 # xargs stops only for exit code 255.
