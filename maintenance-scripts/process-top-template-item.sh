@@ -308,7 +308,21 @@ then
       )
     fi
   fi
+fi
 
+if [ "${is_micro_os_plus}" == "true" ]
+then
+  :
+else
+  skip_pages_array+=(\
+      "config/.clang-format" \
+      "config/.cmake-format.py" \
+      "scripts/clang-format.sh" \
+      "scripts/cmake-format.sh" \
+      "scripts/jsonc-format.mjs" \
+      "scripts/jsonc-format.sh" \
+      "scripts/xcdl-export.sh" \
+    )
 fi
 
 if [ "${xpack_has_folder_build_assets_package}" != "true" ]
