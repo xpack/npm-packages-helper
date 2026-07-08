@@ -32,8 +32,6 @@ the xPack Binary Development Tools.
 - Use the Oxford comma in lists for clarity
 - Maintain consistency in terminology throughout the codebase
 - Prefer "folder" to "directory"
-- Use clear, precise, and professional language appropriate for technical
-  documentation.
 
 {%- if githubProjectOrganization == 'xpack' %}
 
@@ -41,6 +39,7 @@ the xPack Binary Development Tools.
 
 - Follow the existing ESlint TypeScript conventions (the rules defined by the `typescript-eslint` and `prettier` projects)
 - Use consistent formatting and naming conventions based on prettier and ESLint configurations
+- For TypeScript/JavaScript, the naming convention is camelCase 
 
 ## Documentation
 
@@ -88,6 +87,7 @@ the xPack Binary Development Tools.
 - Follow the existing C++ code style defined in the .clang-format file.
 - Use consistent formatting and naming conventions based on prettier and
   clang-format configurations.
+- For C/C++, the naming convention is snake_case.
 
 ## Documentation
 

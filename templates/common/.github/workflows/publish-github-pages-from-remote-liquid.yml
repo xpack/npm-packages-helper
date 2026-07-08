@@ -67,8 +67,27 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: npm --prefix website ci
-
+        run: |
+          npm ci
+          npm --prefix website ci
+{% if githubProjectOrganization == 'micro-os-plus' %}
+      - name: Install Doxygen & generate Doxygen web preview
+        # https://www.doxygen.nl/download.html
+        env:
+          DOXYGEN_VERSION: "1.17.0"
+        run: |
+          curl https://www.doxygen.nl/files/doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz --output doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
+          tar xf doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz
+          ls -l doxygen-$DOXYGEN_VERSION
+          mkdir -pv website/doxygen/.local/bin
+          ln -sv $(pwd)/doxygen-$DOXYGEN_VERSION/bin/doxygen website/doxygen/.local/bin/doxygen
+          ls -l website website/doxygen
+          echo "$(pwd)/website/doxygen/.local/bin" >> $GITHUB_PATH
+          npm --prefix website run generate-webpreview-doxygen
+{% elsif githubProjectOrganization == 'xpack' %}
+      - name: Generate TSDoc
+        run: npm --prefix website run generate-website-tsdoc
+{% endif %}
       - name: Build the Docusaurus site
         env:
           DOCUSAURUS_BASEURL: '{{baseUrl}}'{% if topConfig.isWebPreview %}
