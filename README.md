@@ -27,6 +27,25 @@ npm install del-cli json liquidjs --save-dev
 npm link @xpack/npm-packages-helper
 ```
 
+Properties order:
+
+- name
+- version
+- description
+- keywords
+- license
+- author
+- repository
+- homepage
+- bugs
+- $dependenciesUrls
+- dependencies
+- devDependencies
+- scripts
+- xpack
+- engines
+
+
 ```json
   "scripts": {
     "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --xpack",
@@ -50,14 +69,13 @@ The file `config/top-templates.json`:
 ## Add to micro-os-plus projects
 
 ```sh
-npm install del-cli json liquidjs --save-dev
+npm install del-cli json liquidjs glob json5 jsonc-parser --save-dev
 npm link @xpack/npm-packages-helper
 ```
 
 ```json
   "scripts": {
-    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --micro-os-plus",
-    ...
+    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --micro-os-plus"
   }
 ```
 
@@ -121,28 +139,31 @@ Update license MIT, Copyright (c) 2025-2026 Liviu Ionescu. All rights reserved.
   "version": "0.0.0",
   "description": "Preview for the new xpm web; to be renamed as xpm",
   "main": "",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/xpack/XYZ.git"
-  },
   "keywords": [
   ],
+  "license": "MIT",
   "author": {
     "name": "Liviu Ionescu",
     "email": "ilg@livius.net",
     "url": "https://github.com/ilg-ul"
   },
   "contributors": [],
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xpack/XYZ.git"
+  },
+  "homepage": "https://xpack.github.io/XYZ/",
   "bugs": {
     "url": "https://github.com/xpack/XYZ/issues"
   },
-  "homepage": "https://xpack.github.io/XYZ/",
+  "$dependenciesUrls": {},
   "dependencies": {},
   "devDependencies": {},
-  "bundleDependencies": [],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "xpack": {
+    "minimumXpmRequired": "0.16.2"
   },
   "engines": {
     "node": ">=20.0"
