@@ -489,6 +489,10 @@ function process_top_config()
     echo "Processing top package.json topConfig..."
 
     xpack_top_config="$(json -f "${project_folder_path}/package.json" -o json-0 topConfig)"
+    if [ -z "${xpack_top_config}" ]
+    then
+      xpack_top_config="{}"
+    fi
   fi
 
   # Edit the json and add an empty topConfig object.
@@ -508,6 +512,19 @@ function process_top_config()
   for _prop in "${top_config_string_properties[@]}"
   do
     _string_property_value="$(echo "${xpack_top_config}" | json "${_prop}")"
+    if [ -z "${_string_property_value}" ]
+    then
+      if [ "${_prop}" == "descriptiveName" ]
+      then
+        _string_property_value="???"
+      elif [ "${_prop}" == "permalinkName" ]
+      then
+        _string_property_value="${xpack_package_name}"
+      elif [ "${_prop}" == "preferredName" ]
+      then
+        _string_property_value="???"
+      fi
+    fi
     serialise_string_property_to "xpack_context" "topConfig.${_prop}" \
       "${_string_property_value:-""}" "xpack_"
   done
@@ -521,6 +538,20 @@ function process_top_config()
   for _prop in "${top_config_array_properties[@]}"
   do
     _array_property_value="$(echo "${xpack_top_config}" | json "${_prop}" -o json-0)"
+    # echo "${_prop} = ${_array_property_value}"
+    if [ -z "${_array_property_value}" ]
+    then
+      if [ "${_prop}" == "githubActionsNodeVersions" ]
+      then
+        _array_property_value='["24"]'
+      elif [ "${_prop}" == "githubActionsOses" ]
+      then
+        _array_property_value='["ubuntu-24.04","ubuntu-24.04-arm","macos-15-intel","macos-15","windows-2025"]'
+      elif [ "${_prop}" == "githubActionsXpmVersions" ]
+      then
+        _array_property_value='["0.23.2"]'
+      fi
+    fi
     serialise_array_property_to "xpack_context" "topConfig.${_prop}" \
       "${_array_property_value:-""}" "xpack_"
   done
@@ -576,7 +607,7 @@ function process_top_config()
     fi
   else
     echo "Missing descriptiveName in config/top-templates.json"
-    _xpack_long_xpack_name=""
+    _xpack_long_xpack_name="?"
   fi
   serialise_string_property_to "xpack_context" "longXpackName" \
       "${_xpack_long_xpack_name}" "xpack_"
