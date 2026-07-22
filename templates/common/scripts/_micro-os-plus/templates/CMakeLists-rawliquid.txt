@@ -47,7 +47,7 @@ cmake_minimum_required (VERSION 3.20)
 project (
   {{packageScope}}-{{packageName}}
   DESCRIPTION "{{package.description}}"
-  LANGUAGES CXX
+  LANGUAGES C CXX ASM
 )
 
 # To access the optional functions, include the
@@ -81,12 +81,13 @@ endif ()
 {% for component in xcdl.cdlComponents %}
 {%- assign nameDash = component.id | replace: '.', '-' %}
 {%- assign nameDoubleColon = component.id | replace_first: '.', '::' | replace: '.', '-' %}
+{%- assign aliasDoubleColon = component.alias | replace_first: '.', '::' | replace: '.', '-' %}
 {%- assign staticArtefacts = component.cdlArtefacts | where: 'type', 'staticLibrary' %}
 {%- assign staticArtefact = staticArtefacts | first %}
 {%- assign staticSuffix = staticArtefact.id %}
 {%- assign objectsArtefacts = component.cdlArtefacts | where: 'type', 'objectFiles' %}
 {%- assign objectsArtefact = objectsArtefacts | first %}
-{%- assign objectsSuffix = objectsArtefact.id -%}
+{%- assign objectsSuffix = objectsArtefact.id %}
 
 # https://cmake.org/cmake/help/v3.20/command/add_library.html?highlight=interface#interface-libraries
 # Visibility keywords: PRIVATE applies to the target itself; INTERFACE passes
@@ -108,19 +109,33 @@ target_sources (
             {% endif %}"{{file}}"{% endfor %}
 )
 {%- endif %}
+{%- assign defines = "" | split: "" %}
 {%- if component.publicDefines and component.publicDefines.size > 0 %}
+  {%- assign defines = defines | concat: component.publicDefines %}
+{%- endif %}
+{%- if component.privateDefines and component.privateDefines.size > 0 %}
+  {%- assign defines = defines | concat: component.privateDefines %}
+{%- endif %}
+{%- if defines.size > 0 %}
 
 target_compile_definitions (
   {{nameDash}}-interface 
-  INTERFACE{% for define in publicDefines %}{% if forloop.first %} {% else %}
+  INTERFACE{% for define in defines %}{% if forloop.first %} {% else %}
             {% endif %}"{{define}}"{% endfor %}
 )
 {%- endif %}
+{%- assign compilerOptions = "" | split: "" %}
 {%- if component.publicCompilerOptions and component.publicCompilerOptions.size > 0 %}
+  {%- assign compilerOptions = compilerOptions | concat: component.publicCompilerOptions %}
+{%- endif %}
+{%- if component.privateCompilerOptions and component.privateCompilerOptions.size > 0 %}
+  {%- assign compilerOptions = compilerOptions | concat: component.privateCompilerOptions %}
+{%- endif %}
+{%- if compilerOptions.size > 0 %}
 
 target_compile_options (
   {{nameDash}}-interface 
-  INTERFACE{% for option in component.publicCompilerOptions %}{% if forloop.first %} {% else %}
+  INTERFACE{% for option in compilerOptions %}{% if forloop.first %} {% else %}
             {% endif %}"{{option}}"{% endfor %}
 )
 {%- endif %}
@@ -149,9 +164,21 @@ message (
   "> {{nameDoubleColon}} -> {{nameDash}}-interface"
 )
 
-# -----------------------------------------------------------------------------
-{% if component.cdlArtefacts and component.cdlArtefacts.size > 0 %}
+{%- if component.alias %}
+
+add_library (
+  {{aliasDoubleColon}} ALIAS {{nameDash}}-interface
+)
+message (
+  VERBOSE
+  "> {{aliasDoubleColon}} -> {{nameDash}}-interface"
+)
+{%- endif %}
+
+{%- if component.cdlArtefacts and component.cdlArtefacts.size > 0 %}
 {%- if component.dependencies and component.dependencies.size > 0 %}
+
+# -----------------------------------------------------------------------------
 
 {%- for dependency in component.dependencies %}
 {%- assign dependencyDash = dependency | replace: '.', '-' %}
@@ -164,8 +191,9 @@ get_property (
 {%- endfor %}
 {%- endif %}
 
-# -----------------------------------------------------------------------------
 {%- if objectsArtefact %}
+
+# -----------------------------------------------------------------------------
 
 # https://cmake.org/cmake/help/v3.20/command/add_library.html?highlight=interface#object-libraries
 # Optional OBJECT library: compiles the library sources once and shares the
@@ -211,15 +239,36 @@ target_sources (
 {%- endif %}
 {%- if component.publicDefines and component.publicDefines.size > 0 %}
 
+# Use PUBLIC to allow propagating compile definitions to consumers of the
+# OBJECT library.
+target_compile_definitions (
+  {{nameDash}}-{{objectsSuffix}}
+  PUBLIC{% for define in component.publicDefines %}{% if forloop.first %} {% else %}
+          {% endif %}"{{define}}"{% endfor %}
+)
+{%- endif %}
+{%- if component.privateDefines and component.privateDefines.size > 0 %}
+
 # Use PRIVATE to avoid propagating compile definitions to consumers of the
 # OBJECT library.
 target_compile_definitions (
   {{nameDash}}-{{objectsSuffix}}
-  PRIVATE{% for define in publicDefines %}{% if forloop.first %} {% else %}
+  PRIVATE{% for define in component.privateDefines %}{% if forloop.first %} {% else %}
           {% endif %}"{{define}}"{% endfor %}
 )
 {%- endif %}
 {%- if component.publicCompilerOptions and component.publicCompilerOptions.size > 0 %}
+
+# Use PUBLIC to allow propagating the compile options to consumers of the
+# OBJECT library, which may cause conflicts with consumer-specific compile
+# options.
+target_compile_options (
+  {{nameDash}}-{{objectsSuffix}}
+  PUBLIC{% for option in component.publicCompilerOptions %}{% if forloop.first %} {% else %}
+          {% endif %}"{{option}}"{% endfor %}
+)
+{%- endif %}
+{%- if component.privateCompilerOptions and component.privateCompilerOptions.size > 0 %}
 
 # Use PRIVATE to avoid propagating the compile options to consumers of the
 # OBJECT library, which may cause conflicts with consumer-specific compile
@@ -271,9 +320,22 @@ message (
   "> {{nameDoubleColon}}-{{objectsSuffix}} -> {{nameDash}}-{{objectsSuffix}}"
 )
 
-# -----------------------------------------------------------------------------
+{%- if component.alias %}
+
+add_library (
+  {{aliasDoubleColon}}-{{objectsSuffix}} ALIAS
+  {{nameDash}}-{{objectsSuffix}}
+)
+message (
+  VERBOSE
+  "> {{aliasDoubleColon}}-{{objectsSuffix}} -> {{nameDash}}-{{objectsSuffix}}"
+)
+{%- endif %}
+
 {%- endif %}
 {%- if staticArtefact %}
+
+# -----------------------------------------------------------------------------
 
 # https://cmake.org/cmake/help/v3.20/command/add_library.html?highlight=interface#normal-libraries
 # Optional STATIC library: compiles the library sources into an archive that is
@@ -313,15 +375,36 @@ target_sources (
 {%- endif %}
 {%- if component.publicDefines and component.publicDefines.size > 0 %}
 
+# Use PUBLIC to allow propagating compile definitions to consumers of the
+# STATIC library.
+target_compile_definitions (
+  {{nameDash}}-{{staticSuffix}}
+  PUBLIC{% for define in component.publicDefines %}{% if forloop.first %} {% else %}
+          {% endif %}"{{define}}"{% endfor %}
+)
+{%- endif %}
+{%- if component.privateDefines and component.privateDefines.size > 0 %}
+
 # Use PRIVATE to avoid propagating compile definitions to consumers of the
 # STATIC library.
 target_compile_definitions (
   {{nameDash}}-{{staticSuffix}}
-  PRIVATE{% for define in publicDefines %}{% if forloop.first %} {% else %}
+  PRIVATE{% for define in component.privateDefines %}{% if forloop.first %} {% else %}
           {% endif %}"{{define}}"{% endfor %}
 )
 {%- endif %}
 {%- if component.publicCompilerOptions and component.publicCompilerOptions.size > 0 %}
+
+# Use PUBLIC to allow propagating the compile options to consumers of the
+# STATIC library, which may cause conflicts with consumer-specific compile
+# options.
+target_compile_options (
+  {{nameDash}}-{{staticSuffix}}
+  PUBLIC{% for option in component.publicCompilerOptions %}{% if forloop.first %} {% else %}
+          {% endif %}"{{option}}"{% endfor %}
+)
+{%- endif %}
+{%- if component.privateCompilerOptions and component.privateCompilerOptions.size > 0 %}
 
 # Use PRIVATE to avoid propagating the compile options to consumers of the
 # STATIC library, which may cause conflicts with consumer-specific compile
@@ -373,7 +456,19 @@ message (
   "> {{nameDoubleColon}}-{{staticSuffix}} -> {{nameDash}}-{{staticSuffix}}"
 )
 
+{%- if component.alias %}
+
+add_library (
+  {{aliasDoubleColon}}-{{staticSuffix}} ALIAS
+  {{nameDash}}-{{staticSuffix}}
+)
+message (
+  VERBOSE
+  "> {{aliasDoubleColon}}-{{staticSuffix}} -> {{nameDash}}-{{staticSuffix}}"
+)
+{%- endif %}
+{%- endif %}
+{%- endif %}
+
 # -----------------------------------------------------------------------------
-{%- endif %}
-{%- endif %}
 {% endfor %}
