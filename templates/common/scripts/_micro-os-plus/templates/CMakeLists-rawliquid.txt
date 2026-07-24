@@ -183,6 +183,7 @@ message (
 {%- for dependency in component.dependencies %}
 {%- assign dependencyDash = dependency | replace: '.', '-' %}
 {%- assign dependencyDoubleColon = dependency | replace_first: '.', '::' | replace: '.', '-' %}
+
 get_property (
   {{dependencyDash}}-includes
   TARGET {{dependencyDoubleColon}}
