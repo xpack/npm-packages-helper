@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
-# DO NOT EDIT!
-# Automatically generated from npm-packages-helper/templates/*.
+# DO NOT EDIT! Automatically generated from template file:
+# {{fromFilePath}}
 #
 {%- if githubProjectOrganization == 'micro-os-plus' %}
 # This file is part of the µOS++ project (http://micro-os-plus.github.io).

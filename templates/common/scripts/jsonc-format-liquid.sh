@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # -----------------------------------------------------------------------------
-# DO NOT EDIT!
-# Automatically generated from npm-packages-helper/templates/*.
+# DO NOT EDIT! Automatically generated from template file:
+# {{fromFilePath}}
 #
 # This file is part of the xPack project (http://xpack.github.io).
 # Copyright (c) 2026 Liviu Ionescu. All rights reserved.
@@ -35,22 +35,17 @@ IFS=$'\n\t'
 # -----------------------------------------------------------------------------
 # Identify the script location, to reach, for example, the helper scripts.
 
-script_path="$0"
-if [[ "${script_path}" != /* ]]
+build_script_path="$0"
+if [[ "${build_script_path}" != /* ]]
 then
   # Make relative path absolute.
-  script_path="$(pwd)/$0"
+  build_script_path="$(pwd)/$0"
 fi
 
-export script_path
-export script_name="$(basename "${script_path}")"
-
-export script_folder_path="$(dirname "${script_path}")"
-export script_folder_name="$(basename "${script_folder_path}")"
+script_folder_path="$(dirname "${build_script_path}")"
+script_folder_name="$(basename "${script_folder_path}")"
 
 # =============================================================================
-
-argv="$@"
 
 function run_verbose()
 {
@@ -63,18 +58,4 @@ function run_verbose()
   "${_app_path}" "$@" 2>&1
 }
 
-run_verbose clang-format --style=file:config/.clang-format -i --verbose \
-  $(find src \( -name '*.cpp' -o -name '*.c' -o -name '*.h' \)) \
-  $(find include -name '*.h') \
-  $(find tests/sources \( -name '*.cpp' -o -name '*.c' -o -name '*.h' \)) \
-  $(find tests/includes \( -name '*.cpp' -o -name '*.c' -o -name '*.h' \)) \
-  $(find tests/platforms \( -name '*.cpp' -o -name '*.c' -o -name '*.h' \))
-
-echo
-echo "'${script_name} ${argv}' done"
-
-# Completed successfully.
-exit 0
-
-# -----------------------------------------------------------------------------
-
+run_verbose node "${script_folder_path}/jsonc-format.mjs"

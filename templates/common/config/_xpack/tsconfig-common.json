@@ -1,6 +1,6 @@
 {
-  // DO NOT EDIT!
-  // Automatically generated from npm-packages-helper/templates/*.
+  // DO NOT EDIT! Automatically generated from template file:
+  // {{fromFilePath}}
   //
   // Visit https://aka.ms/tsconfig to read more about this file
   // https://www.npmjs.com/package/@tsconfig/node20

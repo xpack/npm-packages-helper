@@ -1218,7 +1218,17 @@ function process_tests_config()
     -e "this.testsConfig={}" \
   )
 
-  # export xpack_has_skip_micro_os_plus_trace="$(echo "${xpack_tests_config}" | json skipMICRO_OS_PLUS_TRACE)"
+  tests_array_properties=(
+    useStaticLibrary
+    useObjectsLibrary
+  )
+
+  for _prop in "${tests_array_properties[@]}"
+  do
+    local _boolean_property_value="$(echo "${xpack_tests_config}" | json "${_prop}" | tr '[:upper:]' '[:lower:]')"
+    serialise_boolean_property_to "xpack_context" "testsConfig.${_prop}" \
+      "${_boolean_property_value:-false}" "xpack_"
+  done
 
   tests_array_properties=(
     platforms
@@ -1410,17 +1420,22 @@ function substitute()
   local _to_relative_file_path="$2" # destination
   # $3 - destination absolute folder path
 
+  _from_project_relative_file_path="${substitution_prefix}/${_from_relative_file_path}"
+  # echo ">from: ${_from_project_relative_file_path}"
+
   local _to_absolute_file_path="${3}/${_to_relative_file_path}"
   mkdir -pv "$(dirname ${_to_absolute_file_path})"
 
   echo "liquidjs -> ${_to_relative_file_path}"
   # pwd
 
+  local _local_xpack_context="$(echo "${xpack_context}" | json -o json-0 -e "this.fromFilePath=\"${_from_project_relative_file_path}\"")"
+
   if [ "${do_dry_run}" == "true" ]
   then
-    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${_local_xpack_context}" --partials "${partials_folder_path:-.}" --template "@${_from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if --extname .liquid
   else
-    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output "${_to_absolute_file_path}.new" --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${_local_xpack_context}" --partials "${partials_folder_path:-.}" --template "@${_from_relative_file_path}" --output "${_to_absolute_file_path}.new" --strict-filters --strict-variables --lenient-if --extname .liquid
 
     rm -f "${_to_absolute_file_path}"
     mv "${_to_absolute_file_path}.new" "${_to_absolute_file_path}"
@@ -1433,16 +1448,21 @@ function substitute_and_merge()
   local _to_relative_file_path="$2" # destination
   # $3 - destination absolute folder path
 
+  _from_project_relative_file_path="${substitution_prefix}/${_from_relative_file_path}"
+  # echo ">from: ${substitution_prefix}/${_from_relative_file_path}"
+
   local _to_absolute_file_path="${3}/${_to_relative_file_path}"
   mkdir -pv "$(dirname ${_to_absolute_file_path})"
 
   echo "liquidjs | merge -> ${_to_relative_file_path}"
 
+  local _local_xpack_context="$(echo "${xpack_context}" | json -o json-0 -e "this.fromFilePath=\"${_from_project_relative_file_path}\"")"
+
   if [ "${do_dry_run}" == "true" ]
   then
-    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${_local_xpack_context}" --partials "${partials_folder_path:-.}" --template "@${_from_relative_file_path}" --output /dev/null --strict-filters --strict-variables --lenient-if --extname .liquid
   else
-    liquidjs --context "${xpack_context}" --template "@${_from_relative_file_path}" --output "${tmp_file_path}" --strict-filters --strict-variables --lenient-if
+    liquidjs --context "${_local_xpack_context}" --partials "${partials_folder_path:-.}" --template "@${_from_relative_file_path}" --output "${tmp_file_path}" --strict-filters --strict-variables --lenient-if --extname .liquid
 
     # echo "${tmp_file_path}"
     # cat "${tmp_file_path}"

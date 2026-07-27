@@ -80,9 +80,13 @@ fi
 project_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 
 templates_folder_path="$(dirname "${script_folder_path}")/templates"
+templates_relative_folder_path="${templates_folder_path#${project_folder_path}/}"
+templates_relative_folder_path="${templates_relative_folder_path#*node_modules/@xpack/}"
+templates_relative_folder_path="${templates_relative_folder_path#*node_modules/@micro-os-plus/}"
 
 export project_folder_path
 export templates_folder_path
+export templates_relative_folder_path
 
 # -----------------------------------------------------------------------------
 
@@ -102,6 +106,8 @@ fi
 
 if [ "${do_init}" == "true" ]
 then
+  export substitution_prefix=""
+
   if [ "${is_micro_os_plus}" == "true" ]
   then
     cd "${templates_folder_path}/common/_micro-os-plus"
@@ -135,6 +141,7 @@ else
   echo "Common files, overridden..."
 
   cd "${templates_folder_path}/common"
+  export substitution_prefix="${templates_relative_folder_path}/common"
 
   # Main pass to copy/generate common files.
   find . -type f -print0 | sort -zn | \
@@ -144,6 +151,7 @@ else
   echo "First time proposals..."
 
   cd "${templates_folder_path}/first-time"
+  export substitution_prefix="${templates_relative_folder_path}/first-time"
 
   find . -type f -print0 | sort -zn | \
     xargs -0 -I '{}' bash "${script_folder_path}/process-top-template-item.sh" '{}' "${project_folder_path}"
