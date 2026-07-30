@@ -148,5 +148,6 @@ specifically, with file and line references.
    with:
    - a summary of findings, and
    - specific, actionable recommendations, grouped by checklist section.
-6. Do not fix the issues automatically unless the user asks for that
+6. Index open issues numerically, to be refered when asking to close them.
+7. Do not fix the issues automatically unless the user asks for that
    separately.
