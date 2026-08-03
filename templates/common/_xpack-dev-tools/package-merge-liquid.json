@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack-dev-tools",
+    "generate-top-commons": "node node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.mjs --xpack-dev-tools",
     "npm-install": "npm install",
     "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
     "npm-outdated": "npm outdated"{% if releaseVersion != "0.0.0" %},
@@ -11,11 +11,13 @@
   },
  "$dependenciesUrls": { 
     "del-cli": "https://www.npmjs.com/package/del-cli",
+    "glob": "https://www.npmjs.com/package/glob",
     "json": "https://www.npmjs.com/package/json",
     "liquidjs": "https://www.npmjs.com/package/liquidjs"
   },
   "devDependencies": {
     "del-cli": "^7.0.0",
+    "glob": "^13.0.6",
     "json": "^11.0.0",
     "liquidjs": "^10.27.0"
   },

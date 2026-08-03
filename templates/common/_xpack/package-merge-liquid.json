@@ -136,6 +136,7 @@
     "@types/node": "https://www.npmjs.com/package/@types/node",{%- unless topConfig.skipCiTests %}
     "@types/tap": "https://www.npmjs.com/package/@types/tap",{% endunless %}{% endif %}
     "del-cli": "https://www.npmjs.com/package/del-cli",
+    "glob": "https://www.npmjs.com/package/glob",
     "json": "https://www.npmjs.com/package/json",
     "liquidjs": "https://www.npmjs.com/package/liquidjs"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
     "tap": "https://www.npmjs.com/package/tap"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
@@ -153,6 +154,7 @@
     "@types/node": "^26.1.1",{%- unless topConfig.skipCiTests %}
     "@types/tap": "^15.0.12",{% endunless %}{% endif %}
     "del-cli": "^7.0.0",
+    "glob": "^13.0.6",
     "json": "^11.0.0",
     "liquidjs": "^10.27.1"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
     "tap": "^21.7.4"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
