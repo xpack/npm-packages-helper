@@ -23,11 +23,13 @@
   "homepage": "https://xpack.github.io/npm-packages-helper/",
   "$dependenciesUrls": {
     "del-cli": "https://www.npmjs.com/package/del-cli",
+    "glob": "https://www.npmjs.com/package/glob",
     "json": "https://www.npmjs.com/package/json",
     "liquidjs": "https://www.npmjs.com/package/liquidjs"
   },
   "devDependencies": {
     "del-cli": "^7.0.0",
+    "glob": "^13.0.6",
     "json": "^11.0.0",
     "liquidjs": "^10.25.0"
   },
