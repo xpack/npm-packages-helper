@@ -104,4 +104,27 @@ eslint.config.js
 **/code-review.md
 **/CODE-REVIEW.md
 
+{%- if packageScopedName == '@xpack-3rd-party/arm-cmsis-core' %}
+
+.gitattributes
+ARM.CMSIS.pdsc
+CMSIS_Review*.pdf
+CMSIS/CoreValidation/
+CMSIS/DAP/
+CMSIS/Documentation/
+CMSIS/DoxyGen/
+CMSIS/Driver/
+CMSIS/DSP/
+CMSIS/NN/
+CMSIS/Pack/
+CMSIS/RTOS/
+CMSIS/RTOS2/
+CMSIS/Utilities/
+Device/
+Jenkinsfile
+Scalable*.pdf
+docker/
+linter.py
+{%- endif %}
+
 #end
