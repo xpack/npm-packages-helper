@@ -36,11 +36,14 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment.
+# Queue concurrent deployments per source repository/ref instead of
+# cancelling them: cancelling the job does not reliably cancel the
+# in-flight Pages-side deployment, which can leave the environment
+# stuck for the next run.
 # https://docs.github.com/en/actions/using-jobs/using-concurrency
 concurrency:
-  group: 'pages'
-  cancel-in-progress: true
+  group: '{% raw %}pages-${{ inputs.repository }}-${{ inputs.ref }}{% endraw %}'
+  cancel-in-progress: false
 
 jobs:
   # Single deploy job since we're just deploying
@@ -71,7 +74,7 @@ jobs:
           npm ci
           npm --prefix website ci
 {% if githubProjectOrganization == 'micro-os-plus' %}
-      - name: Install Doxygen & generate Doxygen web preview
+      - name: Install Doxygen
         # https://www.doxygen.nl/download.html
         env:
           DOXYGEN_VERSION: "1.17.0"
@@ -81,8 +84,12 @@ jobs:
           ls -l doxygen-$DOXYGEN_VERSION
           mkdir -pv website/doxygen/.local/bin
           ln -sv $(pwd)/doxygen-$DOXYGEN_VERSION/bin/doxygen website/doxygen/.local/bin/doxygen
-          ls -l website website/doxygen
+          ls -lA website website/doxygen
           echo "$(pwd)/website/doxygen/.local/bin" >> $GITHUB_PATH
+
+      - name: Generate Doxygen web preview
+        run: |
+          doxygen --version
           npm --prefix website run generate-webpreview-doxygen
 {% elsif githubProjectOrganization == 'xpack' %}
       - name: Generate TSDoc
@@ -105,7 +112,43 @@ jobs:
           # Upload entire repository
           path: './website/build'
 
-      - name: Deploy to GitHub Pages
-        id: deployment
+      # The GitHub Pages backend intermittently leaves a deployment stuck
+      # in "queued"/"syncing_files" past the action's 10-minute poll
+      # timeout (unresolved upstream issue, see
+      # https://github.com/actions/deploy-pages/issues/406). Retry with a
+      # cooldown, since an immediate retry against the just-cancelled SHA
+      # fails fast.
+      - name: Deploy to GitHub Pages (attempt 1)
+        id: deploy_attempt_1
+        continue-on-error: true
         # https://github.com/actions/deploy-pages
         uses: actions/deploy-pages@v5.0.0
+
+      - name: Wait before retrying deployment (1)
+        if: steps.deploy_attempt_1.outcome == 'failure'
+        run: sleep 120
+
+      - name: Deploy to GitHub Pages (attempt 2)
+        id: deploy_attempt_2
+        if: steps.deploy_attempt_1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v5.0.0
+
+      - name: Wait before retrying deployment (2)
+        if: steps.deploy_attempt_1.outcome == 'failure' && steps.deploy_attempt_2.outcome == 'failure'
+        run: sleep 120
+
+      - name: Deploy to GitHub Pages (attempt 3)
+        id: deploy_attempt_3
+        if: steps.deploy_attempt_1.outcome == 'failure' && steps.deploy_attempt_2.outcome == 'failure'
+        uses: actions/deploy-pages@v5.0.0
+
+      - name: Resolve deployment result
+        id: deployment
+        if: always()
+        run: |
+          page_url="{% raw %}${{ steps.deploy_attempt_3.outputs.page_url || steps.deploy_attempt_2.outputs.page_url || steps.deploy_attempt_1.outputs.page_url }}{% endraw %}"
+          echo "page_url=$page_url" >> "$GITHUB_OUTPUT"
+          if [ -z "$page_url" ]; then
+            exit 1
+          fi
