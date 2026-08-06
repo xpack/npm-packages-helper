@@ -97,9 +97,11 @@ jobs:
 
       - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
         run: |
+          npm ci
           npm {% if hasFolderTestsPackage %}--prefix tests {% endif %}ci
+          xpm install{% if hasFolderTestsPackage %} -C tests{% endif %}
           xpm run install-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
-
+          
       - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
         run: xpm run test-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
         env:
