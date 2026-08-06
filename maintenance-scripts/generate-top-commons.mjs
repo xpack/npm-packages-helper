@@ -208,15 +208,17 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
     }
   }
 
-  if (!options.isMicroOsPlus) {
+  if (!options.isMicroOsPlus || context.topConfig.isWebDeployOnly) {
     skipPages.push(
       'config/.clang-format',
-      'config/.cmake-format.py',
-      'scripts/clang-format.sh',
-      'scripts/cmake-format.sh',
+      'config/.cmake-format.py',  
+
+      'scripts/templates/CMakeLists-liquid.txt',
+      'scripts/templates/meson-liquid.build',
+      'scripts/clang-format.mjs',  
+      'scripts/cmake-format.mjs',
       'scripts/jsonc-format.mjs',
-      'scripts/jsonc-format.sh',
-      'scripts/xcdl-export.sh',
+      'scripts/xcdl-export.mjs',
     )
   }
 
