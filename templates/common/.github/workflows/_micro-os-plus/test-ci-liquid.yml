@@ -21,7 +21,7 @@
 # https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/test-ci.yml
 
 # Workflow for running some tests on each Push.
-name: CI on Push
+name: Test on Push
 
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
@@ -38,50 +38,61 @@ on:
       - '**'
     # ... include everything except ...
     paths-ignore:
-      - '.vscode/**'
-      - 'LICENSE'
-      - '**.md'
-      - '.clang-format'
-      - '.gitignore'
-      - '.npmignore'
+      - '.claude/**'
+      - '.github/skills/**'
       - '.github/workflows/publish-github-pages.yml'
       - '.github/workflows/test-all.yml'
+      - '.github/copilot-instructions.md'
+      - '.github/FUNDING.yml'
+      - '.settings/**'
+      - '.vscode/**'
+      - 'maintenance/**'
       - 'tests/scripts/**'
-      - '**/README**'
       - 'website/**'
+      - 'LICENSE*'
+      - '**.md'
+      - '.gitignore'
+      - '.npmignore'
+      - '**/README**'
 
-# Allow one concurrent run.
+# Allow one concurrent run per push; new pushes cancel older runs.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency
 concurrency:
-  group: 'test'
+  group: 'tests-ci-{% raw %}${{ github.ref_name }}{% endraw %}'
+  # A new push to the same branch cancels the older run.
   cancel-in-progress: true
 
 jobs:
   ci-test:
-    name: '{{topConfig.descriptiveName}} tests'
+    name: '{{topConfig.descriptiveName}} CI tests'
 
     runs-on: {% raw %}${{ matrix.os }}{% endraw %}
 
     strategy:
-      # Do not cancel the other matrix jobs if one of them fails.
+      # Run all platforms to completion, even if one fails.
       fail-fast: false
       matrix:
         # https://github.com/actions/runner-images
-        os: [ '{{ topConfig.githubActionsOses | join: '\', \'' }}' ]
+        os:
+          [
+            '{{ topConfig.githubActionsOses | join: '\',
+            \'' }}'
+          ]
         # https://nodejs.org/en - use LTS
-        node-version: [ {{ topConfig.githubActionsNodeVersions | join: ', ' }} ]
+        node-version: ['{{ topConfig.githubActionsNodeVersions | join: ', ' }}']
         # https://www.npmjs.com/package/xpm
-        xpm-version: [ {{ topConfig.githubActionsXpmVersions | join: ', ' }} ]
+        xpm-version: ['{{ topConfig.githubActionsXpmVersions | join: ', ' }}']
 
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 3
 
       - name: {% raw %}Setup Node.js ${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
         # https://github.com/actions/setup-node
-        uses: actions/setup-node@v6.1.0
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
 
@@ -103,8 +114,8 @@ jobs:
           npm {% if hasFolderTestsPackage %}--prefix tests {% endif %}ci
           xpm install{% if hasFolderTestsPackage %} -C tests{% endif %}
           xpm run install-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
-          
+
       - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
         run: xpm run test-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
         env:
-            CI: true
+          CI: true
