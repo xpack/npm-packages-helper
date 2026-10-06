@@ -35,6 +35,7 @@ const files = globSync(['**/CMakeLists.txt', '**/*.cmake'], {
     '**/build/**',
     '**/xpacks/**',
     '**/node_modules/**',
+    '**/stm32cubemx/**',
     {%- if packageScopedName == '@xpack-3rd-party/arm-cmsis-core' %}
     '**/CMSIS/**',
     '**/Device/**',
@@ -44,7 +45,7 @@ const files = globSync(['**/CMakeLists.txt', '**/*.cmake'], {
 
 const args = [
   '--config-file',
-  'config/.cmake-format.py',
+  'maintenance/config/.cmake-format.py',
   '--in-place',
   ...files,
 ]

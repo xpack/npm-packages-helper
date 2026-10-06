@@ -1,6 +1,6 @@
 {
   // DO NOT EDIT! Automatically generated from template file:
-  // {{fromFilePath}}
+  // npm-packages-helper/templates/common/.vscode/settings-liquid.json
   "editor.rulers": [
     80
   ],
@@ -17,8 +17,7 @@
     "*-liquid.*": "liquid",
     "*.liquid": "liquid",
     "*.rb": "ruby",
-    "*.mdx": "mdx",
-    "*.S": "cpp"
+    "*.mdx": "mdx"
   },
   //
   // Language/file type specific settings.

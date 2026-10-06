@@ -41,7 +41,7 @@ argv="$@"
 
 helper_folder_path="$(dirname ${script_folder_path})"
 
-source "${helper_folder_path}/maintenance-scripts/scripts-helper-source.sh"
+source "${helper_folder_path}/maintenance/scripts/scripts-helper-source.sh"
 
 # Parse --init, --dry-run, --xpack, --xpack-dev-tools
 # and leave variables in the environment.
@@ -84,7 +84,7 @@ function custom_action()
 # -----------------------------------------------------------------------------
 
 # Runs as
-# .../xpack.github/packages/npm-packages-helper.git/maintenance-scripts/projects-commit-and-push-top-commons.sh
+# .../xpack.github/packages/npm-packages-helper.git/maintenance/scripts/projects-commit-and-push-top-commons.sh
 
 my_projects_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 

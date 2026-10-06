@@ -40,7 +40,9 @@ const scriptPath = path.resolve(process.argv[1])
 const scriptName = path.basename(scriptPath)
 const scriptFolderPath = path.dirname(scriptPath)
 
-const templatesFolderPath = path.join(path.dirname(scriptFolderPath), 'templates')
+// console.log('scriptFolderPath:', scriptFolderPath)
+const templatesFolderPath = path.join(path.dirname(path.dirname(scriptFolderPath)), 'templates')
+// console.log('templatesFolderPath:', templatesFolderPath)
 
 // ----------------------------------------------------------------------------
 
@@ -273,6 +275,12 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
     skipPages.push('config/eslint.config.js')
   }
 
+  if (!context.topConfig.isMicroOsPlus) {
+    skipPages.push('config/scripts/clang-format.mjs', 
+      'config/cmake-format.mjs', 'config/xcdl-export.mjs'
+    )
+  }
+
   // --------------------------------------------------------------------
 
   if (skipPages.includes(toRelativeFilePath)) {
@@ -292,7 +300,8 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
   })
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+// main()
 
 const argv = process.argv.slice(2)
 
@@ -305,11 +314,11 @@ if (!options.isXpack && !options.isXpackDevTools && !options.isMicroOsPlus) {
 }
 
 // The script is invoked via the following top npm script:
-// "generate-top-commons": "node node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.mjs"
+// "generate-top-commons": "node node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.mjs"
 const projectFolderPath = path.dirname(
-  path.dirname(path.dirname(path.dirname(scriptFolderPath))),
+  path.dirname(path.dirname(path.dirname(path.dirname(scriptFolderPath)))),
 )
-
+// console.log('projectFolderPath:', projectFolderPath)
 let templatesRelativeFolderPath = templatesFolderPath.startsWith(`${projectFolderPath}/`)
   ? templatesFolderPath.slice(projectFolderPath.length + 1)
   : templatesFolderPath
@@ -321,6 +330,7 @@ templatesRelativeFolderPath = templatesRelativeFolderPath.replace(
   /^.*?node_modules\/@micro-os-plus\//,
   '',
 )
+// console.log('templatesRelativeFolderPath:', templatesRelativeFolderPath)
 
 // ----------------------------------------------------------------------------
 

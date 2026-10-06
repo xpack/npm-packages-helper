@@ -41,7 +41,7 @@ argv="$@"
 
 helper_folder_path="$(dirname ${script_folder_path})"
 
-source "${helper_folder_path}/maintenance-scripts/scripts-helper-source.sh"
+source "${helper_folder_path}/maintenance/scripts/scripts-helper-source.sh"
 
 # Parse --init, --dry-run, --xpack, --xpack-dev-tools
 # and leave variables in the environment.
@@ -124,7 +124,7 @@ function generate_top_commons()
 # -----------------------------------------------------------------------------
 
 # Runs as
-# .../xpack.github/packages/npm-packages-helper.git/maintenance-scripts/projects-generate-top-commons.sh
+# .../xpack.github/packages/npm-packages-helper.git/maintenance/scripts/projects-generate-top-commons.sh
 
 my_projects_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 stamps_folder_name="$(echo "${script_name}" | sed -e 's|\.sh$||')"

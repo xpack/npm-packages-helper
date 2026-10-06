@@ -446,7 +446,7 @@ const processTopConfig = (context, rawTopConfig, hasConfigFile) => {
   }
 }
 
-const writeTopTemplateConfig = (context, projectFolderPath, rawTopConfig) => {
+const writeTopTemplateConfig = (context, rawTopConfig, outputFilePath) => {
   console.log()
   console.log('Writing top templates config...')
 
@@ -471,21 +471,33 @@ const writeTopTemplateConfig = (context, projectFolderPath, rawTopConfig) => {
     }
   }
 
-  const configFolderPath = path.join(projectFolderPath, 'config')
-  mkdirSync(configFolderPath, { recursive: true })
+  const parentFolderPath = path.dirname(outputFilePath)
+  mkdirSync(parentFolderPath, { recursive: true })
+
   writeFileSync(
-    path.join(configFolderPath, 'top-templates.json'),
+    outputFilePath,
     `${JSON.stringify(output, undefined, 2)}\n`,
   )
 
   const outputCount = Object.keys(output).length
   const configCount = Object.keys(rawTopConfig).length
-  if (outputCount !== configCount + 1) {
-    console.log(
-      `top-templates.json has ${outputCount} properties, but topConfig has ` +
-        `${configCount} properties, plus preferredName`,
-    )
-    process.exit(1)
+
+  if (rawTopConfig.preferredName) {
+    if (outputCount !== configCount) {
+      console.log(
+        `top-templates.json has ${outputCount} properties, but topConfig has ` +
+          `${configCount} properties`,
+      )
+      process.exit(1)
+    }
+  } else {
+    if (outputCount !== configCount + 1) {
+      console.log(
+        `top-templates.json has ${outputCount} properties, but topConfig has ` +
+          `${configCount} properties, plus preferredName`,
+      )
+      process.exit(1)
+    }
   }
 }
 
@@ -590,6 +602,7 @@ export const websiteStringProperties = [
   'mingwVersion',
   'newlibVersion',
   'ninjaReleaseDate',
+  'nodeVersion',
   'openocdCommitDate',
   'openocdCommitId',
   'patchelfReleaseDate',
@@ -799,16 +812,22 @@ export const computeContext = ({
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
   processTopPackageJson(context, packageJson)
 
+  const topTemplatesMaintenanceConfigPath = path.join(projectFolderPath, 'maintenance', 'config', 'top-templates.json')
+  const hasTopTemplatesMaintenanceConfigFile = existsSync(topTemplatesMaintenanceConfigPath)
+
   const topTemplatesConfigPath = path.join(projectFolderPath, 'config', 'top-templates.json')
   const hasTopTemplatesConfigFile = existsSync(topTemplatesConfigPath)
 
   console.log()
   console.log(
-    hasTopTemplatesConfigFile
+    hasTopTemplatesMaintenanceConfigFile
+      ? 'Processing maintenance/config/top-templates.json...'
+      : hasTopTemplatesConfigFile
       ? 'Processing config/top-templates.json...'
       : 'Processing top package.json topConfig...',
   )
-  const rawTopConfig = hasTopTemplatesConfigFile
+  const rawTopConfig = hasTopTemplatesMaintenanceConfigFile ? JSON.parse(readFileSync(topTemplatesMaintenanceConfigPath, 'utf8'))
+    : hasTopTemplatesConfigFile
     ? JSON.parse(readFileSync(topTemplatesConfigPath, 'utf8'))
     : (packageJson.topConfig ?? {})
   processTopConfig(context, rawTopConfig, hasTopTemplatesConfigFile)
@@ -827,7 +846,7 @@ export const computeContext = ({
 
   // Temporary, until all projects are updated to use config/*.json files.
   if (!hasTopTemplatesConfigFile) {
-    writeTopTemplateConfig(context, projectFolderPath, rawTopConfig)
+    writeTopTemplateConfig(context, rawTopConfig, topTemplatesMaintenanceConfigPath)
   }
 
   if (websiteFolderPath && existsSync(path.join(websiteFolderPath, 'package.json'))) {

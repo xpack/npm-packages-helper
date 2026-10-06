@@ -45,10 +45,9 @@ Properties order:
 - xpack
 - engines
 
-
 ```json
   "scripts": {
-    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --xpack",
+    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.sh --init --xpack",
     ...
   }
 ```
@@ -75,7 +74,7 @@ npm link @xpack/npm-packages-helper
 
 ```json
   "scripts": {
-    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --micro-os-plus"
+    "generate-top-commons-init": "bash node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.sh --init --micro-os-plus"
   }
 ```
 
@@ -139,8 +138,7 @@ Update license MIT, Copyright (c) 2025-2026 Liviu Ionescu. All rights reserved.
   "version": "0.0.0",
   "description": "Preview for the new xpm web; to be renamed as xpm",
   "main": "",
-  "keywords": [
-  ],
+  "keywords": [],
   "license": "MIT",
   "author": {
     "name": "Liviu Ionescu",
@@ -215,7 +213,7 @@ Add the following:
     "liquidjs": "^10.19.1"
   },
   "scripts": {
-    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --xpack-dev-tools",
+    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.sh --xpack-dev-tools",
     "npm-install": "npm install",
     "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
     "npm-outdated": "npm outdated",
@@ -328,8 +326,8 @@ Add two scripts to top `package.json` (remove dummy `test`).
 For Web deployment only projects, the second is not necessary.
 
 ```json
-    "generate-top-commons-init": "bash -x node_modules/@xpack/npm-packages-helper/maintenance-scripts/generate-top-commons.sh --init --xpack",
-    "create-website-init": "bash -x node_modules/@xpack/docusaurus-template-liquid/maintenance-scripts/generate-commons.sh --micro-os-plus --init",
+    "generate-top-commons-init": "bash -x node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.sh --init --xpack",
+    "create-website-init": "bash -x node_modules/@xpack/docusaurus-template-liquid/maintenance/scripts/generate-commons.sh --micro-os-plus --init",
 ```
 
 Run them. For Web deployment only projects, the second is not necessary.
@@ -477,27 +475,27 @@ Strings:
 Arrays of strings:
 
 - `githubActionsNodeVersions`
-- `githubActionsOses` 
+- `githubActionsOses`
 - `githubActionsXpmVersions`
 
 Booleans (`true`/`false`):
 
-- `hasCli` 
+- `hasCli`
 - `hasEmptyMaster`
-- `hasNoGithubReleases` 
+- `hasNoGithubReleases`
 - `hasObjectLibrary`
-- `hasTestAll` 
-- `hasTriggerPublish` 
-- `hasTriggerPublishPreview` 
+- `hasTestAll`
+- `hasTriggerPublish`
+- `hasTriggerPublishPreview`
 - `hasWebsite`
 - `isJavascript`
-- `isOrganisationWeb` 
+- `isOrganisationWeb`
 - `isTypescript`
 - `isWebDeployOnly`
 - `isWebPreview`
-- `preferShortName` 
-- `showTestsResults` 
-- `skipCiTests` 
+- `preferShortName`
+- `showTestsResults`
+- `skipCiTests`
 - `testCoverage`
 - `useApiExtractor`
 - `useDoxygen`
@@ -507,7 +505,6 @@ Booleans (`true`/`false`):
 - `useStandard`
 - `useTap`
 - `useTypescriptEslint`
-
 
 #### From top folder & package.json
 
@@ -623,100 +620,100 @@ Miscellaneous
 ## Config names summary
 
 logger-ts
-    -"packageScopedName": "@xpack/logger"
-    "descriptiveName": "xPack Logger"
+-"packageScopedName": "@xpack/logger"
+"descriptiveName": "xPack Logger"
 
 mock-console-ts
-    -"packageScopedName": "@xpack/mock-console"
-    "descriptiveName": "xPack Mock Console"
+-"packageScopedName": "@xpack/mock-console"
+"descriptiveName": "xPack Mock Console"
 
 xpm-js
-    -"packageScopedName": "xpm"
-    "descriptiveName": "xPack Project Manager",
-    "permalinkName": "xpm", <--- (without -js)
-    "preferShortName": "true",
+-"packageScopedName": "xpm"
+"descriptiveName": "xPack Project Manager",
+"permalinkName": "xpm", <--- (without -js)
+"preferShortName": "true",
 
     web
     "programName": "xpm",
 
 xcdl-cli-ts
-    -"packageScopedName": "xcdl"
-    "descriptiveName": "xPack Component Manager",
-    "permalinkName": "xcdl" <--- (without -cli-ts)
-    "preferShortName": "true",
+-"packageScopedName": "xcdl"
+"descriptiveName": "xPack Component Manager",
+"permalinkName": "xcdl" <--- (without -cli-ts)
+"preferShortName": "true",
 
     web
     "programName": "xcdl",
 
 doxygen2docusaurus-cli-ts
-    -"packageScopedName": "@xpack/doxygen2docusaurus"
-    "descriptiveName": "Doxygen Documentation Converter",
-    "permalinkName": "doxygen2docusaurus", <--- (without -cli-ts)
-    "preferShortName": "true",
+-"packageScopedName": "@xpack/doxygen2docusaurus"
+"descriptiveName": "Doxygen Documentation Converter",
+"permalinkName": "doxygen2docusaurus", <--- (without -cli-ts)
+"preferShortName": "true",
 
     web
     "programName": "doxygen2docusaurus",
 
 xpack.github.io
-    "descriptiveName": "xPack Project",
-    "isOrganisationWeb": "true",
-    "hasTriggerPublishPreview": "true",
-    "hasEmptyMaster": "true"
+"descriptiveName": "xPack Project",
+"isOrganisationWeb": "true",
+"hasTriggerPublishPreview": "true",
+"hasEmptyMaster": "true"
 
 web-preview
-    "isWebDeployOnly": "true",
-    "isWebPreview": "true"
+"isWebDeployOnly": "true",
+"isWebPreview": "true"
 
 xpm
-    "isWebDeployOnly": "true"
+"isWebDeployOnly": "true"
 
 xcdl
-    "isWebDeployOnly": "true"
+"isWebDeployOnly": "true"
 
 ---
 
 aarch64-none-elf-gcc
-    -"packageScopedName": "@xpack-dev-tools/aarch64-none-elf-gcc"
-    "descriptiveName": "xPack GNU AArch64 Embedded GCC",
-    "upstreamDescriptiveName": "GNU AArch64 Embedded GCC",
-    "permalinkName": "aarch64-none-elf-gcc",
-    "useSelfHostedRunners": "true"
+-"packageScopedName": "@xpack-dev-tools/aarch64-none-elf-gcc"
+"descriptiveName": "xPack GNU AArch64 Embedded GCC",
+"upstreamDescriptiveName": "GNU AArch64 Embedded GCC",
+"permalinkName": "aarch64-none-elf-gcc",
+"useSelfHostedRunners": "true"
 
     web
     "programName": "aarch64-none-elf-gcc",
 
 m4
-    "descriptiveName": "xPack GNU M4",
-    "upstreamDescriptiveName": "GNU M4",
-    "permalinkName": "m4",
-    "skipCiTests": "true",
-    "useSelfHostedRunners": "false"
+"descriptiveName": "xPack GNU M4",
+"upstreamDescriptiveName": "GNU M4",
+"permalinkName": "m4",
+"skipCiTests": "true",
+"useSelfHostedRunners": "false"
 
 ...
 
 xpack-build-box
-    "descriptiveName": "xPack Build Box",
-    "permalinkName": "xbb"
+"descriptiveName": "xPack Build Box",
+"permalinkName": "xbb"
 
 xpack-dev-tools.github.io
-    "descriptiveName": "Binary Development Tools",
-    "permalinkName": "xpack-dev-tools.github.io",
-    "isOrganisationWeb": "true",
-    "hasTriggerPublishPreview": "true",
-    "hasEmptyMaster": "true"
+"descriptiveName": "Binary Development Tools",
+"permalinkName": "xpack-dev-tools.github.io",
+"isOrganisationWeb": "true",
+"hasTriggerPublishPreview": "true",
+"hasEmptyMaster": "true"
 
 web-preview
-    "isWebDeployOnly": "true",
-    "isWebPreview": "true"
+"isWebDeployOnly": "true",
+"isWebPreview": "true"
 
 ---
 
 micro-test-plus-xpack
-    -"packageScopedName": "@micro-os-plus/micro-test-plus"
-    "descriptiveName": "µTest++ Testing Framework",
-    "permalinkName": "micro-test-plus",
+-"packageScopedName": "@micro-os-plus/micro-test-plus"
+"descriptiveName": "µTest++ Testing Framework",
+"permalinkName": "micro-test-plus",
 
 utils-lists-xpack
-    -"packageScopedName": "@micro-os-plus/utils-lists"
-    "descriptiveName": "µOS++ Intrusive Lists",
-    "permalinkName": "utils-lists",
+-"packageScopedName": "@micro-os-plus/utils-lists"
+"descriptiveName": "µOS++ Intrusive Lists",
+"permalinkName": "utils-lists",

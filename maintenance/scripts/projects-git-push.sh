@@ -41,7 +41,7 @@ argv="$@"
 
 helper_folder_path="$(dirname ${script_folder_path})"
 
-source "${helper_folder_path}/maintenance-scripts/scripts-helper-source.sh"
+source "${helper_folder_path}/maintenance/scripts/scripts-helper-source.sh"
 
 # Parse --init, --dry-run, --xpack, --xpack-dev-tools
 # and leave variables in the environment.
@@ -50,7 +50,7 @@ parse_options "$@"
 # -----------------------------------------------------------------------------
 
 # $1 = *.git
-function commit_and_push()
+function custom_action()
 {
   (
     local from_folder_path="$(dirname "${1}")"
@@ -65,86 +65,14 @@ function commit_and_push()
 
     name="$(basename "$(pwd)")"
 
-    if [ ! -f "config/top-templates.json" ]
-    then
-      echo "${name} has no config/top-templates.json..."
-      return
-    fi
-    top_config="$(json -f "config/top-templates.json" -o json-0)"
-    if [ -z "${top_config}" ]
-    then
-      echo "${name} has no valid config/top-templates.json..."
-      return
-    fi
-
-    has_empty_master="$(echo "${top_config}" | json hasEmptyMaster)"
-
-    if [ "${has_empty_master}" == "true" ]
-    then
-      if git branch | grep webpreview >/dev/null
-      then
-        development_branch="webpreview"
-      else
-        development_branch="website"
-      fi
-    else
-      if git branch | grep xpack-development >/dev/null
-      then
-        development_branch="xpack-development"
-      elif git branch | grep development >/dev/null
-      then
-        development_branch="development"
-      else
-        development_branch="master"
-      fi
-    fi
-
-    run_verbose git checkout "${development_branch}"
-
-    # -------------------------------------------------------------------------
-    # Custom.
-
-    run_verbose rm -rf ".github/workflows/build-linux-arm.yml"
-
-    # -------------------------------------------------------------------------
-
-    run_verbose git add .github .gitignore README*.md package*.json .vscode
-    if [ -f .npmignore ]
-    then
-      run_verbose git add .npmignore
-    fi
-    if [ -f tsconfig.json ]
-    then
-      run_verbose git add tsconfig*.json
-    fi
-    if [ -d build-assets ]
-    then
-      run_verbose git add build-assets
-    fi
-
-    if [ -d config ]
-    then
-      run_verbose git add config
-    fi
-    if [ -d scripts ]
-    then
-      run_verbose git add scripts
-    fi
-
-    run_verbose git commit -m "re-generate top commons" || true
-    # run_verbose git commit -m "re-generate descriptive & permalink names" || true
-
-    if [ "${do_push}" == "true" ]
-    then
-      run_verbose git push
-    fi
+    run_verbose git push
   )
 }
 
 # -----------------------------------------------------------------------------
 
 # Runs as
-# .../xpack.github/packages/npm-packages-helper.git/maintenance-scripts/projects-commit-and-push-top-commons.sh
+# .../xpack.github/packages/npm-packages-helper.git/maintenance/scripts/projects-commit-and-push-top-commons.sh
 
 my_projects_folder_path="$(dirname $(dirname $(dirname $(dirname "${script_folder_path}"))))"
 
@@ -156,7 +84,7 @@ then
 
   for file_path in "${packages_folder_path}"/*/.git "${www_folder_path}"/*/.git
   do
-    commit_and_push "${file_path}"
+    custom_action "${file_path}"
   done
 elif [ "${is_xpack_dev_tools}" == "true" ]
 then
@@ -166,7 +94,7 @@ then
 
   for file_path in "${xpacks_folder_path}"/*/.git "${www_folder_path}"/*/.git "${xpack_dev_tools_github_folder_path}/xpack-build-box.git/.git"
   do
-    commit_and_push "${file_path}"
+    custom_action "${file_path}"
   done
 else
   echo "Unsupported configuration..."
