@@ -801,7 +801,7 @@ export const computeContext = ({
     process.exit(1)
   }
 
-  const context = {}
+  const context = {currentYear: new Date().getFullYear()}
 
   console.log()
   console.log(`Processing project ${path.basename(projectFolderPath)} properties...`)
@@ -905,7 +905,10 @@ export const substitute = ({
   // destination path available.
   console.log(`liquidjs -> ${toRelativeFilePath ?? path.relative(process.cwd(), toAbsoluteFilePath)}`)
 
-  const localContext = { ...context, fromFilePath: fromProjectRelativeFilePath }
+  const localContext = {
+    ...context,
+    fromFilePath: fromProjectRelativeFilePath
+  }
   const engine = createLiquidEngine(fromAbsoluteFolderPath, partialsFolderPath)
   // Read the template content directly (as the liquidjs CLI does for its
   // `@path` template option), rather than renderFileSync()/Loader.lookup(),
