@@ -328,47 +328,49 @@ const processTopPackageJson = (context, packageJson) => {
   // no observable effect for projects lacking config/top-templates.json.
 }
 
-export const topConfigStringProperties = [
-  'descriptiveName',
-  'permalinkName',
-  'preferredName',
-  'programName',
-  'upstreamDescriptiveName',
-]
+export const topConfigProperties = {
+  stringProperties: [
+    'descriptiveName',
+    'permalinkName',
+    'preferredName',
+    'programName',
+    'upstreamDescriptiveName',
+  ],
 
-export const topConfigArrayProperties = [
-  'githubActionsNodeVersions',
-  'githubActionsOses',
-  'githubActionsXpmVersions',
-]
+  arrayProperties: [
+    'githubActionsNodeVersions',
+    'githubActionsOses',
+    'githubActionsXpmVersions',
+  ],
 
-export const topConfigBooleanProperties = [
-  'hasCli',
-  'hasEmptyMaster',
-  'hasNoGithubReleases',
-  'hasObjectLibrary',
-  'hasTestAll',
-  'hasTriggerPublish',
-  'hasTriggerPublishPreview',
-  'hasWebsite',
-  'isJavascript',
-  'isOrganisationWeb',
-  'isTypescript',
-  'isWebDeployOnly',
-  'isWebPreview',
-  'preferShortName',
-  'showTestsResults',
-  'skipCiTests',
-  'testCoverage',
-  'useApiExtractor',
-  'useDoxygen',
-  'useEslint',
-  'usePrettier',
-  'useSelfHostedRunners',
-  'useStandard',
-  'useTap',
-  'useTypescriptEslint',
-]
+  booleanProperties: [
+    'hasCli',
+    'hasEmptyMaster',
+    'hasNoGithubReleases',
+    'hasObjectLibrary',
+    'hasTestAll',
+    'hasTriggerPublish',
+    'hasTriggerPublishPreview',
+    'hasWebsite',
+    'isJavascript',
+    'isOrganisationWeb',
+    'isTypescript',
+    'isWebDeployOnly',
+    'isWebPreview',
+    'preferShortName',
+    'showTestsResults',
+    'skipCiTests',
+    'testCoverage',
+    'useApiExtractor',
+    'useDoxygen',
+    'useEslint',
+    'usePrettier',
+    'useSelfHostedRunners',
+    'useStandard',
+    'useTap',
+    'useTypescriptEslint',
+  ],
+}
 
 const topConfigArrayDefaults = {
   githubActionsNodeVersions: ['24'],
@@ -385,7 +387,7 @@ const topConfigArrayDefaults = {
 const processTopConfig = (context, rawTopConfig, hasConfigFile) => {
   context.topConfig = {}
 
-  for (const prop of topConfigStringProperties) {
+  for (const prop of topConfigProperties.stringProperties) {
     let value = rawTopConfig[prop] ?? ''
     if (!value) {
       if (prop === 'descriptiveName') {
@@ -399,13 +401,13 @@ const processTopConfig = (context, rawTopConfig, hasConfigFile) => {
     context.topConfig[prop] = value
   }
 
-  for (const prop of topConfigArrayProperties) {
+  for (const prop of topConfigProperties.arrayProperties) {
     const value = rawTopConfig[prop]
     context.topConfig[prop] =
       Array.isArray(value) && value.length > 0 ? value : topConfigArrayDefaults[prop]
   }
 
-  for (const prop of topConfigBooleanProperties) {
+  for (const prop of topConfigProperties.booleanProperties) {
     context.topConfig[prop] = rawTopConfig[prop] === true
   }
 
@@ -452,18 +454,18 @@ const writeTopTemplateConfig = (context, rawTopConfig, outputFilePath) => {
 
   const output = {}
 
-  for (const prop of topConfigStringProperties) {
+  for (const prop of topConfigProperties.stringProperties) {
     const value = context.topConfig[prop]
     if (value) {
       output[prop] = value
     }
   }
 
-  for (const prop of topConfigArrayProperties) {
+  for (const prop of topConfigProperties.arrayProperties) {
     output[prop] = context.topConfig[prop]
   }
 
-  for (const prop of topConfigBooleanProperties) {
+  for (const prop of topConfigProperties.booleanProperties) {
     if (prop === 'useSelfHostedRunners') {
       output[prop] = context.topConfig[prop]
     } else if (context.topConfig[prop]) {
@@ -570,100 +572,104 @@ const processXpack = (context, packageJson, projectFolderPath) => {
   }
 }
 
-export const websiteStringProperties = [
-  'armMajorMinorRelease',
-  'armReleaseDate',
-  'armSubRelease',
-  'bashReleaseDate',
-  'binutilsVersionMajor',
-  'binutilsVersionMinor',
-  'bisonReleaseDate',
-  'branding',
-  'busyboxReleaseDate',
-  'busyboxTag',
-  'clangReleaseDate',
-  'cmakeReleaseDate',
-  'coreutilsReleaseDate',
-  'customAboutTitle',
-  'customDeveloperTitle',
-  'customGettingStartedTitle',
-  'customInstallLabel',
-  'customInstallTitle',
-  'customMaintainerTitle',
-  'customUserTitle',
-  'flexReleaseDate',
-  'gdbVersionMajor',
-  'gdbVersionMinor',
-  'llvmMingwTag',
-  'm4ReleaseDate',
-  'makeReleaseDate',
-  'mesonReleaseDate',
-  'metadataKeywords',
-  'mingwVersion',
-  'newlibVersion',
-  'ninjaReleaseDate',
-  'nodeVersion',
-  'openocdCommitDate',
-  'openocdCommitId',
-  'patchelfReleaseDate',
-  'pkgconfigReleaseDate',
-  'platforms',
-  'programName',
-  'pythonVersion',
-  'qemuReleaseDate',
-  'sedReleaseDate',
-  'tagline',
-  'texinfoReleaseDate',
-  'title',
-  'triplet',
-  'userGuideDescription',
-  'wineReleaseDate',
-]
+export const websiteConfigProperties = {
+  stringProperties: [
+    'armMajorMinorRelease',
+    'armReleaseDate',
+    'armSubRelease',
+    'bashReleaseDate',
+    'binutilsVersionMajor',
+    'binutilsVersionMinor',
+    'bisonReleaseDate',
+    'branding',
+    'busyboxReleaseDate',
+    'busyboxTag',
+    'clangReleaseDate',
+    'cmakeReleaseDate',
+    'coreutilsReleaseDate',
+    'customAboutTitle',
+    'customDeveloperTitle',
+    'customGettingStartedTitle',
+    'customInstallLabel',
+    'customInstallTitle',
+    'customMaintainerTitle',
+    'customUserTitle',
+    'flexReleaseDate',
+    'gdbVersionMajor',
+    'gdbVersionMinor',
+    'llvmMingwTag',
+    'm4ReleaseDate',
+    'makeReleaseDate',
+    'mesonReleaseDate',
+    'metadataKeywords',
+    'mingwVersion',
+    'newlibVersion',
+    'ninjaReleaseDate',
+    'nodeVersion',
+    'openocdCommitDate',
+    'openocdCommitId',
+    'patchelfReleaseDate',
+    'pkgconfigReleaseDate',
+    'platforms',
+    'programName',
+    'pythonVersion',
+    'qemuReleaseDate',
+    'sedReleaseDate',
+    'tagline',
+    'texinfoReleaseDate',
+    'title',
+    'triplet',
+    'userGuideDescription',
+    'wineReleaseDate',
+  ],
 
-export const websiteBooleanProperties = [
-  'has100coverage',
-  'hasCustomAbout',
-  'hasCustomConfigDoxyfile',
-  'hasCustomDeveloper',
-  'hasCustomDocsNavbarItem',
-  'hasCustomGettingStarted',
-  'hasCustomGettingStartedSidebar',
-  'hasCustomHomepageFeatures',
-  'hasCustomInstall',
-  'hasCustomMaintainer',
-  'hasCustomSidebar',
-  'hasCustomUser',
-  'hasCustomUserSidebar',
-  'hasDoxygenDocusaurusApi',
-  'hasDoxygenReference',
-  'hasHomepageTools',
-  'hasMetadataMinimum',
-  'hasPolicies',
-  'hasToolsSidebar',
-  'hasTopHomepageFeatures',
-  'hasTSDocDocusaurusApi',
-  'hasTwoNumbersVersion',
-  'hasTypedocApi',
-  'isArmToolchain',
-  'isGccToolchain',
-  'isInstallGlobally',
-  'isOrganisationWeb',
-  'isSecondaryTool',
-  'isXpmDependency',
-  'shareOnTwitter',
-  'showDeprecatedGnuMcuAnalytics',
-  'showDeprecatedRiscvGccAnalytics',
-  'skipAlgolia',
-  'skipContributorGuide',
-  'skipFaq',
-  'skipInstallCommand',
-  'skipInstallGuide',
-  'skipMaintainerGuide',
-  'skipReleases',
-  'skipTests',
-  'useApiDocumenter',
-  'usePluralGuides',
-]
+  arrayProperties: [],
+
+  booleanProperties: [
+    'has100coverage',
+    'hasCustomAbout',
+    'hasCustomConfigDoxyfile',
+    'hasCustomDeveloper',
+    'hasCustomDocsNavbarItem',
+    'hasCustomGettingStarted',
+    'hasCustomGettingStartedSidebar',
+    'hasCustomHomepageFeatures',
+    'hasCustomInstall',
+    'hasCustomMaintainer',
+    'hasCustomSidebar',
+    'hasCustomUser',
+    'hasCustomUserSidebar',
+    'hasDoxygenDocusaurusApi',
+    'hasDoxygenReference',
+    'hasHomepageTools',
+    'hasMetadataMinimum',
+    'hasPolicies',
+    'hasToolsSidebar',
+    'hasTopHomepageFeatures',
+    'hasTSDocDocusaurusApi',
+    'hasTwoNumbersVersion',
+    'hasTypedocApi',
+    'isArmToolchain',
+    'isGccToolchain',
+    'isInstallGlobally',
+    'isOrganisationWeb',
+    'isSecondaryTool',
+    'isXpmDependency',
+    'shareOnTwitter',
+    'showDeprecatedGnuMcuAnalytics',
+    'showDeprecatedRiscvGccAnalytics',
+    'skipAlgolia',
+    'skipContributorGuide',
+    'skipFaq',
+    'skipInstallCommand',
+    'skipInstallGuide',
+    'skipMaintainerGuide',
+    'skipReleases',
+    'skipTests',
+    'useApiDocumenter',
+    'usePluralGuides',
+  ],
+}
 
 const processWebsiteConfig = (context, websiteFolderPath, options) => {
   const websitePackageJsonPath = path.join(websiteFolderPath, 'package.json')
@@ -698,10 +704,10 @@ const processWebsiteConfig = (context, websiteFolderPath, options) => {
   }
 
   context.websiteConfig = {}
-  for (const prop of websiteStringProperties) {
+  for (const prop of websiteConfigProperties.stringProperties) {
     context.websiteConfig[prop] = rawWebsiteConfig[prop] ?? ''
   }
-  for (const prop of websiteBooleanProperties) {
+  for (const prop of websiteConfigProperties.booleanProperties) {
     context.websiteConfig[prop] = rawWebsiteConfig[prop] === true
   }
 
@@ -714,7 +720,7 @@ const writeWebsiteTemplateConfig = (context, websiteFolderPath, rawWebsiteConfig
 
   const output = {}
 
-  for (const prop of websiteStringProperties) {
+  for (const prop of websiteConfigProperties.stringProperties) {
     const value = context.websiteConfig[prop]
     if (prop === 'branding') {
       output[prop] = value ?? ''
@@ -727,7 +733,7 @@ const writeWebsiteTemplateConfig = (context, websiteFolderPath, rawWebsiteConfig
     output.$link = rawWebsiteConfig.$link
   }
 
-  for (const prop of websiteBooleanProperties) {
+  for (const prop of websiteConfigProperties.booleanProperties) {
     if (context.websiteConfig[prop]) {
       output[prop] = true
     }
@@ -756,19 +762,24 @@ const processTestsConfig = (context, testsFolderPath) => {
   const testsPackageJsonPath = path.join(testsFolderPath, 'package.json')
 
   let rawTestsConfig
-  if (existsSync(testsTemplatesConfigPath)) {
-    console.log()
-    console.log('Processing tests/config/tests-templates.json...')
-    rawTestsConfig = JSON.parse(readFileSync(testsTemplatesConfigPath, 'utf8'))
-  } else if (existsSync(testsPackageJsonPath)) {
-    console.log()
-    console.log('Processing tests/package.json...')
-    const testsPackageJson = JSON.parse(readFileSync(testsPackageJsonPath, 'utf8'))
-    rawTestsConfig = testsPackageJson.testsConfig
-  } else {
-    console.log()
-    console.log('No tests configuration file found.')
-    rawTestsConfig = {}
+  try {
+    if (existsSync(testsTemplatesConfigPath)) {
+      console.log()
+      console.log('Processing tests/config/tests-templates.json...')
+      rawTestsConfig = JSON.parse(readFileSync(testsTemplatesConfigPath, 'utf8'))
+    } else if (existsSync(testsPackageJsonPath)) {
+      console.log()
+      console.log('Processing tests/package.json...')
+      const testsPackageJson = JSON.parse(readFileSync(testsPackageJsonPath, 'utf8'))
+      rawTestsConfig = testsPackageJson.testsConfig
+    } else {
+      console.log()
+      console.log('No tests configuration file found.')
+      rawTestsConfig = {}
+    }
+  } catch (error) {
+    console.error('Error parsing JSON:', error)
+    process.exit(1)
   }
 
   rawTestsConfig ??= {}
