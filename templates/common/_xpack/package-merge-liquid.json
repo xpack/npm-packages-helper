@@ -15,7 +15,7 @@
 {%- endif %}
 
   "scripts": {
-    "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.sh --xpack",
+    "generate-top-commons": "node node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.mjs --xpack",
 
 {%- if topConfig.isWebDeployOnly != true and packageVersion != '0.0.0' %}
     "prepare": "del-cli dist && npm run prettier && npm run lint && npm run compile",
@@ -150,20 +150,20 @@
   },
   "dependencies": {},
   "devDependencies": { {% if topConfig.isTypescript %}
-    "@tsconfig/node20": "^20.1.9",
-    "@types/node": "^26.1.1",{%- unless topConfig.skipCiTests %}
+    "@tsconfig/node20": "^20.1.10",
+    "@types/node": "^26.6.5",{%- unless topConfig.skipCiTests %}
     "@types/tap": "^15.0.12",{% endunless %}{% endif %}
     "del-cli": "^7.0.0",
     "glob": "^13.0.6",
     "json": "^11.0.0",
-    "liquidjs": "^10.27.1"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
+    "liquidjs": "^10.30.0"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
     "tap": "^21.7.4"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
     "ts-node": "^10.9.2"{%- if topConfig.useEslint %},
-    "eslint": "^9.39.4",
-    "@eslint/js": "^9.39.4",
+    "eslint": "^10.12.0",
+    "@eslint/js": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
-    "typescript-eslint": "^8.63.0"{% endif %},
-    "prettier": "^3.9.4",
+    "typescript-eslint": "^8.71.2"{% endif %},
+    "prettier": "^3.9.10",
     "typescript": "^5.9.3"{%- endif %}
   },
 
