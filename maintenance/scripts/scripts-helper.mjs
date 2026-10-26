@@ -80,7 +80,9 @@ const deepMerge = (target, source) => {
       typeof targetValue === 'object' &&
       !Array.isArray(targetValue)
 
-    target[key] = bothPlainObjects ? deepMerge(targetValue, sourceValue) : sourceValue
+    target[key] = bothPlainObjects
+      ? deepMerge(targetValue, sourceValue)
+      : sourceValue
   }
   return target
 }
@@ -102,6 +104,7 @@ export const parseOptions = (argv) => {
     acceptedPath: '',
     doPush: false,
     doRestart: false,
+    propertiesSuffix: '',
   }
 
   for (const arg of argv) {
@@ -121,14 +124,17 @@ export const parseOptions = (argv) => {
       case '--xpack':
         options.isXpack = true
         options.acceptedPath = '_xpack'
+        options.propertiesSuffix = 'Xpack'
         break
       case '--xpack-dev-tools':
         options.isXpackDevTools = true
         options.acceptedPath = '_xpack-dev-tools'
+        options.propertiesSuffix = 'XpackDevTools'
         break
       case '--micro-os-plus':
         options.isMicroOsPlus = true
         options.acceptedPath = '_micro-os-plus'
+        options.propertiesSuffix = 'MicroOsPlus'
         break
       default:
         console.log(`Unsupported option ${arg}`)
@@ -174,7 +180,12 @@ export const prepareToPaths = (relativeFilePath, toAbsoluteFolderPath) => {
 
   const toAbsoluteFilePath = path.join(toAbsoluteFolderPath, toRelativeFilePath)
 
-  return { fromRelativeFilePath, toRelativeFilePath, toAbsoluteFolderPath, toAbsoluteFilePath }
+  return {
+    fromRelativeFilePath,
+    toRelativeFilePath,
+    toAbsoluteFolderPath,
+    toAbsoluteFilePath,
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -199,13 +210,13 @@ const gitBranches = (projectFolderPath) => {
 
 const inspectEnvironment = (context, projectFolderPath) => {
   context.hasFolderWebsitePackage = existsSync(
-    path.join(projectFolderPath, 'website', 'package.json'),
+    path.join(projectFolderPath, 'website', 'package.json')
   )
   context.hasFolderBuildAssetsPackage = existsSync(
-    path.join(projectFolderPath, 'build-assets', 'package.json'),
+    path.join(projectFolderPath, 'build-assets', 'package.json')
   )
   context.hasFolderTestsPackage = existsSync(
-    path.join(projectFolderPath, 'tests', 'package.json'),
+    path.join(projectFolderPath, 'tests', 'package.json')
   )
 
   const branches = gitBranches(projectFolderPath)
@@ -268,12 +279,17 @@ const processTopPackageJson = (context, packageJson) => {
   context.packageScopedName = packageJson.name ?? ''
 
   if (context.packageScopedName.startsWith('@')) {
-    context.packageScope = context.packageScopedName.replace(/^@/, '').replace(/\/.*/, '')
+    context.packageScope = context.packageScopedName
+      .replace(/^@/, '')
+      .replace(/\/.*/, '')
   } else {
     context.packageScope = ''
   }
 
-  context.packageName = context.packageScopedName.replace(/^@[a-zA-Z0-9-]*\//, '')
+  context.packageName = context.packageScopedName.replace(
+    /^@[a-zA-Z0-9-]*\//,
+    ''
+  )
   context.packageVersion = packageJson.version ?? ''
   context.packageType = packageJson.type ?? ''
   context.packageDescription = packageJson.description ?? ''
@@ -285,7 +301,9 @@ const processTopPackageJson = (context, packageJson) => {
   context.releaseSemver = context.releaseVersion.replace(/-.*/, '')
 
   if (context.releaseVersion !== context.releaseSemver) {
-    context.releaseSubversion = context.releaseVersion.replace(/.*-/, '').replace(/\.[0-9]*/, '')
+    context.releaseSubversion = context.releaseVersion
+      .replace(/.*-/, '')
+      .replace(/\.[0-9]*/, '')
     // Use the package.json one, but remove the `pre` used during development.
     context.releaseNpmSubversion = context.releaseVersion
       .replace(/[.-]pre.*/, '')
@@ -295,7 +313,10 @@ const processTopPackageJson = (context, packageJson) => {
     context.releaseNpmSubversion = ''
   }
 
-  context.repositoryUrl = (packageJson.repository?.url ?? '').replace(/^git\+/, '')
+  context.repositoryUrl = (packageJson.repository?.url ?? '').replace(
+    /^git\+/,
+    ''
+  )
 
   const githubFullName = context.repositoryUrl
     .replace(/^https:\/\/github\.com\//, '')
@@ -308,15 +329,20 @@ const processTopPackageJson = (context, packageJson) => {
 
   context.isNpmExecutable = Boolean(packageJson.bin)
 
-  context.packageEnginesNodeVersion = (packageJson.engines?.node ?? '').replace(/[^0-9]*/, '')
-  context.packageEnginesNodeVersionMajor = context.packageEnginesNodeVersion.replace(/\..*/, '')
+  context.packageEnginesNodeVersion = (packageJson.engines?.node ?? '').replace(
+    /[^0-9]*/,
+    ''
+  )
+  context.packageEnginesNodeVersionMajor =
+    context.packageEnginesNodeVersion.replace(/\..*/, '')
 
   context.packageDependenciesTypescriptVersion = (
     packageJson.devDependencies?.typescript ?? ''
   ).replace(/[^0-9]*/, '')
 
   context.packageHomepage = packageJson.homepage ?? ''
-  context.packageHomepagePreview = packageJson.homepagePreview || context.packageHomepage
+  context.packageHomepagePreview =
+    packageJson.homepagePreview || context.packageHomepage
 
   context.packageKeywords = packageJson.keywords ?? []
 
@@ -337,10 +363,19 @@ export const topConfigProperties = {
     'upstreamDescriptiveName',
   ],
 
-  arrayProperties: [
+  arrayProperties: [],
+  arrayPropertiesMicroOsPlus: [
     'githubActionsNodeVersions',
     'githubActionsOses',
     'githubActionsXpmVersions',
+  ],
+  arrayPropertiesXpack: [
+    'githubActionsNodeVersions',
+    'githubActionsOses',
+    'githubActionsXpmVersions',
+  ],
+  arrayPropertiesXpackDevTools: [
+    // xpack-dev-tools does not use githubActionsOses.
   ],
 
   booleanProperties: [
@@ -384,7 +419,7 @@ const topConfigArrayDefaults = {
   githubActionsXpmVersions: ['0.23.2'],
 }
 
-const processTopConfig = (context, rawTopConfig, hasConfigFile) => {
+const processTopConfig = (context, options, rawTopConfig, hasConfigFile) => {
   context.topConfig = {}
 
   for (const prop of topConfigProperties.stringProperties) {
@@ -404,7 +439,24 @@ const processTopConfig = (context, rawTopConfig, hasConfigFile) => {
   for (const prop of topConfigProperties.arrayProperties) {
     const value = rawTopConfig[prop]
     context.topConfig[prop] =
-      Array.isArray(value) && value.length > 0 ? value : topConfigArrayDefaults[prop]
+      Array.isArray(value) && value.length > 0
+        ? value
+        : topConfigArrayDefaults[prop]
+  }
+  let specificArrayProperties = []
+  if (options.isXpack) {
+    specificArrayProperties = topConfigProperties.arrayPropertiesXpack
+  } else if (options.isXpackDevTools) {
+    specificArrayProperties = topConfigProperties.arrayPropertiesXpackDevTools
+  } else if (options.isMicroOsPlus) {
+    specificArrayProperties = topConfigProperties.arrayPropertiesMicroOsPlus
+  }
+  for (const prop of specificArrayProperties) {
+    const value = rawTopConfig[prop]
+    context.topConfig[prop] =
+      Array.isArray(value) && value.length > 0
+        ? value
+        : topConfigArrayDefaults[prop]
   }
 
   for (const prop of topConfigProperties.booleanProperties) {
@@ -448,7 +500,12 @@ const processTopConfig = (context, rawTopConfig, hasConfigFile) => {
   }
 }
 
-const writeTopTemplateConfig = (context, rawTopConfig, outputFilePath) => {
+const writeTopTemplateConfig = (
+  context,
+  options,
+  rawTopConfig,
+  outputFilePath
+) => {
   console.log()
   console.log('Writing top templates config...')
 
@@ -465,6 +522,18 @@ const writeTopTemplateConfig = (context, rawTopConfig, outputFilePath) => {
     output[prop] = context.topConfig[prop]
   }
 
+  let specificArrayProperties = []
+  if (options.isXpack) {
+    specificArrayProperties = topConfigProperties.arrayPropertiesXpack
+  } else if (options.isXpackDevTools) {
+    specificArrayProperties = topConfigProperties.arrayPropertiesXpackDevTools
+  } else if (options.isMicroOsPlus) {
+    specificArrayProperties = topConfigProperties.arrayPropertiesMicroOsPlus
+  }
+  for (const prop of specificArrayProperties) {
+    output[prop] = context.topConfig[prop]
+  }
+
   for (const prop of topConfigProperties.booleanProperties) {
     if (prop === 'useSelfHostedRunners') {
       output[prop] = context.topConfig[prop]
@@ -476,10 +545,7 @@ const writeTopTemplateConfig = (context, rawTopConfig, outputFilePath) => {
   const parentFolderPath = path.dirname(outputFilePath)
   mkdirSync(parentFolderPath, { recursive: true })
 
-  writeFileSync(
-    outputFilePath,
-    `${JSON.stringify(output, undefined, 2)}\n`,
-  )
+  writeFileSync(outputFilePath, `${JSON.stringify(output, undefined, 2)}\n`)
 
   const outputCount = Object.keys(output).length
   const configCount = Object.keys(rawTopConfig).length
@@ -488,7 +554,7 @@ const writeTopTemplateConfig = (context, rawTopConfig, outputFilePath) => {
     if (outputCount !== configCount) {
       console.log(
         `top-templates.json has ${outputCount} properties, but topConfig has ` +
-          `${configCount} properties`,
+          `${configCount} properties`
       )
       process.exit(1)
     }
@@ -496,7 +562,7 @@ const writeTopTemplateConfig = (context, rawTopConfig, outputFilePath) => {
     if (outputCount !== configCount + 1) {
       console.log(
         `top-templates.json has ${outputCount} properties, but topConfig has ` +
-          `${configCount} properties, plus preferredName`,
+          `${configCount} properties, plus preferredName`
       )
       process.exit(1)
     }
@@ -544,7 +610,11 @@ const processXpack = (context, packageJson, projectFolderPath) => {
   context.platforms = platforms.join(',')
 
   let isNpmPublished = false
-  if (context.isXpack || context.topConfig.isTypescript || context.topConfig.isJavascript) {
+  if (
+    context.isXpack ||
+    context.topConfig.isTypescript ||
+    context.topConfig.isJavascript
+  ) {
     if (context.releaseSemver !== '0.0.0') {
       isNpmPublished = true
     }
@@ -552,7 +622,12 @@ const processXpack = (context, packageJson, projectFolderPath) => {
   context.isNpmPublished = isNpmPublished
 
   if (packageXpack && !/^0\.0[.0].*$/.test(context.releaseSemver)) {
-    const versionFilePath = path.join(projectFolderPath, 'build-assets', 'scripts', 'VERSION')
+    const versionFilePath = path.join(
+      projectFolderPath,
+      'build-assets',
+      'scripts',
+      'VERSION'
+    )
 
     // Prefer the VERSION content, if available.
     const xpackVersion = existsSync(versionFilePath)
@@ -641,6 +716,7 @@ export const websiteConfigProperties = {
     'hasCustomUserSidebar',
     'hasDoxygenDocusaurusApi',
     'hasDoxygenReference',
+    'hasHomepageExample',
     'hasHomepageTools',
     'hasMetadataMinimum',
     'hasPolicies',
@@ -683,19 +759,27 @@ const processWebsiteConfig = (context, websiteFolderPath, options) => {
   const websiteTemplatesConfigPath = path.join(
     websiteFolderPath,
     'config',
-    'website-templates.json',
+    'website-templates.json'
   )
 
   let rawWebsiteConfig
   if (existsSync(websiteTemplatesConfigPath)) {
-    rawWebsiteConfig = JSON.parse(readFileSync(websiteTemplatesConfigPath, 'utf8'))
+    rawWebsiteConfig = JSON.parse(
+      readFileSync(websiteTemplatesConfigPath, 'utf8')
+    )
   } else {
-    const websitePackageJson = JSON.parse(readFileSync(websitePackageJsonPath, 'utf8'))
+    const websitePackageJson = JSON.parse(
+      readFileSync(websitePackageJsonPath, 'utf8')
+    )
     rawWebsiteConfig = websitePackageJson.websiteConfig
   }
 
   if (!rawWebsiteConfig) {
-    if (options.doInit || context.topConfig.isWebDeployOnly || options.isMicroOsPlus) {
+    if (
+      options.doInit ||
+      context.topConfig.isWebDeployOnly ||
+      options.isMicroOsPlus
+    ) {
       rawWebsiteConfig = {}
     } else {
       console.log('Missing websiteConfig')
@@ -711,10 +795,31 @@ const processWebsiteConfig = (context, websiteFolderPath, options) => {
     context.websiteConfig[prop] = rawWebsiteConfig[prop] === true
   }
 
+  // Properties not listed above are not passed to the templates; warn,
+  // since a misspelled or not yet registered flag is otherwise silently
+  // ignored. Keys starting with `$` (like `$link`) are metadata.
+  const knownProperties = new Set([
+    ...websiteConfigProperties.stringProperties,
+    ...websiteConfigProperties.arrayProperties,
+    ...websiteConfigProperties.booleanProperties,
+  ])
+  for (const prop of Object.keys(rawWebsiteConfig)) {
+    if (!prop.startsWith('$') && !knownProperties.has(prop)) {
+      console.warn(
+        `warning: websiteConfig property '${prop}' is not known and is ` +
+          'ignored; add it to websiteConfigProperties in scripts-helper.mjs'
+      )
+    }
+  }
+
   return rawWebsiteConfig
 }
 
-const writeWebsiteTemplateConfig = (context, websiteFolderPath, rawWebsiteConfig) => {
+const writeWebsiteTemplateConfig = (
+  context,
+  websiteFolderPath,
+  rawWebsiteConfig
+) => {
   console.log()
   console.log('Writing website templates config...')
 
@@ -743,7 +848,7 @@ const writeWebsiteTemplateConfig = (context, websiteFolderPath, rawWebsiteConfig
   mkdirSync(configFolderPath, { recursive: true })
   writeFileSync(
     path.join(configFolderPath, 'website-templates.json'),
-    `${JSON.stringify(output, undefined, 2)}\n`,
+    `${JSON.stringify(output, undefined, 2)}\n`
   )
 
   const outputCount = Object.keys(output).length
@@ -751,14 +856,18 @@ const writeWebsiteTemplateConfig = (context, websiteFolderPath, rawWebsiteConfig
   if (outputCount !== configCount) {
     console.log(
       `website-templates.json has ${outputCount} properties, but websiteConfig has ` +
-        `${configCount} properties`,
+        `${configCount} properties`
     )
     process.exit(1)
   }
 }
 
 const processTestsConfig = (context, testsFolderPath) => {
-  const testsTemplatesConfigPath = path.join(testsFolderPath, 'config', 'tests-templates.json')
+  const testsTemplatesConfigPath = path.join(
+    testsFolderPath,
+    'config',
+    'tests-templates.json'
+  )
   const testsPackageJsonPath = path.join(testsFolderPath, 'package.json')
 
   let rawTestsConfig
@@ -766,11 +875,15 @@ const processTestsConfig = (context, testsFolderPath) => {
     if (existsSync(testsTemplatesConfigPath)) {
       console.log()
       console.log('Processing tests/config/tests-templates.json...')
-      rawTestsConfig = JSON.parse(readFileSync(testsTemplatesConfigPath, 'utf8'))
+      rawTestsConfig = JSON.parse(
+        readFileSync(testsTemplatesConfigPath, 'utf8')
+      )
     } else if (existsSync(testsPackageJsonPath)) {
       console.log()
       console.log('Processing tests/package.json...')
-      const testsPackageJson = JSON.parse(readFileSync(testsPackageJsonPath, 'utf8'))
+      const testsPackageJson = JSON.parse(
+        readFileSync(testsPackageJsonPath, 'utf8')
+      )
       rawTestsConfig = testsPackageJson.testsConfig
     } else {
       console.log()
@@ -812,10 +925,12 @@ export const computeContext = ({
     process.exit(1)
   }
 
-  const context = {currentYear: new Date().getFullYear()}
+  const context = { currentYear: new Date().getFullYear() }
 
   console.log()
-  console.log(`Processing project ${path.basename(projectFolderPath)} properties...`)
+  console.log(
+    `Processing project ${path.basename(projectFolderPath)} properties...`
+  )
   inspectEnvironment(context, projectFolderPath)
 
   console.log()
@@ -823,10 +938,21 @@ export const computeContext = ({
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
   processTopPackageJson(context, packageJson)
 
-  const topTemplatesMaintenanceConfigPath = path.join(projectFolderPath, 'maintenance', 'config', 'top-templates.json')
-  const hasTopTemplatesMaintenanceConfigFile = existsSync(topTemplatesMaintenanceConfigPath)
+  const topTemplatesMaintenanceConfigPath = path.join(
+    projectFolderPath,
+    'maintenance',
+    'config',
+    'top-templates.json'
+  )
+  const hasTopTemplatesMaintenanceConfigFile = existsSync(
+    topTemplatesMaintenanceConfigPath
+  )
 
-  const topTemplatesConfigPath = path.join(projectFolderPath, 'config', 'top-templates.json')
+  const topTemplatesConfigPath = path.join(
+    projectFolderPath,
+    'config',
+    'top-templates.json'
+  )
   const hasTopTemplatesConfigFile = existsSync(topTemplatesConfigPath)
 
   console.log()
@@ -834,14 +960,15 @@ export const computeContext = ({
     hasTopTemplatesMaintenanceConfigFile
       ? 'Processing maintenance/config/top-templates.json...'
       : hasTopTemplatesConfigFile
-      ? 'Processing config/top-templates.json...'
-      : 'Processing top package.json topConfig...',
+        ? 'Processing config/top-templates.json...'
+        : 'Processing top package.json topConfig...'
   )
-  const rawTopConfig = hasTopTemplatesMaintenanceConfigFile ? JSON.parse(readFileSync(topTemplatesMaintenanceConfigPath, 'utf8'))
+  const rawTopConfig = hasTopTemplatesMaintenanceConfigFile
+    ? JSON.parse(readFileSync(topTemplatesMaintenanceConfigPath, 'utf8'))
     : hasTopTemplatesConfigFile
-    ? JSON.parse(readFileSync(topTemplatesConfigPath, 'utf8'))
-    : (packageJson.topConfig ?? {})
-  processTopConfig(context, rawTopConfig, hasTopTemplatesConfigFile)
+      ? JSON.parse(readFileSync(topTemplatesConfigPath, 'utf8'))
+      : (packageJson.topConfig ?? {})
+  processTopConfig(context, options, rawTopConfig, hasTopTemplatesConfigFile)
 
   // The order is relevant, as some of the variables depend on top config.
   processXpack(context, packageJson, projectFolderPath)
@@ -857,14 +984,22 @@ export const computeContext = ({
 
   // Temporary, until all projects are updated to use config/*.json files.
   if (!hasTopTemplatesConfigFile) {
-    writeTopTemplateConfig(context, rawTopConfig, topTemplatesMaintenanceConfigPath)
+    writeTopTemplateConfig(
+      context,
+      options,
+      rawTopConfig,
+      topTemplatesMaintenanceConfigPath
+    )
   }
 
-  if (websiteFolderPath && existsSync(path.join(websiteFolderPath, 'package.json'))) {
+  if (
+    websiteFolderPath &&
+    existsSync(path.join(websiteFolderPath, 'package.json'))
+  ) {
     const websiteTemplatesConfigPath = path.join(
       websiteFolderPath,
       'config',
-      'website-templates.json',
+      'website-templates.json'
     )
     if (!existsSync(websiteTemplatesConfigPath)) {
       writeWebsiteTemplateConfig(context, websiteFolderPath, rawWebsiteConfig)
@@ -884,7 +1019,10 @@ export const computeContext = ({
 // `partialsFolderPath` defaults to `fromAbsoluteFolderPath` (the item's own
 // source folder), matching most callers; some scripts (e.g. tests commons)
 // use a fixed, separate partials folder instead.
-const createLiquidEngine = (fromAbsoluteFolderPath, partialsFolderPath = fromAbsoluteFolderPath) =>
+const createLiquidEngine = (
+  fromAbsoluteFolderPath,
+  partialsFolderPath = fromAbsoluteFolderPath
+) =>
   new Liquid({
     root: [fromAbsoluteFolderPath],
     partials: [partialsFolderPath],
@@ -914,11 +1052,13 @@ export const substitute = ({
   // computed by prepareToPaths()); fall back to a cwd-relative path for
   // callers (such as `--init` entry points) that only have the absolute
   // destination path available.
-  console.log(`liquidjs -> ${toRelativeFilePath ?? path.relative(process.cwd(), toAbsoluteFilePath)}`)
+  console.log(
+    `liquidjs -> ${toRelativeFilePath ?? path.relative(process.cwd(), toAbsoluteFilePath)}`
+  )
 
   const localContext = {
     ...context,
-    fromFilePath: fromProjectRelativeFilePath
+    fromFilePath: fromProjectRelativeFilePath,
   }
   const engine = createLiquidEngine(fromAbsoluteFolderPath, partialsFolderPath)
   // Read the template content directly (as the liquidjs CLI does for its
@@ -926,7 +1066,7 @@ export const substitute = ({
   // which mis-resolves extension-less dotfiles such as `.gitignore-liquid`.
   const templateContent = readFileSync(
     path.join(fromAbsoluteFolderPath, fromRelativeFilePath),
-    'utf8',
+    'utf8'
   )
 
   if (doDryRun) {
@@ -959,13 +1099,15 @@ export const substituteAndMerge = ({
   mkdirSync(path.dirname(toAbsoluteFilePath), { recursive: true })
 
   // See the equivalent comment in substitute() above.
-  console.log(`liquidjs | merge -> ${toRelativeFilePath ?? path.relative(process.cwd(), toAbsoluteFilePath)}`)
+  console.log(
+    `liquidjs | merge -> ${toRelativeFilePath ?? path.relative(process.cwd(), toAbsoluteFilePath)}`
+  )
 
   const localContext = { ...context, fromFilePath: fromProjectRelativeFilePath }
   const engine = createLiquidEngine(fromAbsoluteFolderPath, partialsFolderPath)
   const templateContent = readFileSync(
     path.join(fromAbsoluteFolderPath, fromRelativeFilePath),
-    'utf8',
+    'utf8'
   )
   const rendered = engine.parseAndRenderSync(templateContent, localContext)
 
@@ -1005,13 +1147,19 @@ export const processFile = ({
     }
 
     // Be sure destination is writeable.
-    chmodSync(toAbsoluteFilePath, statSync(toAbsoluteFilePath).mode | constants.S_IWUSR)
+    chmodSync(
+      toAbsoluteFilePath,
+      statSync(toAbsoluteFilePath).mode | constants.S_IWUSR
+    )
   }
 
   mkdirSync(path.dirname(toAbsoluteFilePath), { recursive: true })
 
   const fromBasename = path.basename(fromRelativeFilePath)
-  const fromAbsoluteFilePath = path.join(fromAbsoluteFolderPath, fromRelativeFilePath)
+  const fromAbsoluteFilePath = path.join(
+    fromAbsoluteFolderPath,
+    fromRelativeFilePath
+  )
 
   if (fromBasename.includes('-rawliquid')) {
     console.log(`raw -> ${toRelativeFilePath}`)
@@ -1054,7 +1202,7 @@ export const processFile = ({
       const mode = statSync(toAbsoluteFilePath).mode
       chmodSync(
         toAbsoluteFilePath,
-        mode & ~constants.S_IWUSR & ~constants.S_IWGRP & ~constants.S_IWOTH,
+        mode & ~constants.S_IWUSR & ~constants.S_IWGRP & ~constants.S_IWOTH
       )
     }
   } else if (!existsSync(toAbsoluteFilePath)) {
@@ -1072,7 +1220,7 @@ export const processFile = ({
 export const importReleases = (projectFolderPath, scriptFolderPath) => {
   console.log()
   console.log(
-    '----------------------------------------------------------------------------',
+    '----------------------------------------------------------------------------'
   )
   console.log(projectFolderPath)
 
@@ -1082,11 +1230,14 @@ export const importReleases = (projectFolderPath, scriptFolderPath) => {
     websiteFolderPath,
     '_xpack.github.io',
     '_posts',
-    'releases',
+    'releases'
   )
 
   const npmPackageName = name.replace(/-xpack\.git$/, '')
-  const releasesFolderPath = path.join(xpackWwwReleasesFolderPath, npmPackageName)
+  const releasesFolderPath = path.join(
+    xpackWwwReleasesFolderPath,
+    npmPackageName
+  )
   if (!existsSync(releasesFolderPath)) {
     console.log(`No ${releasesFolderPath}, nothing to do...`)
     return
@@ -1095,7 +1246,11 @@ export const importReleases = (projectFolderPath, scriptFolderPath) => {
   console.log()
   console.log('Release posts...')
 
-  const files = globSync('**/*', { cwd: releasesFolderPath, dot: true, nodir: true }).sort()
+  const files = globSync('**/*', {
+    cwd: releasesFolderPath,
+    dot: true,
+    nodir: true,
+  }).sort()
   for (const file of files) {
     execFileSync(
       'bash',
@@ -1104,7 +1259,7 @@ export const importReleases = (projectFolderPath, scriptFolderPath) => {
         file,
         path.join(websiteFolderPath, 'blog'),
       ],
-      { cwd: releasesFolderPath, stdio: 'inherit' },
+      { cwd: releasesFolderPath, stdio: 'inherit' }
     )
   }
 
@@ -1113,7 +1268,7 @@ export const importReleases = (projectFolderPath, scriptFolderPath) => {
 
   const blogFolderPath = path.join(websiteFolderPath, 'blog')
   const blogFiles = globSync('*.md*', { cwd: blogFolderPath }).filter(
-    (file) => !path.basename(file).startsWith('_'),
+    (file) => !path.basename(file).startsWith('_')
   )
 
   for (const file of blogFiles) {
@@ -1141,7 +1296,12 @@ export const importReleases = (projectFolderPath, scriptFolderPath) => {
 export const downloadBinaries = (context, destinationFolderPath) => {
   const targetFolderPath =
     destinationFolderPath ??
-    path.join(process.env.HOME ?? '', 'Downloads', 'xpack-binaries', context.topConfig.permalinkName)
+    path.join(
+      process.env.HOME ?? '',
+      'Downloads',
+      'xpack-binaries',
+      context.topConfig.permalinkName
+    )
 
   const version = process.env.XBB_RELEASE_VERSION ?? context.xpackVersion
   const backupFolderPath = `${targetFolderPath}-bak`
@@ -1157,13 +1317,21 @@ export const downloadBinaries = (context, destinationFolderPath) => {
   for (const platform of platforms) {
     const extension = platform === 'win32-x64' ? 'zip' : 'tar.gz'
     const archiveName = `xpack-${context.topConfig.permalinkName}-${version}-${platform}.${extension}`
-    const archiveUrl =
-      `https://github.com/xpack-dev-tools/pre-releases/releases/download/test/${archiveName}`
+    const archiveUrl = `https://github.com/xpack-dev-tools/pre-releases/releases/download/test/${archiveName}`
 
     runVerbose(
       'curl',
-      ['--location', '--insecure', '--fail', '--location', '--silent', '--output', archiveName, archiveUrl],
-      { cwd: targetFolderPath },
+      [
+        '--location',
+        '--insecure',
+        '--fail',
+        '--location',
+        '--silent',
+        '--output',
+        archiveName,
+        archiveUrl,
+      ],
+      { cwd: targetFolderPath }
     )
     runVerbose(
       'curl',
@@ -1177,7 +1345,7 @@ export const downloadBinaries = (context, destinationFolderPath) => {
         `${archiveName}.sha`,
         `${archiveUrl}.sha`,
       ],
-      { cwd: targetFolderPath },
+      { cwd: targetFolderPath }
     )
   }
 
