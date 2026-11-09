@@ -647,6 +647,8 @@ const processXpack = (context, packageJson, projectFolderPath) => {
   }
 }
 
+// ----------------------------------------------------------------------------
+
 export const websiteConfigProperties = {
   stringProperties: [
     'armMajorMinorRelease',
@@ -702,9 +704,11 @@ export const websiteConfigProperties = {
 
   booleanProperties: [
     'has100coverage',
+    'hasCompatibilityNoticesPage',
     'hasCustomAbout',
     'hasCustomConfigDoxyfile',
     'hasCustomDeveloper',
+    'hasCustomDeveloperSidebar',
     'hasCustomDocsNavbarItem',
     'hasCustomGettingStarted',
     'hasCustomGettingStartedSidebar',
@@ -862,6 +866,20 @@ const writeWebsiteTemplateConfig = (
   }
 }
 
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+
+export const testsConfigProperties = {
+  stringProperties: [],
+
+  arrayProperties: [],
+
+  booleanProperties: [
+    'hasUnitCommon',
+  ],
+}
+
 const processTestsConfig = (context, testsFolderPath) => {
   const testsTemplatesConfigPath = path.join(
     testsFolderPath,
@@ -897,7 +915,16 @@ const processTestsConfig = (context, testsFolderPath) => {
 
   rawTestsConfig ??= {}
 
+  context.testsConfig = {}
+  for (const prop of testsConfigProperties.stringProperties) {
+    context.testsConfig[prop] = rawTestsConfig[prop] ?? ''
+  }
+  for (const prop of testsConfigProperties.booleanProperties) {
+    context.testsConfig[prop] = rawTestsConfig[prop] === true
+  }
+
   context.testsConfig = {
+    ...context.testsConfig,
     useStaticLibrary: rawTestsConfig.useStaticLibrary === true,
     useObjectsLibrary: rawTestsConfig.useObjectsLibrary === true,
     platforms: rawTestsConfig.platforms ?? [],

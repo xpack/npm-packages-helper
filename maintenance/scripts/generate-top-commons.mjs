@@ -98,11 +98,13 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
     return
   }
 
-  // --------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // Compute exclusions.
 
   const skipPages = ['.gitkeep']
 
+  // --------------------------------------------------------------------------
+  // xpack
   if (options.isXpack) {
     if (!context.topConfig.isTypescript) {
       skipPages.push(
@@ -114,30 +116,6 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
       )
     }
 
-    if (context.topConfig.skipCiTests || context.packageVersion === '0.0.0') {
-      skipPages.push('.github/workflows/test-ci.yml')
-    }
-
-    if (!context.topConfig.hasTriggerPublish) {
-      skipPages.push('.github/workflows/trigger-publish-github-pages.yml')
-    }
-
-    if (!context.topConfig.hasTriggerPublishPreview) {
-      skipPages.push('.github/workflows/trigger-publish-github-pages-preview.yml')
-    }
-
-    if (context.topConfig.isWebDeployOnly) {
-      skipPages.push(
-        'config/api-extractor.json',
-        'src/tsconfig.json',
-        'eslint.config.js',
-        'config/eslint.config.js',
-        'tsconfig-original.json',
-        'config/tsconfig-original.json',
-        'tsconfig.eslint.json',
-        'config/tsconfig.eslint.json',
-      )
-    }
 
     if (!context.topConfig.useTypescriptEslint) {
       skipPages.push('.prettierignore')
@@ -147,6 +125,8 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
     if (!context.topConfig.useApiExtractor) {
       skipPages.push('config/api-extractor.json')
     }
+  // --------------------------------------------------------------------------
+  // xpack-dev-tools
   } else if (options.isXpackDevTools) {
     let platformsWithCommas = `,${context.platforms},`
     if (platformsWithCommas === ',all,') {
@@ -208,6 +188,35 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
         skipPages.push('.github/workflows/test-docker-linux-arm.yml')
       }
     }
+  // --------------------------------------------------------------------------
+  // micro-os-plus
+  } else if (options.isMicroOsPlus) {
+    // none so far.
+  }
+
+  if (context.topConfig.skipCiTests || context.packageVersion === '0.0.0') {
+    skipPages.push('.github/workflows/test-ci.yml')
+  }
+
+  if (!context.topConfig.hasTriggerPublish) {
+    skipPages.push('.github/workflows/trigger-publish-github-pages.yml')
+  }
+
+  if (!context.topConfig.hasTriggerPublishPreview) {
+    skipPages.push('.github/workflows/trigger-publish-github-pages-preview.yml')
+  }
+
+  if (context.topConfig.isWebDeployOnly) {
+    skipPages.push(
+      'config/api-extractor.json',
+      'src/tsconfig.json',
+      'eslint.config.js',
+      'config/eslint.config.js',
+      'tsconfig-original.json',
+      'config/tsconfig-original.json',
+      'tsconfig.eslint.json',
+      'config/tsconfig.eslint.json',
+    )
   }
 
   if (!options.isMicroOsPlus || context.topConfig.isWebDeployOnly) {
@@ -302,6 +311,8 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
 
 // ============================================================================
 // main()
+
+debugger
 
 const argv = process.argv.slice(2)
 
