@@ -76,7 +76,8 @@ _local_sources += [
   {%- assign defines = defines | concat: component.privateDefines %}
 {%- endif %}
 {%- if defines.size > 0 %}
-_local_compile_args += [
+
+_local_compile_definitions += [
 {%- for define in defines %}
   '-D{{define}}',
 {%- endfor %}
