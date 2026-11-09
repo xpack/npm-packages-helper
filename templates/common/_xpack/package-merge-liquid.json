@@ -154,9 +154,9 @@
     "@types/node": "^26.6.5",{%- unless topConfig.skipCiTests %}
     "@types/tap": "^15.0.12",{% endunless %}{% endif %}
     "del-cli": "^7.0.0",
-    "glob": "^13.0.6",
+    "glob": "^14.0.4",
     "json": "^11.0.0",
-    "liquidjs": "^10.30.0"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
+    "liquidjs": "^10.30.1"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
     "tap": "^21.7.4"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
     "ts-node": "^10.9.2"{%- if topConfig.useEslint %},
     "eslint": "^10.12.0",
