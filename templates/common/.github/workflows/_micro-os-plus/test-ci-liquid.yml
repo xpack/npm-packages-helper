@@ -92,7 +92,7 @@ jobs:
 
       - name: {% raw %}Setup Node.js ${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
         # https://github.com/actions/setup-node
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
 
@@ -108,14 +108,36 @@ jobs:
           xpm --version
           env | sort
 
+      - name: Clean xPack cache Linux
+        if: runner.os == 'Linux'
+        run: |
+          rm -rf "${HOME}/.cache/xPacks"
+
+      - name: Clean xPack cache macOS
+        if: runner.os == 'macOS'
+        run: |
+          rm -rf "${HOME}/Library/Caches/xPacks"
+
+      - name: Clean xPack cache Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $cachePath = "$env:LOCALAPPDATA\Caches\xPacks"
+          if (Test-Path -LiteralPath $cachePath) {
+            Remove-Item -LiteralPath $cachePath -Force -Recurse -ErrorAction SilentlyContinue
+          }
+
       - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
         run: |
           npm ci
           npm {% if hasFolderTestsPackage %}--prefix tests {% endif %}ci
           xpm install{% if hasFolderTestsPackage %} -C tests{% endif %}
+
+      - name: {% raw %}Satisfy platforms dependencies on ${{ matrix.os }}{% endraw %}
+        run: |
           xpm run install-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
 
-      - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
+      - name: {% raw %}Run platforms tests on ${{ matrix.os }}{% endraw %}
         run: xpm run test-ci{% if hasFolderTestsPackage %} -C tests{% endif %}
         env:
           CI: true

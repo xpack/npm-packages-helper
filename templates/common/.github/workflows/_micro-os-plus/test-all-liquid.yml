@@ -20,7 +20,7 @@
 # {{packageHomepage}}
 # https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/test-ci.yml
 
-# Workflow for running some tests on each Push.
+# Workflow for running all tests.
 name: Run all tests
 
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
@@ -50,11 +50,15 @@ jobs:
         # https://github.com/actions/runner-images
         os:
           [
+            'ubuntu-26.04',
             'ubuntu-24.04',
             'ubuntu-22.04',
+            'ubuntu-26.04-arm',
             'ubuntu-24.04-arm',
             'ubuntu-22.04-arm',
+            'macos-26-intel',
             'macos-15-intel',
+            'macos-26',
             'macos-15',
             'windows-2025',
             'windows-2022'
@@ -73,7 +77,7 @@ jobs:
 
       - name: {% raw %}Setup Node.js ${{ matrix.node-version }} on ${{ matrix.os }}{% endraw %}
         # https://github.com/actions/setup-node
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
 
@@ -89,13 +93,6 @@ jobs:
           xpm --version
           env | sort
 
-      - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
-        run: |
-          npm ci
-          npm {% if hasFolderTestsPackage %}--prefix tests {% endif %}ci
-          xpm install{% if hasFolderTestsPackage %} -C tests{% endif %}
-          xpm run install-all{% if hasFolderTestsPackage %} -C tests{% endif %}
-
       - name: Clean xPack cache Linux
         if: runner.os == 'Linux'
         run: |
@@ -110,9 +107,22 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Remove-Item -LiteralPath "$env:LOCALAPPDATA\Caches\xPacks" -Force -Recurse
+          $cachePath = "$env:LOCALAPPDATA\Caches\xPacks"
+          if (Test-Path -LiteralPath $cachePath) {
+            Remove-Item -LiteralPath $cachePath -Force -Recurse -ErrorAction SilentlyContinue
+          }
 
-      - name: {% raw %}Run tests on ${{ matrix.os }}{% endraw %}
+      - name: {% raw %}Satisfy project dependencies on ${{ matrix.os }}{% endraw %}
+        run: |
+          npm ci
+          npm {% if hasFolderTestsPackage %}--prefix tests {% endif %}ci
+          xpm install{% if hasFolderTestsPackage %} -C tests{% endif %}
+
+      - name: {% raw %}Satisfy platforms dependencies on ${{ matrix.os }}{% endraw %}
+        run: |
+          xpm run install-all{% if hasFolderTestsPackage %} -C tests{% endif %}
+
+      - name: {% raw %}Run platforms tests on ${{ matrix.os }}{% endraw %}
         run: xpm run test-all -C tests
         env:
           CI: true
