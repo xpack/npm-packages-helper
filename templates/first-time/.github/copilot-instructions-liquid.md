@@ -152,7 +152,9 @@ Brace the whole group of pragmas by separator lines.
   and their templates), and `/maintenance/docs` (the developer notes)
 
 When adding new source files, place them in the appropriate `src` or `include`
-folder, and add corresponding entries in the top CMake and Meson configurations.
+folder, and add them to `xcdl-package.jsonc`, from which the top CMake and Meson
+configurations are generated with `xpm run xcdl-export` (see the xcdl section
+below); do not edit the generated files.
 
 Avoid running `find /` commands that search the entire filesystem, as this
 always times out.
