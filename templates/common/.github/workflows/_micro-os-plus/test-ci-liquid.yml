@@ -2,11 +2,7 @@
 # DO NOT EDIT! Automatically generated from template file:
 # {{fromFilePath}}
 #
-{%- if githubProjectOrganization == 'micro-os-plus' %}
 # This file is part of the µOS++ project (http://micro-os-plus.github.io).
-{%- else %}
-# This file is part of the xPack project (http://xpack.github.io).
-{%- endif %}
 # Copyright (c) 2021-{{currentYear}} Liviu Ionescu. All rights reserved.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -49,6 +45,7 @@ on:
       - 'maintenance/**'
       - 'tests/scripts/**'
       - 'website/**'
+      - 'docs/**'
       - 'LICENSE*'
       - '**.md'
       - '.gitignore'
@@ -79,9 +76,9 @@ jobs:
             \'' }}'
           ]
         # https://nodejs.org/en - use LTS
-        node-version: ['{{ topConfig.githubActionsNodeVersions | join: ', ' }}']
+        node-version: ['{{ topConfig.githubActionsNodeVersions | join: '\', \'' }}']
         # https://www.npmjs.com/package/xpm
-        xpm-version: ['{{ topConfig.githubActionsXpmVersions | join: ', ' }}']
+        xpm-version: ['{{ topConfig.githubActionsXpmVersions | join: '\', \'' }}']
 
     steps:
       - name: Checkout
@@ -95,6 +92,7 @@ jobs:
         uses: actions/setup-node@v7.1.0
         with:
           node-version: {% raw %}${{ matrix.node-version }}{% endraw %}
+          cache: 'npm'
 
       - name: {% raw %}Install xpm@${{ matrix.xpm-version }} on ${{ matrix.os }}{% endraw %}
         run: npm install -g {% raw %}xpm@${{ matrix.xpm-version }}{% endraw %}

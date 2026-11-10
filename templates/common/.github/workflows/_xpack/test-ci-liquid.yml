@@ -13,83 +13,98 @@
 #
 # -----------------------------------------------------------------------------
 
-# https://help.github.com/en/actions
-# https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
+# {{packageHomepage}}
+# https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/test-ci.yml
 
-# https://github.com/actions
-# https://github.com/actions/checkout
-# https://github.com/actions/setup-node
+# Workflow for running some tests on each Push.
+name: Test on Push
+
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
 
 # -----------------------------------------------------------------------------
 
-# {{packageHomepage}}
-# https://github.com/{{githubProjectOrganization}}/{{githubProjectName}}/actions/workflows/test-ci.yml
-name: CI on Push
-
 on:
+  # Runs on pushes, if all conditions are met:
   push:
+    # ... on the active branches ...
     branches:
       - '{{ branchMain }}'
       - '{{ branchDevelopment }}'
+    # ... skip tags only ...
     tags-ignore:
       - '**'
     paths-ignore:
-      - 'docs/**'
+      - '.claude/**'
+      - '.github/skills/**'
+      - '.github/workflows/publish-github-pages.yml'
+      - '.github/workflows/test-all.yml'
+      - '.github/copilot-instructions.md'
+      - '.github/FUNDING.yml'
+      - '.settings/**'
+      - '.vscode/**'
+      - 'maintenance/**'
+      - 'tests/scripts/**'
       - 'website/**'
-      - 'LICENSE'
+      - 'docs/**'
+      - 'LICENSE*'
       - '**.md'
       - '.gitignore'
       - '.npmignore'
-      - '.vscode/**'
-      - '.github/FUNDING.yml'
-      - '.github/workflows/publish-github-pages*.yml'
-      - '.github/workflows/trigger-publish-github-pages*.yml'
       - 'README*.md'
 
-# Allow one concurrent run.
+# Allow one concurrent run per push; new pushes cancel older runs.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency
 concurrency:
-  group: 'test'
+  group: 'tests-ci-{% raw %}${{ github.ref_name }}{% endraw %}'
+  # A new push to the same branch cancels the older run.
   cancel-in-progress: true
 
 jobs:
   ci-test:
-    name: '{{ githubProjectName }} test'
-
-    strategy:
-      # Do not cancel the other matrix jobs if one of them fails.
-      fail-fast: false
-      matrix:
-        # https://github.com/actions/setup-node
-        node-version: [ {{ topConfig.githubActionsNodeVersions | join: ', ' }} ]
-        # https://github.com/actions/runner-images
-        os: [ '{{ topConfig.githubActionsOses | join: '\', \'' }}' ]
+    name: '{{topConfig.descriptiveName}} CI tests'
 
     runs-on: {% raw %}${{matrix.os}}{% endraw %}
 
+    strategy:
+      # Run all platforms to completion, even if one fails.
+      fail-fast: false
+      matrix:
+        # https://github.com/actions/runner-images
+        os:
+          [
+            '{{ topConfig.githubActionsOses | join: '\',
+            \'' }}'
+          ]
+        # https://nodejs.org/en - use LTS
+        node-version: ['{{ topConfig.githubActionsNodeVersions | join: '\', \'' }}']
+
     steps:
-    - name: Checkout
-      # https://github.com/actions/checkout
-      uses: actions/checkout@v6.0.2
-      with:
-        fetch-depth: 1
+      - name: Checkout
+        # https://github.com/actions/checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
 
-    - name: Setup Node.js {% raw %}${{matrix.node-version}} on ${{matrix.os}}{% endraw %}
-      # https://github.com/actions/setup-node
-      uses: actions/setup-node@v6.2.0
-      with:
-        node-version: {% raw %}${{matrix.node-version}}{% endraw %}
-        cache: 'npm'
+      - name: Setup Node.js {% raw %}${{matrix.node-version}} on ${{matrix.os}}{% endraw %}
+        # https://github.com/actions/setup-node
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: {% raw %}${{matrix.node-version}}{% endraw %}
+          cache: 'npm'
 
-    - name: Show node & npm versions, environment
-      run: |
-        node --version
-        npm --version
-        env | sort
+      - name: Show environment
+        run: |
+          id
+          uname -a
+          node --version
+          npm --version
+          env | sort
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run test
-      run: npm run test-ci
-      env:
-        CI: true
+      - name: Run test
+        run: npm run test-ci
+        env:
+          CI: true

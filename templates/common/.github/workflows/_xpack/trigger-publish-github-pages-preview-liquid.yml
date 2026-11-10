@@ -51,12 +51,13 @@ permissions:
 
 # Allow one concurrent deployment.
 concurrency:
-  group: 'pages'
+  group: 'preview'
   cancel-in-progress: true
 
 jobs:
   # Dispatch the event to the destination project.
   dispatch:
+    # https://github.com/actions/runner-images
     runs-on: ubuntu-24.04
 
     steps:
