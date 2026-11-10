@@ -2,8 +2,8 @@
 # DO NOT EDIT! Automatically generated from template file:
 # {{fromFilePath}}
 #
-# This file is part of the xPack project (http://xpack.github.io).
-# Copyright (c) 2021-2026 Liviu Ionescu. All rights reserved.
+# This file is part of the xPack project (http://micro-os-plus.github.io).
+# Copyright (c) 2021-{{currentYear}} Liviu Ionescu. All rights reserved.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose is hereby granted, under the terms of the MIT license.
