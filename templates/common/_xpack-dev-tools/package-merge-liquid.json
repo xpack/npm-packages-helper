@@ -16,7 +16,7 @@
     "liquidjs": "https://www.npmjs.com/package/liquidjs"
   },
   "devDependencies": {
-    "del-cli": "^7.0.0",
+    "del-cli": "^8.0.1",
     "glob": "^13.0.6",
     "json": "^11.0.0",
     "liquidjs": "^10.27.0",
@@ -46,6 +46,6 @@
   },
   {%- endif %}
   "engines": {
-    "node": ">=20.0"
+    "node": ">=22.0"
   }
 }

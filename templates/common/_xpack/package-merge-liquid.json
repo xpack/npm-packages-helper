@@ -31,7 +31,7 @@
   {%- endif %}
 
   {%- if topConfig.usePrettier %}
-    "prettier": "prettier src tests --write --config config/.prettierrc.json --ignore-path config/.prettierignore",
+    "prettier": "prettier src tests --write --config maintenance/config/.prettierrc.json --ignore-path maintenance/config/.prettierignore",
   {%- endif %}
 
   {%- if topConfig.isJavascript %}
@@ -39,7 +39,7 @@
       "dev-cycle": "npm run fix && npm run test",
   {%- elsif topConfig.isTypescript %}
     {%- if topConfig.useEslint %}
-        "fix": "eslint --config config/eslint.config.js --fix src",
+        "fix": "eslint --config maintenance/config/eslint.config.js --fix src",
     {%- else %}
         "fix": "ts-standard --fix src tests && standard esm",
     {%- endif %}
@@ -63,7 +63,7 @@
       "lint": "standard src",
   {%- elsif topConfig.isTypescript %}
     {%- if topConfig.useEslint %}
-        "lint": "eslint --config config/eslint.config.js src",
+        "lint": "eslint --config maintenance/config/eslint.config.js src",
     {%- else %}
         "lint": "ts-standard src && standard esm",
     {%- endif %}
@@ -132,9 +132,8 @@
 {%- endif %}
 
  "$dependenciesUrls": { {% if topConfig.isTypescript %}
-    "@tsconfig/node20": "https://www.npmjs.com/package/@tsconfig/node20",
-    "@types/node": "https://www.npmjs.com/package/@types/node",{%- unless topConfig.skipCiTests %}
-    "@types/tap": "https://www.npmjs.com/package/@types/tap",{% endunless %}{% endif %}
+    "@tsconfig/node22": "https://www.npmjs.com/package/@tsconfig/node22",
+    "@types/node": "https://www.npmjs.com/package/@types/node",{% endif %}
     "del-cli": "https://www.npmjs.com/package/del-cli",
     "glob": "https://www.npmjs.com/package/glob",
     "json": "https://www.npmjs.com/package/json",
@@ -150,24 +149,23 @@
   },
   "dependencies": {},
   "devDependencies": { {% if topConfig.isTypescript %}
-    "@tsconfig/node20": "^20.1.10",
-    "@types/node": "^26.6.5",{%- unless topConfig.skipCiTests %}
-    "@types/tap": "^15.0.12",{% endunless %}{% endif %}
-    "del-cli": "^7.0.0",
+    "@tsconfig/node22": "^22.0.6",
+    "@types/node": "^26.6.6",{% endif %}
+    "del-cli": "^8.0.1",
     "glob": "^14.0.4",
     "json": "^11.0.0",
     "liquidjs": "^10.30.1"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
-    "tap": "^21.7.4"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
+    "tap": "^21.8.1"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
     "ts-node": "^10.9.2"{%- if topConfig.useEslint %},
-    "eslint": "^10.12.0",
+    "eslint": "^10.14.0",
     "@eslint/js": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
-    "typescript-eslint": "^8.71.2"{% endif %},
+    "typescript-eslint": "^8.72.2"{% endif %},
     "prettier": "^3.9.10",
-    "typescript": "^5.9.3"{%- endif %}
+    "typescript": "^6.0.3"{%- endif %}
   },
 
   "engines": {
-    "node": ">=20.0"
+    "node": ">=22.0"
   }
 }
