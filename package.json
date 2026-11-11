@@ -52,6 +52,6 @@
     "postversion": "git push origin --all && git push origin --tags"
   },
   "engines": {
-    "node": ">=22.0"
+    "node": ">=22.12"
   }
 }
