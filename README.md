@@ -99,7 +99,7 @@ The file `config/top-templates.json`:
     - like `xpm-preview` for web sites (later to be renamed to `xpm`)
     - like `web-preview`
   - description
-    - like 'A Node.js CommonJS/ES6 module with ...'
+    - like 'A Node.js ES module with ...'
     - like 'The xPack project manager command line tool' (shown in CLI too)
     - like 'Web site for the xpm web; (preview for now, to be renamed as xpm)'
     - like 'Web site preview for https://micro-os-plus.github.io'
