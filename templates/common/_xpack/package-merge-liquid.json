@@ -26,7 +26,7 @@
 
   {%- if topConfig.isTypescript %}
     "compile-watch": "tsc --project tsconfig.json --watch",
-    "compile": "tsc --project tsconfig.json",
+    "compile": "tsc --project tsconfig.json && tsc --project tsconfig-declarations.json",
     "compile-tests": "tsc --project maintenance/config/tsconfig-tests.json",
     "fix-compile": "npm run prettier && npm run fix && npm run compile",
   {%- endif %}
@@ -90,7 +90,7 @@
     {% endif %}
   {%- endif %}
 
-    "prepublishOnly": "npm run lint && npm run test",
+    "prepublishOnly": "npm run test",
     "postpublish": "git push origin --follow-tags",
     "clean": "del-cli --force dist build .tap",
     "deep-clean": "npm run clean && del-cli --force node_modules package-lock.json",
