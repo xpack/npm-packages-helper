@@ -51,7 +51,7 @@ jobs:
     environment:
       name: github-pages
       url: {% raw %}${{steps.deployment.outputs.page_url}}{% endraw %}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout

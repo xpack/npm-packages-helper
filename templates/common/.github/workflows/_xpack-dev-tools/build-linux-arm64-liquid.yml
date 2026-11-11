@@ -49,7 +49,7 @@ jobs:
 {%- if topConfig.useSelfHostedRunners %}
     runs-on: [self-hosted, linux, arm64, xbbla]
 {%- else %}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 {%- endif %}
     defaults:
       run:
@@ -139,7 +139,7 @@ jobs:
 
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     needs: [{{platform}}-build]
 
     steps:

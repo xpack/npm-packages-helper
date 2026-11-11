@@ -51,7 +51,7 @@ jobs:
   ubuntu-arm64:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on Ubuntu stable'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -106,7 +106,7 @@ jobs:
   debian-arm64:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on Debian stable'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -161,7 +161,7 @@ jobs:
   redhat-arm64:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on RedHat stable'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -204,7 +204,7 @@ jobs:
   fedora-arm64:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on Fedora stable'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -260,7 +260,7 @@ jobs:
   opensuse-arm64:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on OpenSUSE stable'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -308,7 +308,7 @@ jobs:
   ubuntu-arm64-latest:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on Ubuntu latest'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -350,7 +350,7 @@ jobs:
   debian-arm64-latest:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on Debian latest'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -399,7 +399,7 @@ jobs:
   fedora-arm64-latest:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on Fedora latest'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -440,7 +440,7 @@ jobs:
   opensuse-arm64-latest:
     name: 'arm64 {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test on OpenSUSE latest'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'

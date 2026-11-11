@@ -49,7 +49,7 @@ jobs:
 {%- if topConfig.useSelfHostedRunners %}
     runs-on: [self-hosted, macos, intel]
 {%- else %}
-    runs-on: macos-15-intel
+    runs-on: macos-26-intel
 {%- endif %}
     env:
       XBB_ENVIRONMENT_MACOSX_DEPLOYMENT_TARGET: '11.0'
@@ -154,7 +154,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-    runs-on: macos-15-intel
+    runs-on: macos-26-intel
     needs: [{{platform}}-build]
 
     steps:

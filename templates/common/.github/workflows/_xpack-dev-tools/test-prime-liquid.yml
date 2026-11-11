@@ -27,7 +27,7 @@ jobs:
 {% when "linux-x64" %}
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - name: 'Show environment'
@@ -67,7 +67,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # runs-on: [self-hosted, linux, arm64, xbbla]
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: 'Show environment'
@@ -107,7 +107,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-    runs-on: macos-15-intel
+    runs-on: macos-26-intel
 
     steps:
       - name: 'Show environment'
@@ -165,7 +165,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - name: 'Show environment'
@@ -288,7 +288,7 @@ jobs:
 {% if topConfig.showTestsResults %}
   generate-tests-report:
     name: 'Generate tests report for {{topConfig.descriptiveName}}@{% raw %}${{github.event.inputs.version}}{% endraw %}'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [{{platforms_array | join: "-test, " | append: "-test"}}]
 
     steps:
