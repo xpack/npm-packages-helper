@@ -27,6 +27,7 @@
   {%- if topConfig.isTypescript %}
     "compile-watch": "tsc --project tsconfig.json --watch",
     "compile": "tsc --project tsconfig.json",
+    "compile-tests": "tsc --project maintenance/config/tsconfig-tests.json",
     "fix-compile": "npm run prettier && npm run fix && npm run compile",
   {%- endif %}
 
