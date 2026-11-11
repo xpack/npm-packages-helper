@@ -164,7 +164,7 @@ Update license MIT, Copyright (c) 2025-2026 Liviu Ionescu. All rights reserved.
     "minimumXpmRequired": "0.16.2"
   },
   "engines": {
-    "node": ">=22.0"
+    "node": ">=22.12"
   }
 }
 ```
@@ -223,7 +223,7 @@ Add the following:
     "postversion": "git push origin --all && git push origin --tags"
   },
   "engines": {
-    "node": ">=22.0"
+    "node": ">=22.12"
   }
 ```
 

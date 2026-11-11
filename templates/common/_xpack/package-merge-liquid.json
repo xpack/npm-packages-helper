@@ -50,7 +50,7 @@
 {%- endif %}
 
     "npm-install": "npm install",
-    "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
+    "npm-link-helpers": "npm link @xpack/npm-packages-helper",
     "npm-link": "npm link",
     "npm-outdated": "npm outdated",
     "npm-update": "npm update",
@@ -97,6 +97,7 @@
 {%- else %}
     "deep-clean": "del-cli --force node_modules package-lock.json",
 {%- endif %}
+    "update-changelog": "node maintenance/scripts/update-changelog.mjs CHANGELOG.md",
     "npm-audit": "npm audit fix --force",
 
     "dumpconf": "env | sort | uniq",
