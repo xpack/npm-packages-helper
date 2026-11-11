@@ -18,5 +18,5 @@ templates
 {%- if packageName == 'xpm-lib' %}
 
 # Paths are relative to the current folder, which is config.
-../tests/fixtures/package-bad-json/package.json
+../../tests/fixtures/package-bad-json/package.json
 {% endif %}
