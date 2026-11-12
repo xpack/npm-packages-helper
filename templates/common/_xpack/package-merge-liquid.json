@@ -138,7 +138,6 @@
     "@types/node": "https://www.npmjs.com/package/@types/node",{% endif %}
     "del-cli": "https://www.npmjs.com/package/del-cli",
     "glob": "https://www.npmjs.com/package/glob",
-    "json": "https://www.npmjs.com/package/json",
     "liquidjs": "https://www.npmjs.com/package/liquidjs"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
     "tap": "https://www.npmjs.com/package/tap"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
     "ts-node": "https://www.npmjs.com/package/ts-node"{%- if topConfig.useEslint %},
@@ -155,10 +154,8 @@
     "@types/node": "^26.6.6",{% endif %}
     "del-cli": "^8.0.1",
     "glob": "^14.0.4",
-    "json": "^11.0.0",
     "liquidjs": "^10.30.1"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
-    "tap": "^21.8.1"{% endunless %}{% endif %}{%- if topConfig.isTypescript %},
-    "ts-node": "^10.9.2"{%- if topConfig.useEslint %},
+    "tap": "^21.8.1"{% endunless %}{% endif %}{%- if topConfig.isTypescript %}{%- if topConfig.useEslint %},
     "eslint": "^10.14.0",
     "@eslint/js": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
