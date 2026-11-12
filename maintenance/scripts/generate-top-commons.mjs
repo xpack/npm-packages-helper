@@ -213,7 +213,7 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
       'eslint.config.js',
       'config/eslint.config.js',
       'tsconfig-original.json',
-      'config/tsconfig-original.json',
+      'maintenance/config/tsconfig-original.json',
       'tsconfig.eslint.json',
       'config/tsconfig.eslint.json',
     )
@@ -221,15 +221,15 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
 
   if (!options.isMicroOsPlus || context.topConfig.isWebDeployOnly) {
     skipPages.push(
-      'config/.clang-format',
-      'config/.cmake-format.py',  
+      'maintenance/config/.clang-format',
+      'maintenance/config/.cmake-format.py',
 
-      'scripts/templates/CMakeLists-liquid.txt',
-      'scripts/templates/meson-liquid.build',
-      'scripts/clang-format.mjs',  
-      'scripts/cmake-format.mjs',
-      'scripts/jsonc-format.mjs',
-      'scripts/xcdl-export.mjs',
+      'maintenance/scripts/templates/CMakeLists-liquid.txt',
+      'maintenance/scripts/templates/meson-liquid.build',
+      'maintenance/scripts/clang-format.mjs',
+      'maintenance/scripts/cmake-format.mjs',
+      'maintenance/scripts/jsonc-format.mjs',
+      'maintenance/scripts/xcdl-export.mjs',
     )
   }
 
@@ -277,17 +277,14 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
   }
 
   if (!context.topConfig.isTypescript) {
-    skipPages.push('config/tsconfig-common.json', 'config/tsconfig-original.json')
+    skipPages.push('maintenance/config/tsconfig-common.json')
   }
+
+  // The default file of `tsc --init`, not used by any project.
+  skipPages.push('maintenance/config/tsconfig-original.json')
 
   if (!context.topConfig.useEslint) {
     skipPages.push('config/eslint.config.js')
-  }
-
-  if (!context.topConfig.isMicroOsPlus) {
-    skipPages.push('config/scripts/clang-format.mjs', 
-      'config/cmake-format.mjs', 'config/xcdl-export.mjs'
-    )
   }
 
   // --------------------------------------------------------------------
