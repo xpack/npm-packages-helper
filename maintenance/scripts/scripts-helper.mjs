@@ -392,6 +392,7 @@ export const topConfigProperties = {
     'isTypescript',
     'isWebDeployOnly',
     'isWebPreview',
+    'lintTests',
     'preferShortName',
     'showTestsResults',
     'skipCiTests',

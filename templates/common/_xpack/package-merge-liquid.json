@@ -40,7 +40,7 @@
       "dev-cycle": "npm run fix && npm run test",
   {%- elsif topConfig.isTypescript %}
     {%- if topConfig.useEslint %}
-        "fix": "eslint --config maintenance/config/eslint.config.js --fix src",
+        "fix": "eslint --config maintenance/config/eslint.config.js --fix src{% if topConfig.lintTests %} tests{% endif %}",
     {%- else %}
         "fix": "ts-standard --fix src tests && standard esm",
     {%- endif %}
@@ -64,7 +64,7 @@
       "lint": "standard src",
   {%- elsif topConfig.isTypescript %}
     {%- if topConfig.useEslint %}
-        "lint": "eslint --config maintenance/config/eslint.config.js src",
+        "lint": "eslint --config maintenance/config/eslint.config.js src{% if topConfig.lintTests %} tests{% endif %}",
     {%- else %}
         "lint": "ts-standard src && standard esm",
     {%- endif %}

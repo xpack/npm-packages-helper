@@ -493,6 +493,9 @@ Booleans (`true`/`false`):
 - `isTypescript`
 - `isWebDeployOnly`
 - `isWebPreview`
+- `lintTests`: also lint the files in `tests` with ESLint (the `lint` and
+  `fix` scripts, and an ESLint block that uses `tsconfig-tests.json`);
+  opt-in, false by default
 - `preferShortName`
 - `showTestsResults`
 - `skipCiTests`
