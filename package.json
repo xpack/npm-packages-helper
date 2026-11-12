@@ -1,6 +1,6 @@
 {
   "name": "@xpack/npm-packages-helper",
-  "version": "1.3.0-pre",
+  "version": "1.3.0",
   "description": "Common scripts and templates used by xPack node modules and web sites",
   "repository": {
     "type": "git",
