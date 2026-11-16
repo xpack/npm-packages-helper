@@ -288,6 +288,36 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
   }
 
   // --------------------------------------------------------------------
+  // The agent skills (`.github/skills/`). A skill has several files, so
+  // they are skipped by folder prefix, not by exact path.
+
+  const skipFolderPrefixes = []
+
+  // Temporary guard: the xpack and xpack-dev-tools projects still have
+  // hand-written skills, which must not be overwritten until they are
+  // migrated to these templates (with their facts moved to
+  // `.github/skills/project.md`); remove it after that migration.
+  if (options.isXpack || options.isXpackDevTools) {
+    skipFolderPrefixes.push('.github/skills/')
+  }
+
+  if (!context.hasFolderWebsitePackage) {
+    skipFolderPrefixes.push('.github/skills/website-review/')
+  }
+
+  // The `doxygen-review` skill is kept, since its rules apply to the
+  // comments of every µOS++ project; only its Doxygen runs depend on
+  // `useDoxygen`, inside the template.
+  if (!context.topConfig.useDoxygen) {
+    skipFolderPrefixes.push('.github/skills/website-api-review/')
+  }
+
+  if (skipFolderPrefixes.some((prefix) => toRelativeFilePath.startsWith(prefix))) {
+    console.log(`skipped: ${toRelativeFilePath}`)
+    return
+  }
+
+  // --------------------------------------------------------------------
 
   if (skipPages.includes(toRelativeFilePath)) {
     console.log(`skipped: ${toRelativeFilePath}`)

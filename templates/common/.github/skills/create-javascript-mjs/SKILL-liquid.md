@@ -1,0 +1,97 @@
+---
+name: create-javascript-mjs
+description: 'Create a new ES module Node.js script (.mjs) from scratch in the {{ topConfig.descriptiveName | replace: "'", "''" }} project, following the conventions of the existing maintenance scripts{% if githubProjectOrganization == 'micro-os-plus' %} (jsonc-format.mjs and xcdl-export.mjs){% else %} (update-changelog.mjs){% endif %}. Use when the user asks to "add", "create", or "write" a new .mjs or Node.js script (not a conversion of an existing bash script; for that, use rewrite-bash-to-javascript).'
+argument-hint: 'What the script must do, and where it goes, e.g. maintenance/scripts/<name>.mjs'
+---
+
+<!--
+DO NOT EDIT!
+Automatically generated from template file: {{ fromFilePath }};
+put the project rules in .github/skills/project.md (all the skills) or
+in .github/skills/create-javascript-mjs/project.md (this skill only);
+see .github/skills/README.md.
+-->
+
+{%- if githubProjectOrganization == 'micro-os-plus' %}
+{%- capture referenceScripts %}[jsonc-format.mjs](../../../maintenance/scripts/jsonc-format.mjs) and
+[xcdl-export.mjs](../../../maintenance/scripts/xcdl-export.mjs){% endcapture %}
+{%- capture permissionsScript %}`jsonc-format.mjs`{% endcapture %}
+{%- else %}
+{%- capture referenceScripts %}[update-changelog.mjs](../../../maintenance/scripts/update-changelog.mjs){% endcapture %}
+{%- capture permissionsScript %}the existing scripts{% endcapture %}
+{%- endif %}
+
+# Create a JavaScript .mjs Script — {{ topConfig.descriptiveName }}
+
+## When to Use
+
+- The user asks for a new `.mjs` script, for example under
+  `maintenance/scripts/`{% if hasFolderTestsPackage %} or `tests/scripts/`{% endif %}.
+- There is no existing `.sh` script to convert; otherwise use
+  [rewrite-bash-to-javascript](../rewrite-bash-to-javascript/SKILL.md).
+
+Read `.github/skills/project.md` first, and `project.md` in this
+folder, if it exists; their rules extend these, and take precedence
+where they differ.
+
+## Conventions
+
+The reference scripts are
+{{ referenceScripts }}.
+
+- **Module system**: ES modules with the `.mjs` extension, which
+  enables ESM whatever the `"type"` of `package.json`. The minimum
+  Node.js version is given by `engines` in `package.json`.
+- **Header comment**: a `/* ... */` block with the copyright and MIT
+  permission notice, as in the reference scripts. Add the "DO NOT EDIT!
+  Automatically generated from template file" line only if the script
+  is really generated from a Liquid template.
+- **Ends and sections**: separate the header and the end of the file with
+  `// ---...` lines, as the existing scripts do.
+- **Imports**: Node built-ins first, then npm packages; use the
+  `fs`, `path`, and `child_process` modules.
+- **Script location**: use `fileURLToPath(import.meta.url)` and
+  `path.dirname(...)`; never rely on the current folder.
+- **Arguments**: read them from `process.argv`; on missing or invalid
+  arguments, print `Error: ...` and a `Usage: ...` line with
+  `console.error(...)`, then `process.exit(1)`.
+- **Style**: arrow functions instead of the `function` keyword;
+  synchronous APIs (`readFileSync`, `execFileSync`, `spawnSync`) instead
+  of async ones; `console.log`/`console.error` for output.
+- **External tools**: run them with `spawnSync` or `execFileSync` and
+  `stdio: 'inherit'`; report a failure to start (`result.error`) and
+  propagate the exit status.
+- **File discovery**: use `globSync` from the `glob` package, ignoring
+  `**/node_modules/**`, `**/xpacks/**`, `**/build/**`, and
+  `**/website/**` as appropriate.
+- **Templates**: use `liquidjs` for Liquid, not hand-written
+  substitution.
+- **Read-only files**: preserve permissions with `statSync`/`chmodSync`
+  around writes, as in {{ permissionsScript }}.
+- **Dependencies**: add any new npm package to `devDependencies` in the
+  `package.json` of the folder that runs the script, with the versions
+  already pinned for the existing dependencies.
+- **Language**: British English in comments and messages, no
+  contractions.
+
+## Wiring
+
+Add or update the action{% if githubProjectOrganization == 'micro-os-plus' %} under `xpack.actions`{% else %} or the script under `scripts`{% endif %} in the
+`package.json` of the folder that owns the script, invoking it directly
+with `node`, for example
+{%- if githubProjectOrganization == 'micro-os-plus' %}
+`"xcdl-export": "node maintenance/scripts/xcdl-export.mjs"`.
+{%- else %}
+`"update-changelog": "node maintenance/scripts/update-changelog.mjs"`.
+{%- endif %}
+
+The scripts that carry a `DO NOT EDIT!` header are regenerated from
+their templates (see "Generated Files" in `.github/skills/project.md`);
+for a script that must survive the regeneration, also add its template
+to the package that generates it.
+
+## Verify
+
+- Run `node <path>/<name>.mjs ...` directly, including the error paths
+  (missing arguments).
+- Run the corresponding {% if githubProjectOrganization == 'micro-os-plus' %}`xpm run <action>`{% else %}`npm run <script>`{% endif %} to confirm the wiring.

@@ -238,6 +238,10 @@ const inspectEnvironment = (context, projectFolderPath) => {
     context.branchDevelopment = 'none'
   }
 
+  // The branch that receives the releases (the default branch on GitHub),
+  // used by the skills to name the branch that closes the issues.
+  context.branchMain = context.hasBranchXpack ? 'xpack' : 'master'
+
   if (context.hasBranchWebsite) {
     context.branchWebsite = 'website'
   } else if (context.hasBranchMaster) {
@@ -543,10 +547,15 @@ const writeTopTemplateConfig = (
     }
   }
 
-  const parentFolderPath = path.dirname(outputFilePath)
-  mkdirSync(parentFolderPath, { recursive: true })
+  // A dry run must not change the project, so the file is only checked.
+  if (options?.doDryRun) {
+    console.log(`(dry run, ${path.basename(outputFilePath)} not written)`)
+  } else {
+    const parentFolderPath = path.dirname(outputFilePath)
+    mkdirSync(parentFolderPath, { recursive: true })
 
-  writeFileSync(outputFilePath, `${JSON.stringify(output, undefined, 2)}\n`)
+    writeFileSync(outputFilePath, `${JSON.stringify(output, undefined, 2)}\n`)
+  }
 
   const outputCount = Object.keys(output).length
   const configCount = Object.keys(rawTopConfig).length
@@ -823,7 +832,8 @@ const processWebsiteConfig = (context, websiteFolderPath, options) => {
 const writeWebsiteTemplateConfig = (
   context,
   websiteFolderPath,
-  rawWebsiteConfig
+  rawWebsiteConfig,
+  options
 ) => {
   console.log()
   console.log('Writing website templates config...')
@@ -849,12 +859,17 @@ const writeWebsiteTemplateConfig = (
     }
   }
 
-  const configFolderPath = path.join(websiteFolderPath, 'config')
-  mkdirSync(configFolderPath, { recursive: true })
-  writeFileSync(
-    path.join(configFolderPath, 'website-templates.json'),
-    `${JSON.stringify(output, undefined, 2)}\n`
-  )
+  // A dry run must not change the project, so the file is only checked.
+  if (options?.doDryRun) {
+    console.log('(dry run, website-templates.json not written)')
+  } else {
+    const configFolderPath = path.join(websiteFolderPath, 'config')
+    mkdirSync(configFolderPath, { recursive: true })
+    writeFileSync(
+      path.join(configFolderPath, 'website-templates.json'),
+      `${JSON.stringify(output, undefined, 2)}\n`
+    )
+  }
 
   const outputCount = Object.keys(output).length
   const configCount = Object.keys(rawWebsiteConfig).length
@@ -1034,7 +1049,12 @@ export const computeContext = ({
       'website-templates.json'
     )
     if (!existsSync(websiteTemplatesConfigPath)) {
-      writeWebsiteTemplateConfig(context, websiteFolderPath, rawWebsiteConfig)
+      writeWebsiteTemplateConfig(
+        context,
+        websiteFolderPath,
+        rawWebsiteConfig,
+        options
+      )
     }
   }
 
