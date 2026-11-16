@@ -872,12 +872,16 @@ const writeWebsiteTemplateConfig = (
 // ----------------------------------------------------------------------------
 
 export const testsConfigProperties = {
-  stringProperties: [],
+  stringProperties: [
+    'boardConfigurations',
+    'boards',
+  ],
 
   arrayProperties: [],
 
   booleanProperties: [
     'hasUnitCommon',
+    'hasFootprintBenchmarks'
   ],
 }
 
