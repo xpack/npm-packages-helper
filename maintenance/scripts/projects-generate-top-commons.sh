@@ -109,12 +109,12 @@ function generate_top_commons()
     run_verbose git checkout "${development_branch}"
 
     run_verbose npm install
-    run_verbose npm run npm-link-helpers
+    run_verbose npm run npm-link-helper
     run_verbose npm run generate-top-commons
 
     run_verbose npm run deep-clean
     run_verbose npm install
-    run_verbose npm run npm-link-helpers
+    run_verbose npm run npm-link-helper
 
     run_verbose mkdir -pv "${stamps_folder_path}"
     run_verbose touch "${stamps_folder_path}/${git_folder_name}"

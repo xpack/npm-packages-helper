@@ -2,7 +2,7 @@
   "scripts": {
     "generate-top-commons": "node node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.mjs --xpack-dev-tools",
     "npm-install": "npm install",
-    "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
+    "npm-link-helper": "npm link @xpack/npm-packages-helper",
     "npm-outdated": "npm outdated"{% if releaseVersion != "0.0.0" %},
     "npm-pack": "npm pack",
     "npm-link": "npm link"{% endif %},

@@ -50,7 +50,7 @@
 {%- endif %}
 
     "npm-install": "npm install",
-    "npm-link-helpers": "npm link @xpack/npm-packages-helper",
+    "npm-link-helper": "npm link @xpack/npm-packages-helper",
     "npm-link": "npm link",
     "npm-outdated": "npm outdated",
     "npm-update": "npm update",
@@ -139,6 +139,7 @@
     "del-cli": "https://www.npmjs.com/package/del-cli"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
     "tap": "https://www.npmjs.com/package/tap"{% endunless %}{% endif %}{%- if topConfig.isTypescript %}{%- if topConfig.useEslint %},
     "eslint": "https://www.npmjs.com/package/eslint",
+    "eslint": "https://www.npmjs.com/package/glob",
     "@eslint/js": "https://www.npmjs.com/package/@eslint/js",
     "eslint-config-prettier": "https://www.npmjs.com/package/eslint-config-prettier",
     "typescript-eslint": "https://www.npmjs.com/package/typescript-eslint"{% endif %},
@@ -147,15 +148,16 @@
   },
   "dependencies": {},
   "devDependencies": { {% if topConfig.isTypescript %}
-    "@tsconfig/node22": "^22.0.6",
+    "@tsconfig/node22": "^22.0.7",
     "@types/node": "^26.6.6",{% endif %}
     "del-cli": "^8.0.1"{%- if topConfig.isJavascript or topConfig.isTypescript %}{%- unless topConfig.skipCiTests %},
     "tap": "^21.8.1"{% endunless %}{% endif %}{%- if topConfig.isTypescript %}{%- if topConfig.useEslint %},
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "@eslint/js": "^10.0.1",
+    "glob": "^14.0.6",
     "eslint-config-prettier": "^10.1.8",
-    "typescript-eslint": "^8.72.2"{% endif %},
-    "prettier": "^3.9.10",
+    "typescript-eslint": "^8.73.0"{% endif %},
+    "prettier": "^3.10.1",
     "typescript": "^6.0.3"{%- endif %}
   },
 
