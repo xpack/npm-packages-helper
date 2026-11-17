@@ -45,9 +45,9 @@
     "npm-pack": "npm pack",
     "npm-link": "npm link",
     "git-log": "git log --pretty='%cd * %h %s' --date=short",
+    "update-changelog": "node maintenance/scripts/update-changelog.mjs CHANGELOG.md",
     "git-pull-helper": "git -C ${HOME}/Work/micro-os-plus/build-helper-xpack.git pull",
     "deep-clean": "del-cli node_modules package-lock.json *.tgz",
-    "update-changelog": "node maintenance/scripts/update-changelog.mjs CHANGELOG.md",
     "postversion": "git push origin --all && git push origin --tags"
   },
 {%- if isXpack or isMicroOsPlus %}
