@@ -11,14 +11,18 @@ This file is read by the review skills:
 
 - `code-review`;
 - `consistency-check`;
-{%- if githubProjectOrganization == 'micro-os-plus' %}
+{%- if githubProjectOrganization == 'micro-os-plus' or topConfig.isTypescript %}
 - `design-review`;
+{%- endif %}
+{%- if githubProjectOrganization == 'micro-os-plus' %}
 - `doxygen-review`;
 {%- endif %}
 {%- if hasFolderWebsitePackage %}
 - `website-review`;
 {%- endif %}
 {%- if githubProjectOrganization == 'micro-os-plus' and topConfig.useDoxygen %}
+- `website-api-review`;
+{%- elsif githubProjectOrganization != 'micro-os-plus' and hasFolderWebsitePackage and topConfig.isTypescript %}
 - `website-api-review`;
 {%- endif %}
 
@@ -27,8 +31,11 @@ refer to review reports. It is not a skill.
 
 The facts that are specific to this project (the tests to run, how to
 build a probe, the public contract, the documentation to update) are
-in `.github/skills/project.md`, under the headings named below; read it
-first. Where it disagrees with this file, it takes precedence.
+in `.github/skills/project-defaults.md` (the defaults) and in
+`.github/skills/project.md` (the differences of the project), under
+the headings named below; read them first. A heading that is absent
+from `project.md` keeps the default. Where `project.md` disagrees with
+this file, it takes precedence.
 
 ## Judging Findings
 
@@ -49,17 +56,21 @@ first. Where it disagrees with this file, it takes precedence.
   - **[internal]** when it does not;
   - **[confirmed]** when a probe or a reproduction confirmed it.
 - For each **[breaking]** finding, state that it requires a major
-  version (semantic versioning), and propose the migration path: the
-  previous feature is preserved, marked as deprecated
+  version (semantic versioning), and that the release notes must mark
+  it as a breaking change. **The previous feature must be preserved**,
+  marked as deprecated
 {%- if githubProjectOrganization == 'micro-os-plus' %} with
   `[[deprecated]]` (for example an alias or an overload of the new
   entity),
 {%- else %} with a TSDoc
   `@deprecated` tag that names the replacement and the release that
-  removes it,
-{%- endif %} and kept working for at least one major version. When
-  that is not possible, give the reason. In both cases give the text
-  that the release notes should give to the users.
+  removes it (for example the old member as a deprecated alias of the
+  new one),
+{%- endif %} and kept working for at least one major version; propose
+  this migration path. Only when preserving the previous feature is not
+  possible (for example, a changed result or error that cannot coexist
+  with the old one, or a stricter type), give the reason why. In both
+  cases give the text that the release notes should give to the users.
 
 ## Confirming Findings with Probes
 
@@ -123,7 +134,8 @@ GitHub issue"), never only as "the issue" or "issue #46", and call the
 numbered item of a report an **item** (for example "item #1"). The
 exceptions are the text that is posted on GitHub itself (the title and
 the body of a GitHub issue, and its comments), where "issue" is
-unambiguous.
+unambiguous, and the line `GitHub issue #N.` of a report item, which
+has a fixed format.
 
 ## Report Files
 
@@ -140,13 +152,15 @@ allows a shorter form.
 | -------------------- | --------------------------------------------- |
 | `code-review`        | `maintenance/docs/CODE-REVIEW-<n>.md`         |
 | `consistency-check`  | `maintenance/docs/CONSISTENCY-CHECK-<n>.md`   |
-{%- if githubProjectOrganization == 'micro-os-plus' %}
+{%- if githubProjectOrganization == 'micro-os-plus' or topConfig.isTypescript %}
 | `design-review`      | `maintenance/docs/DESIGN-REVIEW-<n>.md`       |
 {%- endif %}
 {%- if hasFolderWebsitePackage %}
 | `website-review`     | `maintenance/docs/WEBSITE-REVIEW-<n>.md`      |
 {%- endif %}
 {%- if githubProjectOrganization == 'micro-os-plus' and topConfig.useDoxygen %}
+| `website-api-review` | `maintenance/docs/WEBSITE-API-REVIEW-<n>.md`  |
+{%- elsif githubProjectOrganization != 'micro-os-plus' and hasFolderWebsitePackage and topConfig.isTypescript %}
 | `website-api-review` | `maintenance/docs/WEBSITE-API-REVIEW-<n>.md`  |
 {%- endif %}
 

@@ -1,7 +1,7 @@
 ---
 name: website-review
 description: 'Review the content of the {{ topConfig.descriptiveName | replace: "'", "''" }} website (the Docusaurus site in website/), excluding the API reference pages under docs/api/: readability, ease of understanding, structure, consistency, language, and technical accuracy against the code. Report the problems found, each with a permanent number, and suggest improvements in the source files, naming the template to fix when a file is generated. Use when the user asks to "review the website", "check the web pages", "analyse the documentation site", or to find stale, wrong, or placeholder content on the site.'
-argument-hint: 'Optional: URL, page, or folder to review (e.g. docs/user, blog); defaults to the whole preview site except docs/api'
+argument-hint: 'Optional: URL, page, or folder to review (e.g. docs/user, blog); defaults to the whole published site except docs/api'
 ---
 
 <!--
@@ -12,9 +12,20 @@ in .github/skills/website-review/project.md (this skill only);
 see .github/skills/README.md.
 -->
 
+{%- if hasBranchWebpreview %}
+{%- assign publishedBranch = branchWebpreview %}
+{%- assign publishedUrl = packageHomepagePreview %}
+{%- else %}
+{%- assign publishedBranch = branchWebsite %}
+{%- assign publishedUrl = packageHomepage %}
+{%- endif %}
 {%- if githubProjectOrganization == 'micro-os-plus' and topConfig.useDoxygen %}
 {%- capture excludedSources %}':!website/docs/api' ':!website/doxygen' ':!website/static/doxygen'
-  ':!website/sidebar-category-doxygen.json'{% endcapture %}
+     ':!website/sidebar-category-doxygen.json'{% endcapture %}
+{%- elsif topConfig.isTypescript %}
+{%- capture excludedSources %}':!website/docs/api' ':!website/tsdoc'
+     ':!website/sidebar-category-tsdoc.json'
+     ':!website/docusaurus-config-navbar-tsdoc.json'{% endcapture %}
 {%- else %}
 {%- capture excludedSources %}':!website/docs/api'{% endcapture %}
 {%- endif %}
@@ -39,7 +50,7 @@ reviewed pages into `/docs/api/` are in scope: check that they point to
 the right page.
 
 Read `.github/skills/review-common.md` (the rules shared by the review
-skills) and `.github/skills/project.md` first, and `project.md` in this
+skills) and `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists (for this project, the sources of truth, the terms,
 and the pages that tell the version history); their rules extend these,
 and take precedence where they differ.
@@ -48,12 +59,12 @@ and take precedence where they differ.
 
 If the user specifies a URL, a page, or a folder, review only that.
 Otherwise review the whole site published at
-<{{ packageHomepagePreview }}>,
+<{{ publishedUrl }}>,
 except the API reference pages under `/docs/api/`: the home page,
 every page under `/docs/`, the blog (`/blog/`), the navigation bar, the
 sidebars, and the footer. The list of the published pages is in the
 site's
-[`sitemap.xml`]({{ packageHomepagePreview }}sitemap.xml).
+[`sitemap.xml`]({{ publishedUrl }}sitemap.xml).
 The sitemap omits the pages with `unlisted: true` in their front
 matter, which are still published; find them with `grep` over the
 front matter of `website/docs/` and `website/blog/`, and add them to
@@ -65,11 +76,11 @@ the fixes go (see "The Site Sources").
 
 ## The Published Version
 
-The preview site is built from the `{{ branchWebpreview }}` branch, which
+The published site is built from the `{{ publishedBranch }}` branch, which
 may lag behind the branch being worked on. Before starting:
 
-1. Run `git fetch origin {{ branchWebpreview }}` and compare
-   `git rev-parse --short origin/{{ branchWebpreview }}` with
+1. Run `git fetch origin {{ publishedBranch }}` and compare
+   `git rev-parse --short origin/{{ publishedBranch }}` with
    `git rev-parse --short HEAD`.
 2. List the differences in the sources of the pages in scope, leaving
    out the API reference pages and the files from which they are
@@ -77,18 +88,23 @@ may lag behind the branch being worked on. Before starting:
 
    ```sh
    x=({{ excludedSources }})
-   git diff --stat origin/{{ branchWebpreview }} HEAD -- website "${x[@]}"
+   git diff --stat origin/{{ publishedBranch }} HEAD -- website "${x[@]}"
    git status --short -- website "${x[@]}"
    ```
 
 3. If there are differences, tell the user (naming the files) and ask
-   whether to wait until the preview site is updated or to proceed.
-   When proceeding, review the pages built from the changed files from
-   their local sources, and list those pages in the Method paragraph
-   of the report.
+   which version to review:
+   - the **published** site, after the user publishes the current work
+     (the workflow takes a few minutes);
+   - the **local build** of the working tree (see "Reading the Local
+     Build"), which is the version that will be published next;
+   - the published site as it is, only to see what the readers see now.
+
+   Say in the Method paragraph of the report which one was read, and,
+   when pages are read from their local sources, list them.
 
 The publish workflow takes a few minutes after a push to
-`{{ branchWebpreview }}`; a page that does not yet show a pushed change is
+`{{ publishedBranch }}`; a page that does not yet show a pushed change is
 not a finding.
 
 ## Reading the Published Pages
@@ -121,6 +137,21 @@ problem of layout from it alone:
 - confirm every finding about blank lines, folding, headings, or
   tables against the source file, before reporting it.
 
+### Reading the Local Build
+
+To review the working tree, build the site into the scratchpad (never
+into the repository), and read the HTML files of the output folder with
+the same extraction as for the downloaded pages:
+
+```sh
+cd website && npx docusaurus build \
+  --out-dir <scratch>/site-build > <scratch>/build.log 2>&1
+grep -n -i -E 'broken|warn|error' <scratch>/build.log
+```
+
+It takes a few minutes; run it in the background. The build does not
+regenerate `website/docs/api/`; those pages are out of scope here.
+
 ## The Site Sources
 
 For each published page, find its sources in `website/`:
@@ -149,7 +180,8 @@ Read them as follows:
 3. Pages present in the sitemap but absent from the sidebar and the
    navigation bar are suspect. Front matter `unlisted: true` hides a
    page from the sitemap but still publishes it (see "Scope");
-   `draft: true` excludes it from production.
+   `draft: true` excludes it from production (the pages under
+   `docs/test/`, if any, are drafts, and are not reviewed).
 4. Partials that no page imports are dead; find them with `grep` over
    the `import` lines.
 5. The build fails on broken internal links and anchors
@@ -347,7 +379,7 @@ file (see "Report Files" in `.github/skills/review-common.md`):
 # Website review
 
 Date: <date>, on branch `<branch>`, commit `<hash>`; published site
-built from `{{ branchWebpreview }}` commit `<hash>`.
+built from `{{ publishedBranch }}` commit `<hash>`.
 
 Scope: <pages reviewed; exclusions, always including docs/api/>.
 

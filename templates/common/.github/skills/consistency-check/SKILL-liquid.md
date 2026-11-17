@@ -26,7 +26,7 @@ This skill reports problems; it does not fix them, unless the user asks
 for that separately (for example "fix #4").
 
 Read `.github/skills/review-common.md` (the rules shared by the review
-skills) and `.github/skills/project.md` first, and `project.md` in this
+skills) and `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists; their rules extend these, and take precedence
 where they differ.
 
@@ -51,6 +51,13 @@ file is regenerated, never edited in place. When a problem is found in
 a generated file, also check the template, since other projects may
 share it. The other generated files are listed under "Generated Files"
 in `.github/skills/project.md`.
+{%- if githubProjectOrganization != 'micro-os-plus' %}
+
+The compiled `dist/` folder, if it is tracked in git, is build output:
+check that it is current with `src/` (after `npm run compile`,
+`git status dist` shows no change), but do not review its content as
+source.
+{%- endif %}
 
 ## Checks
 
@@ -79,16 +86,43 @@ Problems that make something fail, or would make it fail.
   files in `src/`; the include folders exist.
 {%- else %}
 
-- **Package integration**: the `exports`, `main`, `types`, and `files`
-  of `package.json` match the files produced by the build; the scripts
-  of `package.json` refer to files and tools that exist.
+- **Entry points:** `main`, `types`, and the `exports` map in
+  `package.json` point to files that exist after `npm run compile`;
+  `package.json` sets `"type": "module"`, and there is no CommonJS entry
+  point; the compiled entry point exports everything that
+  `src/index.ts` does, and `src/index.ts` exports everything that the
+  documentation describes.
+- **Build:** the root `tsconfig.json` and the
+  `maintenance/config/tsconfig-*.json` files agree on the included
+  folders, the module system, and the output folder; the `clean` script
+  removes what the build creates.
+- **Lint and format:** `npm run lint` passes; the ESLint and the
+  Prettier configurations in `maintenance/config/` match the style
+  stated in the instruction files; `package.json` has no leftover
+  settings or dependencies of a tool that is no longer used.
+- **Tests:** `npm test` passes, with the coverage required by the
+  project; the test file patterns cover the test files; each public
+  member is exercised.
+- **Dependencies:** `dependencies` and `devDependencies` are the ones
+  that `src/` and the tests actually import; `engines.node`,
+  `@types/node`, and the compiler `target` are mutually compatible;
+  `package-lock.json` matches `package.json`.
+- **Packaging:** `.npmignore` excludes the development files (`tests/`,
+  `website/`, `maintenance/`, `.github/`, `.claude/`) and keeps what the
+  package needs; the `files` list in `package.json` and `.npmignore`
+  agree; check with `npm pack --dry-run` (note that it may run
+  `prepare`, which rebuilds `dist/`).
+- **Website:** the version, the install instructions, the examples, the
+  API names, and the links in `website/docs/` and `website/src/` match
+  `package.json` and the code; `website/sidebar-category-tsdoc.json`
+  matches the exported API.
 {%- endif %}
 - **Editor and debugger configurations** (for example
   `.vscode/launch.json`, `.vscode/tasks.json`): paths, build folder
   names, configuration names, and executable names match the current
   build layout.
 - **CI workflows** (`.github/workflows/`): the actions and the scripts
-  they invoke exist.
+  they invoke exist{% if githubProjectOrganization != 'micro-os-plus' %}, and the Node.js versions match `engines`{% endif %}.
 - **Scripts**: the paths and actions referred to by the maintenance
   and test scripts exist.
 
@@ -100,6 +134,14 @@ Stale or incorrect content in:
   {% if githubProjectOrganization == 'micro-os-plus' %}tests, platforms, devices, scripts, cmake{% else %}tests, scripts, maintenance{% endif %});
 - `CLAUDE.md`, `.github/copilot-instructions.md`, and the skills in
   `.github/skills/`.
+{%- if githubProjectOrganization != 'micro-os-plus' %}
+- `CHANGELOG.md` (releases and dates in order; hashes that exist; the
+  `update-changelog` script and its documentation);
+- `package.json` metadata (`description`, `repository`, `bugs`,
+  `homepage`, `keywords`, `author`);
+- the TSDoc comments and the examples in them, including their
+  structure and markup (see `.github/skills/tsdoc-rules.md`).
+{%- endif %}
 
 Look for: commands and actions that do not exist; paths, files, and
 folders that were renamed or removed; descriptions of tests,
@@ -122,6 +164,12 @@ leftovers); headings or file names with the wrong case; typos.
 - Include guards match the file names.
 - Each header in `include/` has its matching `inlines/` and `src/`
   files where applicable, with the same base name.
+{%- else %}
+- Names of members, types, and constants follow one pattern, and the
+  terminology is consistent in the code, the comments, and the
+  documentation ("folder", not "directory").
+- The package name, the repository name, the descriptive name
+  (`topConfig.descriptiveName`), and the project title agree.
 {%- endif %}
 - Stray, duplicated, or unused files (for example copies in the wrong
   folder, files for obsolete toolchains, generated files nothing refers
@@ -212,7 +260,9 @@ the user in the summary rather than guessing.
    READMEs, and the instruction files fully.
 3. Go through the checks section by section, verifying each finding in
    the files (and in the templates, for generated files), and verify
-   again the open problems of the earlier report.
+   again the open problems of the earlier report{% if githubProjectOrganization != 'micro-os-plus' %}; run
+   `npm run compile`, `npm run lint`, `npm test`, and
+   `npm pack --dry-run`{% endif %}.
 4. Number the findings as described above, check the numbering, and
    write the report.
 5. Give the user a short summary: the counts, the most serious

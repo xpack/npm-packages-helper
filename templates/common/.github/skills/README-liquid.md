@@ -5,10 +5,19 @@ DO NOT EDIT!
 Automatically generated from template file: {{ fromFilePath }}.
 -->
 
+{%- assign hasWar = false %}
+{%- if githubProjectOrganization == 'micro-os-plus' and topConfig.useDoxygen %}
+{%- assign hasWar = true %}
+{%- elsif githubProjectOrganization != 'micro-os-plus' and hasFolderWebsitePackage and topConfig.isTypescript %}
+{%- assign hasWar = true %}
+{%- endif %}
+
 This folder holds the agent skills of the project, shared by GitHub
-Copilot (through `.github/copilot-instructions.md`) and Claude Code
-(through `.claude/skills`, a symbolic link to this folder). Each skill
-is a sub-folder with a `SKILL.md` file, whose front matter (`name`,
+Copilot (through `.github/copilot-instructions.md`) and Claude Code.
+The files are in `.claude/skills`, where Claude Code looks for them;
+`.github/skills` is a symbolic link to that folder, so that the paths
+`.github/skills/...` used by the instruction files and the skills are
+valid. Each skill is a sub-folder with a `SKILL.md` file, whose front matter (`name`,
 `description`) tells the agent when to use it.
 
 Most of the files are generated from the templates of the
@@ -24,6 +33,10 @@ explains which is which, and where each kind of rule goes.
 | `README.md` (this file) | template | yes |
 | `review-common.md` | template | yes |
 | `<skill>/SKILL.md`, `<skill>/scripts/*` | template | yes |
+{%- if hasWar %}
+| `website-api-review/common.md` | template | yes |
+{%- endif %}
+| `project-defaults.md` | template | yes |
 | `project.md` | template, created once | no |
 | `<skill>/project.md` | the project, optional | no |
 | `<skill>/SKILL.md` of a skill not in the template | the project | no |
@@ -35,9 +48,20 @@ explains which is which, and where each kind of rule goes.
   (judging, tagging, and numbering the findings, the names and the
   format of the report files, and acting on an item); it is not a
   skill.
-- `project.md` holds the facts of this project that several skills
-  use. It is created from a stub (with defaults for the organisation)
-  only if it does not exist; after that, it belongs to the project.
+{%- if hasWar %}
+- `website-api-review/common.md` holds the procedures of that skill that
+  do not depend on how the API pages are generated (the published
+  version, reading the pages, the local build, numbering, and the
+  procedure); it is read by the skill, and is not a skill.
+{%- endif %}
+- `project-defaults.md` holds the default values of the project facts
+  that several skills use, one section for each heading listed below,
+  rendered for the organisation and the project (for example, the
+  tests, or the documentation, depend on whether the project has a
+  `tests/` or a `website/` folder).
+- `project.md` holds only what differs in this project from the
+  defaults. It is created from a short stub only if it does not exist;
+  after that, it belongs to the project.
 - `<skill>/project.md`, for example `code-review/project.md`, holds the
   rules of a single skill. The template never creates it; a skill reads
   it only if it exists.
@@ -72,18 +96,33 @@ explains which is which, and where each kind of rule goes.
 - `xcdl` — how `xcdl-package.jsonc` generates the CMake and meson
   files.
 {%- else %}
-
-- `code-review` — a review of the style, documentation, and
-  correctness of the code, or of a change;
+{% if topConfig.isTypescript %}
+- `code-review` — a review of the style, the TSDoc documentation, and
+  the correctness of a change;
+{%- endif %}
 - `consistency-check` — the consistency of the names, the
-  configurations, the READMEs, and the instruction files;
+  configurations, the packaging, the READMEs, and the instruction
+  files;
 - `create-github-issue` — draft and open GitHub issues;
 - `create-javascript-mjs` — write a new `.mjs` script;
+{%- if topConfig.isTypescript %}
+- `design-review` — a review of the design of the library, its API,
+  and its packaging (also used for an "API review");
+{%- endif %}
 - `github-commit` — prepare a commit, and the closing comment of the
   GitHub issue;
 - `rewrite-bash-to-javascript` — convert a `.sh` script to `.mjs`;
 {%- if hasFolderWebsitePackage %}
-- `website-review` — a review of the website, except the API pages.
+- `website-review` — a review of the website, except the API pages;
+{%- endif %}
+{%- if hasFolderWebsitePackage and topConfig.isTypescript %}
+- `website-api-review` — a review of the API reference pages of the
+  website, generated from the TSDoc comments.
+{%- endif %}
+{%- if topConfig.isTypescript %}
+
+`tsdoc-rules.md`, also generated, holds the rules for the TSDoc
+comments, shared by the skills; it is not a skill.
 {%- endif %}
 {%- endif %}
 
@@ -94,7 +133,8 @@ When a rule specific to this project must be added or changed:
 1. If several skills use it (a test command, how to build a probe, a
    generated file, a label, the milestones, the review documents, the
    public contract, the documentation to update, the short form of the
-   paths), write it in `project.md`, under the matching heading.
+   paths), and it differs from `project-defaults.md`, write it in
+   `project.md`, under the matching heading; do not repeat a default.
 2. If only one skill uses it (a restriction of the design review, an
    exception to the Doxygen rules, a decision about the API pages, an
    example), write it in `<skill>/project.md`, creating the file if
@@ -111,23 +151,25 @@ The files are read from the most general to the most specific, and,
 where they disagree, the more specific one wins:
 
 1. `<skill>/SKILL.md` (and `review-common.md`, for the review skills);
-2. `project.md`;
-3. `<skill>/project.md`.
+2. `project-defaults.md`;
+3. `project.md`, whose heading extends the default of the same
+   heading, or overrides it where the two disagree (a heading that says
+   "None", or "Not applicable", removes the default);
+4. `<skill>/project.md`.
 
 ## The Headings of `project.md`
 
-The generated files refer to these headings by name, so keep them
-(a heading may say "None", but must not be removed or renamed); other
-headings may be added:
+The generated files refer to these headings by name, so do not rename
+them (a heading that is absent from `project.md` keeps its default in
+`project-defaults.md`, and a heading may say "None" to remove it);
+other headings may be added, for example for the extra rules about the
+milestones:
 
 - **Tests** — the tests to run after major and after minor changes;
 - **Probes** — how to build and run a probe program;
 - **Generated Files** — the files generated by the project tools, from
   what, and how to regenerate them;
 - **Files Not to Commit** — the files that are never committed;
-- **Labels** — the GitHub labels used by the issues;
-- **Milestones** — whether the repository uses milestones, and how
-  they are named;
 - **Review Documents** — the documents in `maintenance/docs/` that list
   findings, and the format of the notes of the fixed items;
 - **Breaking Changes** — the public contract, whose changes are
@@ -146,7 +188,8 @@ The templates are in the `npm-packages-helper` package:
   files of a single organisation; the folder name is removed when the
   file is generated);
 - `templates/first-time/.github/skills/project-liquid.md` — the stub of
-  `project.md`.
+  `project.md`; the defaults are in
+  `templates/common/.github/skills/project-defaults-liquid.md`.
 
 The templates are Liquid files (`-liquid` in their names); the
 differences between the organisations and between the projects are
@@ -155,7 +198,7 @@ example `githubProjectOrganization`, `hasFolderWebsitePackage`,
 `topConfig.useDoxygen`).
 
 To apply a change, with `node_modules/@xpack/npm-packages-helper`
-linked to a writable checkout (`npm run npm-link-helpers`), run in the
+linked to a writable checkout (`npm run npm-link-helper`), run in the
 top folder of each project:
 
 ```sh

@@ -24,7 +24,7 @@ see .github/skills/README.md.
 - A macro listed in `xcdl-*.jsonc` (a `defaultDefine`) is discussed,
   for example to decide whether it is enabled.
 
-Read `.github/skills/project.md` first, and `project.md` in this
+Read `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists; their rules extend these, and take precedence
 where they differ.
 

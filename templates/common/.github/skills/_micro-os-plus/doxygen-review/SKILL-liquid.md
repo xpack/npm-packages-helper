@@ -25,7 +25,7 @@ This skill fixes documentation only. Code defects found while reading the
 code are reported to the user, not fixed, unless the user asks for that
 separately.
 
-Read `.github/skills/project.md` first, and `project.md` in this
+Read `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists (for the exceptions to the rules below, and the
 known inaccuracies of this project); their rules extend these, and take
 precedence where they differ.
@@ -70,6 +70,19 @@ section; if they differ, ask the user which one is right:
   the same term for the same concept throughout.
 - Lines shorter than 80 characters; no tab characters; comment lines
   aligned with their `/**`.
+- Exception: the overloads that differ from a documented function only
+  in their `requires` clause, and exist only to stop the compilation
+  with a readable message (the "Rejects ..." overloads, with their
+  `static_assert`), are hidden from Doxygen with
+  `#if !defined(__DOXYGEN__)`, in the declaration and in the
+  definition, so that the applications do not read them as API. The
+  same applies to the out-of-line definitions of the deprecated
+  overloads whose declarations carry the complete comment. Doxygen
+  ignores the `requires` clause when it matches a definition to a
+  declaration, so the comment of such a definition would otherwise be
+  merged into the documentation of the real function. Keep their
+  comments in the source, and add a guard for any new overload of this
+  kind.
 
 ## Step 1 — Automatic Checks
 

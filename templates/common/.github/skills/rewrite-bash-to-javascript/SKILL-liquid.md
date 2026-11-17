@@ -22,7 +22,7 @@ see .github/skills/README.md.
 For a new script that has no `.sh` original, use
 [create-javascript-mjs](../create-javascript-mjs/SKILL.md) instead.
 
-Read `.github/skills/project.md` first, and `project.md` in this
+Read `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists; their rules extend these, and take precedence
 where they differ.
 

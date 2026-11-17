@@ -43,7 +43,7 @@ Related skills, with different scopes:
 {%- endif %}
 
 Read `.github/skills/review-common.md` (the rules shared by the review
-skills) and `.github/skills/project.md` first, and `project.md` in this
+skills) and `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists; their rules extend these, and take precedence
 where they differ. In particular, `project.md` in this folder lists the
 **restrictions**: the deliberate decisions of the design that must not

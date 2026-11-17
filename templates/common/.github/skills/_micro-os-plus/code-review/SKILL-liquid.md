@@ -28,7 +28,7 @@ depth by `doxygen-review`; suggest them when a question of that kind
 arises, rather than extending this review.
 
 Read `.github/skills/review-common.md` (the rules shared by the review
-skills) and `.github/skills/project.md` first, and `project.md` in this
+skills) and `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists (for the project-specific checks); their rules
 extend these, and take precedence where they differ.
 

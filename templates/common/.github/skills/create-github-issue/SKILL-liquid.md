@@ -24,7 +24,7 @@ see .github/skills/README.md.
 Issues are opened in `{{ githubProjectOrganization }}/{{ githubProjectName }}`
 with the `gh` CLI, run from the repository root.
 
-Read `.github/skills/project.md` first, and `project.md` in this
+Read `.github/skills/project-defaults.md`, `.github/skills/project.md` first, and `project.md` in this
 folder, if it exists; their rules extend these, and take precedence
 where they differ.
 
@@ -43,7 +43,11 @@ where they differ.
    the sample programs, and keep the evidence (the command, the
    configuration name, and the relevant output) to show the user; the
    body of the issue has only the condensed form (see "Length"). State
-   clearly what was measured and what was only estimated or inferred.
+   clearly what was measured and what was only estimated or inferred:
+   every statement in the issue must come from a probe, or from reading
+   the code at `HEAD`. Record the version of the project, the compiler
+   and the target (or the Node.js version), and the operating system,
+   when they matter.
 3. **Check for duplicates.** Search the open and closed issues:
 
    ```sh
@@ -54,8 +58,8 @@ where they differ.
    If an issue already covers the problem, report it to the user
    instead of creating a new one, and offer to add a comment to it.
    If a related issue exists, reference it in the body (see below).
-4. **Choose the labels** (see "Labels") **and the milestone, if the
-   repository uses milestones** (see "Milestone").
+4. **Choose the labels** (see "Labels") **and the milestone** (see
+   "Milestone").
 5. **Draft the title and the body** (see "Title" and "Body"), and write
    the body to a file in the scratchpad folder.
 6. **Show the draft to the user** — the title, the labels, the
@@ -69,24 +73,26 @@ where they differ.
    gh issue create --repo {{ githubProjectOrganization }}/{{ githubProjectName }} \
      --title "<title>" \
      --label <label> [--label <label>] \
-     [--milestone "<milestone>"] \
+     --milestone "<milestone>" \
      --assignee @me \
      --body-file <scratchpad>/issue-body.md
    ```
 
-   Always assign the issue to the current GitHub user (`--assignee
-   @me`, the account `gh` is authenticated as). Omit `--milestone` only
-   when the repository has no milestones, or when the user confirmed
-   that none applies.
+   If the draft proposed a new milestone, create it first (see
+   "Milestone"). Always assign the issue to the current GitHub user
+   (`--assignee @me`, the account `gh` is authenticated as). Omit
+   `--milestone` only when the user explicitly decided that the issue
+   has no milestone.
 8. **Report** the issue number and URL. When several issues are created,
    list them as a table (number, title, labels, milestone).
 
 ## Labels
 
-Use only the repository labels listed under "Labels" in
-`.github/skills/project.md`, unless the user asks otherwise (the other
-labels of the repository, such as `question` or `wontfix`, are applied
-by the maintainer). The usual ones:
+Use only `bug`, `enhancement`, and, when the repository has it,
+`documentation`, unless the user asks otherwise (the other labels of
+the repository, such as `question` or `wontfix`, are applied by the
+maintainer; `gh label list --repo {{ githubProjectOrganization }}/{{ githubProjectName }}`
+shows them). The usual ones:
 
 - `bug` — the code behaves incorrectly: wrong or invalid output,
   crashes, faults, undefined behaviour, compilation failures with a
@@ -101,11 +107,12 @@ by the maintainer). The usual ones:
   new feature or a new public API (for example a missing extension
   point whose absence leads to a failure).
 
-Unless `.github/skills/project.md` lists it, the `documentation` label
-is not used; documentation issues are labelled `enhancement` when the
-text is correct but can be improved, and `bug` when it is wrong or
-contradicts the code. If the kind is uncertain, say so and ask the
-user.
+The `documentation` label is used when only the website pages or the
+READMEs are wrong or incomplete. When the repository has no such label,
+or when the text is in the comments of the sources, documentation
+issues are labelled `enhancement` when the text is correct but can be
+improved, and `bug` when it is wrong or contradicts the code. If the
+kind is uncertain, say so and ask the user.
 
 ## Title
 
@@ -126,9 +133,11 @@ user.
 ## Body
 
 Write the body as plain Markdown prose, kept short (see "Length"), in
-British English, formal, with no contractions, the Oxford comma, and the
-lines wrapped at 72 characters. Use backticks for file names,
-identifiers, macros, options, configuration names, and commit hashes.
+British English, formal, with no contractions, and with the Oxford
+comma. Write each paragraph as one line, not wrapped: GitHub renders
+every newline in an issue as a line break. Use backticks for file
+names, identifiers, macros, options, and configuration names; write
+the commit hashes bare, without backticks, so that GitHub links them.
 Do not use headings or templates (no "Steps to reproduce" / "Expected" /
 "Actual" sections); the information is given as connected sentences, in
 this order, merged into the two paragraphs allowed by "Length", with
@@ -165,13 +174,19 @@ Issues are read by the maintainer, who knows the code: keep them short.
 
 - The body has at most two paragraphs (the location and the observation
   together, then the proposed change), plus the final reference line,
-  and normally no more than 12 lines of 72 characters.
+  and normally no more than about 150 words, counting the prose only
+  (not the code blocks, nor the reference line). When a list of
+  alternative solutions requires more, the list takes precedence over
+  the limit, but the issue stays as short as the content allows.
 - Cite the location once, with the primary file and the first line or
   the function name; do not list every affected line, file, or
   declaration.
 - State the evidence in a clause (the failing expression and the
   result, with the configuration in brackets), not as a narrative; give
-  the full output only when it is needed to understand the problem.
+  the full output only when it is needed to understand the problem. A
+  probe program and its output are quoted, in a code block after the
+  paragraphs, only when they are short (about ten lines), or when the
+  problem cannot be understood without them.
 - Omit what the reader can see in the code or in the title, the
   background of the feature, the scope, and the trade-offs, unless they
   change the decision (the scope and the trade-offs of the proposed
@@ -179,36 +194,43 @@ Issues are read by the maintainer, who knows the code: keep them short.
   or a short list when there are several solutions.
 - Do not describe the work already done on the fix.
 
-A simple finding is a single paragraph of two to four lines.
+A simple finding is a single paragraph of two to four sentences.
 
 ## Milestone
 
-Follow "Milestones" in `.github/skills/project.md`. List the
-milestones before drafting:
+Every issue gets a milestone, unless the user explicitly decides
+otherwise for that issue. A `project.md` may add rules about the
+milestones of the repository. List the milestones, closed ones included,
+before drafting:
 
 ```sh
 gh api 'repos/{{ githubProjectOrganization }}/{{ githubProjectName }}/milestones?state=all' \
   --jq '.[] | "\(.title)\t\(.state)\t\(.description)"'
 ```
 
-- If the repository has no milestones, omit `--milestone` from the
-  command, unless `.github/skills/project.md` says that they are used;
-  then ask the user whether to create one.
-- Otherwise, propose the appropriate one in the draft (usually the
-  milestone of the next release; a breaking change belongs to the next
-  major release), and assign it with `--milestone`.
-- If no milestone applies, ask the user whether to proceed without one
-  or to create one. Creating a milestone is a public action: show its
-  title and description, wait for approval, and then create it with
+- Propose in the draft the milestone named after the version of the
+  next release, which is the `version` of `package.json` without the
+  pre-release suffix (`7.0.0-pre` gives `7.0.0`); a breaking change
+  belongs to the next major release. Do not assume that a milestone
+  that exists is current (an old one may be left from an earlier
+  version).
+- When no milestone matches the next release (including when the
+  repository has no milestones at all), propose in the draft to create
+  it, with its title and an empty description; do not omit the
+  milestone because none exists. Creating a milestone is a public
+  action: it is created only after the draft is approved, with
   `gh api --method POST
   repos/{{ githubProjectOrganization }}/{{ githubProjectName }}/milestones
-  -f title="<title>"`.
+  -f title="<version>"`.
+- Leave the issue without a milestone only when the user says so for
+  that issue.
 
 ## Issues from Review Findings
 
 When the findings of a review (a report in `maintenance/docs/`; see
-"Report Files" in `.github/skills/review-common.md`) are turned into
-issues:
+"Report Files" in `.github/skills/review-common.md`, or a document that
+the user names, such as a notes file, or the output of a code review)
+are turned into issues:
 
 - Write one issue per numbered finding, and do not group independent
   findings; each issue is self-contained and does not rely on the
@@ -219,10 +241,14 @@ issues:
   finding, and check them against the current `HEAD` (step 1), because
   the review may be older than the code.
 - Check for duplicates for each finding (step 3).
-- After the issue is created, the number of the issue is recorded in
-  the review document, as described under "Review Documents" in
-  `.github/skills/github-commit/SKILL.md`; ask the user before editing
-  the document.
+- A **[breaking]** finding is labelled `bug` or `enhancement`, as its
+  kind says, and its body states that the change needs a major
+  version.
+- After the issue is created, ask the user before recording its number
+  in the report; record it as a line `GitHub issue #N.` at the end of
+  the item, as described under "Review Documents" in
+  `.github/skills/github-commit/SKILL.md`, so that the commit that
+  fixes it finds the item.
 
 ## Example
 
@@ -234,14 +260,12 @@ Title: `The trace write gives up after a partial write`
 Labels: `bug`
 
 ```markdown
-`src/trace.cpp`, `write()`: when the host accepts only part of the
-buffer, the call returns the number of bytes not written, and the
-function returns the shorter count, so the remaining bytes of the
-trace line are lost. Repeat the call for the remaining bytes, and add
-a test for the partial writes.
+`src/trace.cpp`, `write()`: when the host accepts only part of the buffer, the call returns the number of bytes not written, and the function returns the shorter count, so the remaining bytes of the trace line are lost. Repeat the call for the remaining bytes, and add a test for the partial writes.
 
 Found while fixing #NNN.
 ```
+
+(Each paragraph is a single line; see "Body".)
 
 ## After the Issue Is Fixed
 
