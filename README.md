@@ -215,7 +215,7 @@ Add the following:
   "scripts": {
     "generate-top-commons": "bash node_modules/@xpack/npm-packages-helper/maintenance/scripts/generate-top-commons.sh --xpack-dev-tools",
     "npm-install": "npm install",
-    "npm-link-helpers": "npm link @xpack/npm-packages-helper @xpack/docusaurus-template-liquid",
+    "npm-link-helper": "npm link @xpack/npm-packages-helper",
     "npm-outdated": "npm outdated",
     "npm-pack": "npm pack",
     "npm-link": "npm link",
@@ -236,7 +236,7 @@ the value of `xpack.properties.appName`.
 }
 ```
 
-Run the `npm-link-helpers` and `generate-top-commons` actions.
+Run the `npm-link-helper` and `generate-top-commons` actions.
 
 ### Top dependencies
 
