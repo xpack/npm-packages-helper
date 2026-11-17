@@ -17,7 +17,17 @@
 // `templates` folder. Invoked via the consuming project's
 // `generate-top-commons` npm script.
 
-import { existsSync, rmSync, statSync } from 'fs'
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readlinkSync,
+  renameSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  unlinkSync,
+} from 'fs'
 import path from 'path'
 import { globSync } from 'glob'
 import {
@@ -74,6 +84,69 @@ const removeCommonFolder = (relativeFolderPath, projectFolderPath, options) => {
     if (!options.doDryRun) {
       rmSync(toAbsoluteFolderPath, { recursive: true, force: true })
     }
+  }
+}
+
+// Keeps the skills in `.claude/skills`, where Claude Code looks for them,
+// and links `.github/skills` to `../.claude/skills`, so that GitHub
+// Copilot and the instruction files, which use the `.github/skills`
+// paths, find them too. The templates are generated through the link.
+// A project in the earlier layout (the skills in `.github/skills`, and
+// `.claude/skills` a link to them, or absent) is converted by moving
+// the folder; an existing `.claude/skills` that is not such a link is
+// never replaced. A failure is reported, but does not stop the
+// generation.
+const linkSkills = (projectFolderPath, options) => {
+  const githubSkillsPath = path.join(projectFolderPath, '.github', 'skills')
+  const claudeFolderPath = path.join(projectFolderPath, '.claude')
+  const claudeSkillsPath = path.join(claudeFolderPath, 'skills')
+
+  const lstatOrNull = (somePath) => {
+    try {
+      // lstat, not exists, to also see a dangling link.
+      return lstatSync(somePath)
+    } catch {
+      return null
+    }
+  }
+
+  const githubStat = lstatOrNull(githubSkillsPath)
+  if (githubStat === null || githubStat.isSymbolicLink()) {
+    // No skills, or already linked.
+    return
+  }
+  if (!githubStat.isDirectory()) {
+    return
+  }
+
+  const claudeStat = lstatOrNull(claudeSkillsPath)
+  if (claudeStat !== null) {
+    const isOldLink =
+      claudeStat.isSymbolicLink() &&
+      readlinkSync(claudeSkillsPath) === path.join('..', '.github', 'skills')
+    if (!isOldLink) {
+      console.log(
+        'warning: .claude/skills exists, .github/skills not converted to a link',
+      )
+      return
+    }
+  }
+
+  console.log('mv .github/skills .claude/skills')
+  console.log('ln -s ../.claude/skills .github/skills')
+  if (options.doDryRun) {
+    return
+  }
+
+  try {
+    mkdirSync(claudeFolderPath, { recursive: true })
+    if (claudeStat !== null) {
+      unlinkSync(claudeSkillsPath)
+    }
+    renameSync(githubSkillsPath, claudeSkillsPath)
+    symlinkSync(path.join('..', '.claude', 'skills'), githubSkillsPath, 'dir')
+  } catch (error) {
+    console.log(`warning: cannot link the skills: ${error.message}`)
   }
 }
 
@@ -293,23 +366,37 @@ const processTemplateItem = (relativeFilePath, projectFolderPath, params) => {
 
   const skipFolderPrefixes = []
 
-  // Temporary guard: the xpack and xpack-dev-tools projects still have
-  // hand-written skills, which must not be overwritten until they are
-  // migrated to these templates (with their facts moved to
-  // `.github/skills/project.md`); remove it after that migration.
-  if (options.isXpack || options.isXpackDevTools) {
+  // The xpack-dev-tools projects have no skills yet.
+  if (options.isXpackDevTools) {
     skipFolderPrefixes.push('.github/skills/')
   }
 
   if (!context.hasFolderWebsitePackage) {
-    skipFolderPrefixes.push('.github/skills/website-review/')
+    skipFolderPrefixes.push(
+      '.github/skills/website-review/',
+      '.github/skills/website-api-review/',
+    )
   }
 
-  // The `doxygen-review` skill is kept, since its rules apply to the
-  // comments of every µOS++ project; only its Doxygen runs depend on
-  // `useDoxygen`, inside the template.
-  if (!context.topConfig.useDoxygen) {
-    skipFolderPrefixes.push('.github/skills/website-api-review/')
+  if (options.isMicroOsPlus) {
+    // The `doxygen-review` skill is kept, since its rules apply to the
+    // comments of every µOS++ project; only its Doxygen runs depend on
+    // `useDoxygen`, inside the template.
+    if (!context.topConfig.useDoxygen) {
+      skipFolderPrefixes.push('.github/skills/website-api-review/')
+    }
+  }
+
+  if (options.isXpack && !context.topConfig.isTypescript) {
+    // The TypeScript skills (the TSDoc rules, the code and the design
+    // reviews, and the review of the API reference generated from the
+    // TSDoc comments) do not apply to the other xpack projects.
+    skipFolderPrefixes.push(
+      '.github/skills/tsdoc-rules.md',
+      '.github/skills/code-review/',
+      '.github/skills/design-review/',
+      '.github/skills/website-api-review/',
+    )
   }
 
   if (skipFolderPrefixes.some((prefix) => toRelativeFilePath.startsWith(prefix))) {
@@ -459,6 +546,11 @@ if (options.doInit) {
       substitutionPrefix: firstTimeSubstitutionPrefix,
     })
   }
+
+  console.log()
+  console.log('Links...')
+
+  linkSkills(projectFolderPath, options)
 }
 
 // ----------------------------------------------------------------------------
