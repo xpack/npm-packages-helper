@@ -36,6 +36,7 @@ on:
       - '**'
     paths-ignore:
       - '.claude/**'
+      - '.github/skills'
       - '.github/skills/**'
       - '.github/workflows/publish-github-pages.yml'
       - '.github/workflows/test-all.yml'

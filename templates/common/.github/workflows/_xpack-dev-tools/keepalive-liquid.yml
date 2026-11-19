@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: xpack-development
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
 
       - name: Update keepalive timestamp
         run: |

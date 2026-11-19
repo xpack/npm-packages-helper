@@ -107,7 +107,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-    runs-on: macos-26-intel
+    runs-on: macos-15-intel
 
     steps:
       - name: 'Show environment'
@@ -165,7 +165,7 @@ jobs:
   {{platform}}-test:
     name: '{{platform}} {{packageName}} {% raw %}${{github.event.inputs.version}}{% endraw %} test'
     # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-    runs-on: macos-26
+    runs-on: macos-15
 
     steps:
       - name: 'Show environment'

@@ -6,8 +6,10 @@
     "npm-outdated": "npm outdated"{% if releaseVersion != "0.0.0" %},
     "npm-pack": "npm pack",
     "npm-link": "npm link"{% endif %},
-    "deep-clean": "del-cli node_modules package-lock.json *.tgz"{% if releaseVersion != "0.0.0" %},
+    "git-log": "git log --pretty='%cd * %h %s' --date=short",
     "update-changelog": "node maintenance/scripts/update-changelog.mjs CHANGELOG.md",
+    "git-pull-helper": "git -C ${HOME}/Work/xpack-dev-tools/xbb-helper-xpack.git pull",
+    "deep-clean": "del-cli node_modules package-lock.json *.tgz"{% if releaseVersion != "0.0.0" %},
     "postversion": "git push origin --all && git push origin --tags"{% endif %}
   },
   "$dependenciesUrls": {
@@ -18,10 +20,9 @@
   },
   "devDependencies": {
     "del-cli": "^8.0.1",
-    "glob": "^13.0.6",
+    "glob": "^14.0.6",
     "json": "^11.0.0",
-    "liquidjs": "^10.27.0",
-    "glob": "^13.0.6"
+    "liquidjs": "^10.30,1"
   },
   "repository": {
     "type": "git",
